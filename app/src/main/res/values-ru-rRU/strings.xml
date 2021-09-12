@@ -249,6 +249,7 @@
     <string name="basalvaluebelowminimum">значение базала ниже минимума. профиль не создан!</string>
     <string name="sms_actualbg">гликемия:</string>
     <string name="sms_lastbg">прошлый СК:</string>
+    <string name="mdi">Подача инсулина шприц-ручкой</string>
     <string name="MM640g">MM640g</string>
     <string name="ongoingnotificaction">текущие уведомления</string>
     <string name="old_data">старые данные</string>

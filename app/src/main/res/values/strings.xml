@@ -719,7 +719,6 @@
     <string name="key_openapsama_useautosens" translatable="false">openapsama_useautosens</string>
     <string name="key_a52_risk_enable" translatable="false">a52_risk_enable</string>
     <string name="key_engineering_mode" translatable="false">engineering_mode</string>
-    <string name="key_bypass_old_version_check" translatable="false">bypass_old_version_check</string>
     <string name="readstatusfailed">Read status failed</string>
     <string name="record_pump_site_change">Record pump site change</string>
     <string name="record_insulin_cartridge_change">Record insulin cartridge change</string>
