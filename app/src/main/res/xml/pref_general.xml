@@ -95,6 +95,11 @@
                 validate:minNumber="1"
                 validate:testType="numericRange" />
 
+            <SwitchPreference
+                android:defaultValue="false"
+                android:key="@string/key_engineering_mode"
+                android:title="@string/engineering_mode_summary" />
+
         </PreferenceCategory>
 
         <info.nightscout.androidaps.skins.SkinListPreference
