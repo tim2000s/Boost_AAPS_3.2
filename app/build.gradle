@@ -163,6 +163,10 @@ android {
         }
     }
 
+    buildFeatures {
+        dataBinding true
+    }
+
     useLibrary "org.apache.http.legacy"
 
     applicationVariants.all { variant ->
