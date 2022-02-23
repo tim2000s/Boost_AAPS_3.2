@@ -130,6 +130,8 @@ open class Notification {
         const val MDT_INVALID_HISTORY_DATA = 76
         const val IDENTIFICATION_NOT_SET = 77
         const val PERMISSION_BT = 78
+        const val COMBO_PUMP_SUSPENDED = 79
+        const val COMBO_UNKNOWN_TBR = 80
 
         const val USER_MESSAGE = 1000
 
