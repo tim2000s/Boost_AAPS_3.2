@@ -77,6 +77,13 @@
         <SwitchPreference
             android:defaultValue="false"
             android:dependency="@string/key_use_smb"
+            android:key="@string/key_enableSMB_ignore"
+            android:summary="@string/enablesmbignore_summary"
+            android:title="@string/enablesmbignore" />
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:dependency="@string/key_use_smb"
             android:key="@string/key_enableSMB_with_COB"
             android:summary="@string/enablesmbwithcob_summary"
             android:title="@string/enablesmbwithcob" />
