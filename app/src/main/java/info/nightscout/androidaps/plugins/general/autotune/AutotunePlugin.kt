@@ -260,7 +260,7 @@ class AutotunePlugin @Inject constructor(
             // aaps_command is for running modified oref0-autotune with exported data from aaps (ns-entries and ns-treatment json files copied in ~/aaps/autotune folder and pumpprofile.json copied in ~/aaps/settings/
             jsonSettings.put("aaps_command", "aaps-autotune -d=~/aaps -s=$startDateString -e=$endDateString $optCategorizeUam $optInsulinCurve")
             jsonSettings.put("categorize_uam_as_basal", sp.getBoolean(R.string.key_autotune_categorize_uam_as_basal, false))
-            jsonSettings.put("tune_insulin_curve", false)
+            jsonSettings.put("tune_insulin_curve", sp.getBoolean(R.string.key_autotune_tune_insulin_curve, false))
 
             val peaktime: Int = insulinInterface.peak
             if (insulinInterface.id === Insulin.InsulinType.OREF_ULTRA_RAPID_ACTING)

@@ -79,7 +79,7 @@ class AutotuneFragment : DaggerFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        sp.putBoolean(R.string.key_autotune_tune_insulin_curve, false)  // put to false tune insulin curve
+        //sp.putBoolean(R.string.key_autotune_tune_insulin_curve, false)  // put to false tune insulin curve
         sp.putBoolean(R.string.key_autotune_additional_log, false)      // put to false additional log
         autotunePlugin.loadLastRun()
         if (autotunePlugin.lastNbDays.isEmpty())
