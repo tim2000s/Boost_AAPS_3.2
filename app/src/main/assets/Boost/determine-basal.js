@@ -980,13 +980,12 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         else if( bg > 160 && bg < 240 && glucose_status.delta < 2 && glucose_status.delta > -2 && glucose_status.short_avgdelta > -2 && glucose_status.short_avgdelta < 2 ) {
             var future_sens_old = ( 277700 / (TDD * (( 0.5 * bg) + ( 0.5 * eventualBG )) ));
             var future_sens = ( 1800 / (Math.log((((eventualBG * 0.5) + (bg * 0.5))/75)+1)*TDD));
-            console.log("Future state sensitivity is " +future_sens+" using current bg due to no
-            COB & small delta or variation");
+            console.log("Future state sensitivity is " +future_sens+" using current bg due to no COB & small delta or variation");
             rT.reason += "Dosing sensitivity: " +future_sens+" using current BG;";
             }
         else if( glucose_status.delta >= 0) {
             var future_sens = ( 1800 / (Math.log((bg/75)+1)*TDD));
-            console.log("Future state sensitivity is " +future_sens+" based on eventual bg due to -ve delta");
+            console.log("Future state sensitivity is " +future_sens+" based on current bg due to +ve delta");
             }
         else {
             var future_sens_old = ( 277700 / (TDD * eventualBG));
