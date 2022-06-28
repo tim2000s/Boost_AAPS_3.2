@@ -26,7 +26,10 @@ open class DatabaseModule {
  //           .addMigrations(migration6to7)
  //           .addMigrations(migration7to8)
  //           .addMigrations(migration11to12)
-            .addMigrations(migration20to21)
+            .addMigrations(
+                migration20to21,
+                migration21to22,
+            )
             .addCallback(object : Callback() {
                 override fun onOpen(db: SupportSQLiteDatabase) {
                     super.onOpen(db)
@@ -65,6 +68,13 @@ open class DatabaseModule {
             database.execSQL("CREATE INDEX IF NOT EXISTS `index_offlineEvents_referenceId` ON offlineEvents (`referenceId`)")
             database.execSQL("CREATE INDEX IF NOT EXISTS `index_offlineEvents_timestamp` ON offlineEvents (`timestamp`)")
             // Custom indexes must be dropped on migration to pass room schema checking after upgrade
+            dropCustomIndexes(database)
+        }
+    }
+
+    private val migration21to22 = object : Migration(21,22) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+             database.execSQL("ALTER TABLE `glucoseValues` ADD COLUMN `smoothed` REAL")
             dropCustomIndexes(database)
         }
     }

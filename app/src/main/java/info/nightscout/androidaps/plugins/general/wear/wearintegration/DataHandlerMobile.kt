@@ -348,7 +348,7 @@ class DataHandlerMobile @Inject constructor(
             tempTarget = tempTarget,
             carbs = carbsAfterConstraints,
             cob = cobInfo.displayCob!!,
-            bg = bgReading.valueToUnits(profileFunction.getUnits()),
+            bg = bgReading.valueToUnits(profileFunction.getUnits(), sp),
             correction = 0.0,
             percentageCorrection = percentage,
             useBg = sp.getBoolean(R.string.key_wearwizard_bg, true),
@@ -895,7 +895,7 @@ class DataHandlerMobile @Inject constructor(
 
         return EventData.SingleBg(
             timeStamp = glucoseValue.timestamp,
-            sgvString = glucoseValue.valueToUnitsString(units),
+            sgvString = glucoseValue.valueToUnitsString(units, sp),
             glucoseUnits = units.asText,
             slopeArrow = trendCalculator.getTrendArrow(glucoseValue).symbol,
             delta = glucoseStatus?.let { deltaString(it.delta, it.delta * Constants.MGDL_TO_MMOLL, units) } ?: "--",
