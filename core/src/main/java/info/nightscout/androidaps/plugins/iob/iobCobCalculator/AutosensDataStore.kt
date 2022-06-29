@@ -19,8 +19,7 @@ import kotlin.math.abs
 import kotlin.math.roundToLong
 
 @OpenForTesting
-class AutosensDataStore {
-    @Inject lateinit var sp: SP
+class AutosensDataStore @Inject constructor(val sp: SP) {
 
     private val dataLock = Any()
     var lastUsed5minCalculation: Boolean? = null // true if used 5min bucketed data
@@ -42,7 +41,7 @@ class AutosensDataStore {
         @Synchronized get
 
     fun clone(): AutosensDataStore =
-        AutosensDataStore().also {
+        AutosensDataStore(sp).also {
             synchronized(dataLock) {
                 it.bgReadings = this.bgReadings.toMutableList()
                 it.autosensDataTable = this.autosensDataTable.clone()
