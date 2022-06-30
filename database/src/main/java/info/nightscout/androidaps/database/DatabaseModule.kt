@@ -1,6 +1,8 @@
 package info.nightscout.androidaps.database
 
 import android.content.Context
+import android.database.Cursor
+import android.database.sqlite.SQLiteException
 import androidx.room.Room
 import androidx.room.RoomDatabase.Callback
 import androidx.room.migration.Migration
@@ -75,8 +77,8 @@ open class DatabaseModule {
 
     private val migration21to22 = object : Migration(21,22) {
         override fun migrate(database: SupportSQLiteDatabase) {
-            database.execSQL("ALTER TABLE `carbs` ADD COLUMN `notes` TEXT")
-            database.execSQL("ALTER TABLE `boluses` ADD COLUMN `notes` TEXT")
+            addColumnIfNotExists(database,"carbs", "notes", "TEXT")
+            addColumnIfNotExists(database,"boluses", "notes", "TEXT")
             // Custom indexes must be dropped on migration to pass room schema checking after upgrade
             dropCustomIndexes(database)
         }
@@ -84,8 +86,26 @@ open class DatabaseModule {
 
     private val migration22to23 = object : Migration(22,23) {
         override fun migrate(database: SupportSQLiteDatabase) {
-             database.execSQL("ALTER TABLE `glucoseValues` ADD COLUMN `smoothed` REAL")
+            addColumnIfNotExists(database,"glucoseValues", "smoothed", "REAL")
             dropCustomIndexes(database)
+        }
+    }
+
+    private fun addColumnIfNotExists(db: SupportSQLiteDatabase, table: String, columnToCheck: String, columnTypeDefinition: String) {
+        if(!columnExistsInTable(db, "glucoseValues", "smoothed")) {
+            db.execSQL("ALTER TABLE `$table` ADD COLUMN `$columnToCheck` $columnTypeDefinition")
+        }
+    }
+
+    private fun columnExistsInTable(db: SupportSQLiteDatabase?, table: String, columnToCheck: String?): Boolean {
+        var cursor: Cursor? = null
+        return try {
+            cursor = db?.query("SELECT * FROM $table LIMIT 0", null)
+            cursor?.getColumnIndex(columnToCheck) !== -1
+        } catch (Exp: SQLiteException) {
+            false
+        } finally {
+            cursor?.close()
         }
     }
 }
