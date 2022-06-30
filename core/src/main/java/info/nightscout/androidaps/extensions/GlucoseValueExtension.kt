@@ -18,6 +18,11 @@ fun GlucoseValue.rawOrSmoothed(sp: SP): Double {
     else return value
 }
 
+fun GlucoseValue.rawOrSmoothed(useSmoothed: Boolean): Double {
+    if (useSmoothed) return smoothed ?: value
+    else return value
+}
+
 fun GlucoseValue.valueToUnits(units: GlucoseUnit, sp: SP): Double =
     if (units == GlucoseUnit.MGDL) rawOrSmoothed(sp)
     else rawOrSmoothed(sp) * Constants.MGDL_TO_MMOLL
