@@ -816,6 +816,8 @@
     <string name="smscommunicator_code_from_authenticator_for" comment="This is continuation of sentence: To [ACTION] reply with code">из приложения Authenticator для %1$s и дополните пином в конце</string>
     <string name="smscommunicator_otp_pin">Дополнительный обязательный пин-код в конце маркера</string>
     <string name="smscommunicator_otp_pin_summary">Дополнительные цифры, которые должны быть запомнены и добавлены в конце каждого сгенерированного одноразового пароля</string>
+    <string name="smscommunicator_otp_enabled">Использовать Authenticator</string>
+    <string name="smscommunicator_otp_enabled_summary">Использовать для авторизации одноразовые пароли, сгенерированные с помощью Google Authenticator или других MFA(2fa)-приложений.</string>
     <string name="smscomunicator_tab_otp_label">Настройка аутентификации</string>
     <string name="smscommunicator_code_verify_label">Код для проверки:</string>
     <string name="smscommunicator_code_verify_hint">OTP + ПИН-код</string>

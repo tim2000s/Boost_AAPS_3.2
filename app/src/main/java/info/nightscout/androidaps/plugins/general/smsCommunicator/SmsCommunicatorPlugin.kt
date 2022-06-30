@@ -1130,8 +1130,22 @@ class SmsCommunicatorPlugin @Inject constructor(
         return true
     }
 
-    private fun generatePassCode(): String =
-        rh.gs(R.string.smscommunicator_code_from_authenticator_for, otp.name())
+    private fun generatePassCode(): String {
+        if (otp.isEnabled()) {
+            // this not realy generate password - rather info to use Authenticator TOTP instead
+            return rh.gs(R.string.smscommunicator_code_from_authenticator_for, otp.name())
+        }
+
+        val startChar1 = 'A'.toInt() // on iphone 1st char is uppercase :)
+        var passCode = Character.toString((startChar1 + Math.random() * ('z' - 'a' + 1)).toChar())
+        val startChar2: Int = if (Math.random() > 0.5) 'a'.toInt() else 'A'.toInt()
+        passCode += Character.toString((startChar2 + Math.random() * ('z' - 'a' + 1)).toChar())
+        val startChar3: Int = if (Math.random() > 0.5) 'a'.toInt() else 'A'.toInt()
+        passCode += Character.toString((startChar3 + Math.random() * ('z' - 'a' + 1)).toChar())
+        passCode = passCode.replace('l', 'k').replace('I', 'J')
+        return passCode
+    }
+
 
     private fun stripAccents(str: String): String {
         var s = str
