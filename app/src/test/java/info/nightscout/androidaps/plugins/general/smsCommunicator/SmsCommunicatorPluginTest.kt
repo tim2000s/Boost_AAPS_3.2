@@ -96,7 +96,7 @@ class SmsCommunicatorPluginTest : TestBaseWithProfile() {
             repository.runTransactionForResult(anyObject<InsertAndCancelCurrentTemporaryTargetTransaction>())
         ).thenReturn(Single.just(InsertAndCancelCurrentTemporaryTargetTransaction.TransactionResult().apply {
         }))
-        val glucoseStatusProvider = GlucoseStatusProvider(aapsLogger = aapsLogger, iobCobCalculator = iobCobCalculator, dateUtil = dateUtilMocked)
+        val glucoseStatusProvider = GlucoseStatusProvider(aapsLogger = aapsLogger, iobCobCalculator = iobCobCalculator, dateUtil = dateUtilMocked, sp)
 
         smsCommunicatorPlugin = SmsCommunicatorPlugin(injector, aapsLogger, rh, smsManager, aapsSchedulers, sp, constraintChecker, rxBus, profileFunction, fabricPrivacy, activePlugin, commandQueue,
                                                       loop, iobCobCalculator, xDripBroadcast,

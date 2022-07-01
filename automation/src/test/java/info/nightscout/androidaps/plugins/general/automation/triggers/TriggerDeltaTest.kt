@@ -91,14 +91,14 @@ class TriggerDeltaTest : TriggerTestBase() {
 
     private fun generateValidBgData(): List<GlucoseValue> {
         val list: MutableList<GlucoseValue> = ArrayList()
-        list.add(GlucoseValue(raw = 0.0, noise = 0.0, value = 214.0, timestamp = 1514766900000, sourceSensor = GlucoseValue.SourceSensor.UNKNOWN, trendArrow = GlucoseValue.TrendArrow.FLAT))
-        list.add(GlucoseValue(raw = 0.0, noise = 0.0, value = 216.0, timestamp = 1514766600000, sourceSensor = GlucoseValue.SourceSensor.UNKNOWN, trendArrow = GlucoseValue.TrendArrow.FLAT))
-        list.add(GlucoseValue(raw = 0.0, noise = 0.0, value = 219.0, timestamp = 1514766300000, sourceSensor = GlucoseValue.SourceSensor.UNKNOWN, trendArrow = GlucoseValue.TrendArrow.FLAT))
-        list.add(GlucoseValue(raw = 0.0, noise = 0.0, value = 223.0, timestamp = 1514766000000, sourceSensor = GlucoseValue.SourceSensor.UNKNOWN, trendArrow = GlucoseValue.TrendArrow.FLAT))
-        list.add(GlucoseValue(raw = 0.0, noise = 0.0, value = 222.0, timestamp = 1514765700000, sourceSensor = GlucoseValue.SourceSensor.UNKNOWN, trendArrow = GlucoseValue.TrendArrow.FLAT))
-        list.add(GlucoseValue(raw = 0.0, noise = 0.0, value = 224.0, timestamp = 1514765400000, sourceSensor = GlucoseValue.SourceSensor.UNKNOWN, trendArrow = GlucoseValue.TrendArrow.FLAT))
-        list.add(GlucoseValue(raw = 0.0, noise = 0.0, value = 226.0, timestamp = 1514765100000, sourceSensor = GlucoseValue.SourceSensor.UNKNOWN, trendArrow = GlucoseValue.TrendArrow.FLAT))
-        list.add(GlucoseValue(raw = 0.0, noise = 0.0, value = 228.0, timestamp = 1514764800000, sourceSensor = GlucoseValue.SourceSensor.UNKNOWN, trendArrow = GlucoseValue.TrendArrow.FLAT))
+        list.add(GlucoseValue(raw = 0.0, noise = 0.0, smoothed = null, value = 214.0, timestamp = 1514766900000, sourceSensor = GlucoseValue.SourceSensor.UNKNOWN, trendArrow = GlucoseValue.TrendArrow.FLAT))
+        list.add(GlucoseValue(raw = 0.0, noise = 0.0, smoothed = null, value = 216.0, timestamp = 1514766600000, sourceSensor = GlucoseValue.SourceSensor.UNKNOWN, trendArrow = GlucoseValue.TrendArrow.FLAT))
+        list.add(GlucoseValue(raw = 0.0, noise = 0.0, smoothed = null, value = 219.0, timestamp = 1514766300000, sourceSensor = GlucoseValue.SourceSensor.UNKNOWN, trendArrow = GlucoseValue.TrendArrow.FLAT))
+        list.add(GlucoseValue(raw = 0.0, noise = 0.0, smoothed = null, value = 223.0, timestamp = 1514766000000, sourceSensor = GlucoseValue.SourceSensor.UNKNOWN, trendArrow = GlucoseValue.TrendArrow.FLAT))
+        list.add(GlucoseValue(raw = 0.0, noise = 0.0, smoothed = null, value = 222.0, timestamp = 1514765700000, sourceSensor = GlucoseValue.SourceSensor.UNKNOWN, trendArrow = GlucoseValue.TrendArrow.FLAT))
+        list.add(GlucoseValue(raw = 0.0, noise = 0.0, smoothed = null, value = 224.0, timestamp = 1514765400000, sourceSensor = GlucoseValue.SourceSensor.UNKNOWN, trendArrow = GlucoseValue.TrendArrow.FLAT))
+        list.add(GlucoseValue(raw = 0.0, noise = 0.0, smoothed = null, value = 226.0, timestamp = 1514765100000, sourceSensor = GlucoseValue.SourceSensor.UNKNOWN, trendArrow = GlucoseValue.TrendArrow.FLAT))
+        list.add(GlucoseValue(raw = 0.0, noise = 0.0, smoothed = null, value = 228.0, timestamp = 1514764800000, sourceSensor = GlucoseValue.SourceSensor.UNKNOWN, trendArrow = GlucoseValue.TrendArrow.FLAT))
         return list
     }
 }

@@ -31,12 +31,13 @@ class BgQualityCheckPluginTest : TestBase() {
     @Mock lateinit var dateUtil: DateUtil
 
     private lateinit var plugin: BgQualityCheckPlugin
+    private lateinit var autosensDataStore : AutosensDataStore
 
     val injector = HasAndroidInjector { AndroidInjector { } }
-    private val autosensDataStore = AutosensDataStore(sp)
 
     @Before
     fun mock() {
+        autosensDataStore = AutosensDataStore(sp)
         plugin = BgQualityCheckPlugin(injector, aapsLogger, rh, RxBus(aapsSchedulers, aapsLogger), iobCobCalculator, aapsSchedulers, fabricPrivacy, dateUtil)
         Mockito.`when`(iobCobCalculator.ads).thenReturn(autosensDataStore)
     }

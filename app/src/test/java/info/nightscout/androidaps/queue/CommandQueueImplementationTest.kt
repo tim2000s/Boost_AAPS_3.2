@@ -108,7 +108,7 @@ class CommandQueueImplementationTest : TestBaseWithProfile() {
     fun prepare() {
         commandQueue = CommandQueueMocked(injector, aapsLogger, rxBus, aapsSchedulers, rh,
                                           constraintChecker, profileFunction, activePlugin, context, sp,
-                                         BuildHelperImpl(config, fileListProvider), dateUtil,
+                                         BuildHelperImpl(config, fileListProvider, sp), dateUtil,
                                           repository,
                                           fabricPrivacy, config, androidPermission)
         testPumpPlugin = TestPumpPlugin(injector)
@@ -145,7 +145,7 @@ class CommandQueueImplementationTest : TestBaseWithProfile() {
     fun commandIsPickedUp() {
         val commandQueue = CommandQueueImplementation(injector, aapsLogger, rxBus, aapsSchedulers, rh,
                                                       constraintChecker, profileFunction, activePlugin, context, sp,
-                                                      BuildHelperImpl(config, fileListProvider),
+                                                      BuildHelperImpl(config, fileListProvider, sp),
                                                       dateUtil, repository,
                                                       fabricPrivacy, config, androidPermission)
         // start with empty queue

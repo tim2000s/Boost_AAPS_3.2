@@ -87,6 +87,7 @@ class TriggerBgTest : TriggerTestBase() {
             raw = 0.0,
             noise = 0.0,
             value = 214.0,
+            smoothed = null,
             timestamp = now - 1,
             sourceSensor = GlucoseValue.SourceSensor.UNKNOWN,
             trendArrow = GlucoseValue.TrendArrow.FLAT
