@@ -105,7 +105,8 @@ class SafetyPlugin @Inject constructor(
     override fun isAdvancedFilteringEnabled(value: Constraint<Boolean>): Constraint<Boolean> {
         val bgSource = activePlugin.activeBgSource
         val ignore = sp.getBoolean(R.string.key_enableSMB_ignore, false)
-        if (!ignore && !bgSource.advancedFilteringSupported()) value.set(aapsLogger, false, rh.gs(R.string.smbalwaysdisabled), this)
+        val smoothed = sp.getBoolean(info.nightscout.androidaps.core.R.string.key_use_data_smoothing, false)
+        if (!ignore && !smoothed && !bgSource.advancedFilteringSupported()) value.set(aapsLogger, false, rh.gs(R.string.smbalwaysdisabled), this)
         return value
     }
 
