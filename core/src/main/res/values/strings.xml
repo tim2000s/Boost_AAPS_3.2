@@ -74,6 +74,8 @@
     <string name="key_autotune_additional_log" translatable="false">autotune_additional_log</string>
     <string name="key_autotune_plugin" translatable="false">key_autotune_plugin</string>
     <string name="key_autotune_last_run" translatable="false">key_autotune_last_run</string>
+    <string name="key_Boost_settings" translatable="false">Boost_settings</string>
+    <string name="key_Boost_max_iob" translatable="false">Boost_max_iob</string>
 
     <!--    General-->
     <string name="refresh">Refresh</string>
@@ -307,6 +309,7 @@
     <string name="insulin_unit_shortname">U</string>
     <string name="waitingforpumpresult">Waiting for result</string>
     <string name="smb_shortname">SMB</string>
+    <string name="Boost_shortname">Boost</string>
 
     <!--    CarbsReq-->
     <string name="carbsreq">%1$d g Additional Carbs Required Within %2$d Minutes</string>
@@ -603,7 +606,7 @@
     <string name="autotune_run_with_error">Error during last Autotune run</string>
 
     <string name="key_use_data_smoothing" translatable="false">use_data_smoothing</string>
-    
+
     <plurals name="days">
         <item quantity="one">%1$d day</item>
         <item quantity="other">%1$d days</item>

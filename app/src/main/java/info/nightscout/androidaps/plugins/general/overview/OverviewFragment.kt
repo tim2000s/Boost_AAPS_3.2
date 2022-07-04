@@ -84,6 +84,14 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.abs
 import kotlin.math.min
+import info.nightscout.androidaps.data.IobTotal
+import info.nightscout.androidaps.data.MealData
+import info.nightscout.androidaps.database.entities.Bolus
+import info.nightscout.androidaps.utils.*
+import info.nightscout.androidaps.utils.stats.TirCalculator
+import info.nightscout.androidaps.utils.T
+
+
 
 class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickListener {
 
@@ -136,8 +144,10 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
     private val secondaryGraphsLabel = ArrayList<TextView>()
 
     private var carbAnimation: AnimationDrawable? = null
+    private var insulinAnimation: AnimationDrawable? = null
 
     private var _binding: OverviewFragmentBinding? = null
+    private var lastBolusNormalTime: Long = 0
 
     // This property is only valid between onCreateView and
     // onDestroyView.
