@@ -28,6 +28,9 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joanzapata.iconify.Iconify
 import com.joanzapata.iconify.fonts.FontAwesomeModule
+import com.microsoft.appcenter.AppCenter
+import com.microsoft.appcenter.analytics.Analytics
+import com.microsoft.appcenter.crashes.Crashes
 import dev.doubledot.doki.ui.DokiActivity
 import info.nightscout.androidaps.activities.*
 import info.nightscout.androidaps.database.entities.UserEntry.Action
@@ -48,7 +51,6 @@ import info.nightscout.androidaps.setupwizard.SetupWizardActivity
 import info.nightscout.androidaps.utils.AndroidPermission
 import info.nightscout.androidaps.utils.FabricPrivacy
 import info.nightscout.androidaps.utils.alertDialogs.OKDialog
-import info.nightscout.androidaps.interfaces.BuildHelper
 import info.nightscout.androidaps.utils.extensions.isRunningRealPumpTest
 import info.nightscout.androidaps.utils.locale.LocaleHelper
 import info.nightscout.androidaps.utils.protection.PasswordCheck
@@ -109,6 +111,12 @@ class MainActivity : NoSplashAppCompatActivity() {
             it.syncState()
         }
 
+        if (BuildConfig.APPCENTER_KEY != "") {
+            AppCenter.start(
+                application, BuildConfig.APPCENTER_KEY,
+                Analytics::class.java, Crashes::class.java
+            )
+        }
         // initialize screen wake lock
         processPreferenceChange(EventPreferenceChange(rh.gs(R.string.key_keep_screen_on)))
         binding.mainPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
