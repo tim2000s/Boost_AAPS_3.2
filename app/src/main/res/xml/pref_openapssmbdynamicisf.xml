@@ -5,7 +5,7 @@
 
     <PreferenceCategory
         android:key="@string/key_openapssmb_settings"
-        android:title="@string/openapssmb"
+        android:title="@string/openaps_smb_dynamic_isf"
         app:initialExpandedChildrenCount="0">
 
         <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
