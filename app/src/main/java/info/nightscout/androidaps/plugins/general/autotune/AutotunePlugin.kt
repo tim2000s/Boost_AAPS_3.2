@@ -365,7 +365,7 @@ class AutotunePlugin @Inject constructor(
         atLog("[Plugin] $message")
     }
 
-    override fun specialEnableCondition(): Boolean = buildHelper.isEngineeringMode() && buildHelper.isDev()
+    override fun specialEnableCondition(): Boolean = buildHelper.isEngineeringMode()
 
     override fun atLog(message: String) {
         autotuneFS.atLog(message)
