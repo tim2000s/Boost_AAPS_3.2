@@ -254,7 +254,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     //*********************************************************************************
 
         console.error("---------------------------------------------------------");
-        console.error( "     Boost version 3.6.5c ");
+        console.error( "     Boost version 3.6.5d ");
         console.error("---------------------------------------------------------");
 
     if (meal_data.TDDAIMI7){
@@ -954,6 +954,10 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         // set eventualBG based on COB or UAM predBGs
         rT.eventualBG = eventualBG;
     }
+    minIOBPredBG = Math.max(39,minIOBPredBG);
+    minCOBPredBG = Math.max(39,minCOBPredBG);
+    minUAMPredBG = Math.max(39,minUAMPredBG);
+    minPredBG = round(minIOBPredBG);
 
     console.error("UAM Impact:",uci,"mg/dL per 5m; UAM Duration:",UAMduration,"hours");
 
@@ -1000,11 +1004,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         console.log("Future sens adjusted to : "+future_sens+"; ");
         console.log("Future sens from old model is: "+future_sens_old+"; ");
 
-
-    minIOBPredBG = Math.max(39,minIOBPredBG);
-    minCOBPredBG = Math.max(39,minCOBPredBG);
-    minUAMPredBG = Math.max(39,minUAMPredBG);
-    minPredBG = round(minIOBPredBG);
 
     var fractionCarbsLeft = meal_data.mealCOB/meal_data.carbs;
     // if we have COB and UAM is enabled, average both
