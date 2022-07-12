@@ -254,7 +254,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     //*********************************************************************************
 
         console.error("---------------------------------------------------------");
-        console.error( "     Boost version 3.6.5d ");
+        console.error( "     Boost version 3.6.5e ");
         console.error("---------------------------------------------------------");
 
     if (meal_data.TDDAIMI7){
@@ -969,13 +969,13 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             console.log("Future state sensitivity is " +future_sens+" weighted on eventual BG due to COB");
             rT.reason += "Dosing sensitivity: " +future_sens+" weighted on predicted BG due to COB;";
             }
-        /*else if( glucose_status.delta > 6 && delta_accl > 0 && bg < 180) {
+        else if( glucose_status.delta > 6 && delta_accl > 0 && bg < 180) {
            var future_sens_old = ( 277700 / (TDD * ( (eventualBG * 0.75) + (bg * 0.25) )));
             var future_sens = ( 1800 / (Math.log((((eventualBG * 0.5) + (bg * 0.5))/75)+1)*TDD));
             console.log("Future state sensitivity is " +future_sens+" weighted on predicted bg due to increasing deltas");
             rT.reason += "Dosing sensitivity: " +future_sens+" weighted on predicted BG due to delta;";
             }
-        else if( glucose_status.delta > 6 && bg < 180) {
+        /*else if( glucose_status.delta > 6 && bg < 180) {
             var future_sens_old = ( 277700 / (TDD * ( (eventualBG * 0.25) + (bg * 0.75) )));
             var future_sens = ( 1800 / (Math.log((((eventualBG * 0.25) + (bg * 0.75))/75)+1)*TDD));
             console.log("Future state sensitivity is " +future_sens+" weighted on current bg due to no COB");
