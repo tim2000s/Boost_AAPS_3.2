@@ -254,7 +254,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     //*********************************************************************************
 
         console.error("---------------------------------------------------------");
-        console.error( "     Boost version 3.6.5e ");
+        console.error( "     Boost version 3.6.5f ");
         console.error("---------------------------------------------------------");
 
     if (meal_data.TDDAIMI7){
@@ -969,7 +969,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             console.log("Future state sensitivity is " +future_sens+" weighted on eventual BG due to COB");
             rT.reason += "Dosing sensitivity: " +future_sens+" weighted on predicted BG due to COB;";
             }
-        else if( glucose_status.delta > 6 && delta_accl > 0 && bg < 180 && eventualBG > bg ) {
+        else if( glucose_status.delta > 4 && delta_accl > 0 && bg < 180 && eventualBG > bg ) {
            var future_sens_old = ( 277700 / (TDD * ( (eventualBG * 0.75) + (bg * 0.25) )));
             var future_sens = ( 1800 / (Math.log((((eventualBG * 0.5) + (bg * 0.5))/75)+1)*TDD));
             console.log("Future state sensitivity is " +future_sens+" weighted on predicted bg due to increasing deltas");
@@ -987,7 +987,12 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             console.log("Future state sensitivity is " +future_sens+" using current bg due to no COB & small delta or variation");
             rT.reason += "Dosing sensitivity: " +future_sens+" using current BG;";
             }
-        else if( delta_accl > 0 || eventualBG > bg) {
+        else if( glucose_status.delta > 0 && delta_accl > 0 && bg > 198 || eventualBG > bg && bg > 198) {
+            var future_sens = ( 1800 / (Math.log((((minPredBG * 0.4) + (bg * 0.6))/75)+1)*TDD));
+            console.log("Future state sensitivity is " +future_sens+" based on current bg due to +ve delta");
+            }
+
+        else if( glucose_status.delta > 0 && delta_accl > 0 || eventualBG > bg) {
             var future_sens = ( 1800 / (Math.log((bg/75)+1)*TDD));
             console.log("Future state sensitivity is " +future_sens+" based on current bg due to +ve delta");
             }
