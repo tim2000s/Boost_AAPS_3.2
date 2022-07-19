@@ -51,7 +51,11 @@ import info.nightscout.androidaps.plugins.constraints.bgQualityCheck.BgQualityCh
 import info.nightscout.androidaps.plugins.general.automation.AutomationPlugin
 import info.nightscout.androidaps.plugins.general.nsclient.data.NSDeviceStatus
 import info.nightscout.androidaps.plugins.general.overview.activities.QuickWizardListActivity
-import info.nightscout.androidaps.plugins.general.overview.events.*
+import info.nightscout.androidaps.plugins.general.overview.events.EventUpdateOverviewCalcProgress
+import info.nightscout.androidaps.plugins.general.overview.events.EventUpdateOverviewGraph
+import info.nightscout.androidaps.plugins.general.overview.events.EventUpdateOverviewIobCob
+import info.nightscout.androidaps.plugins.general.overview.events.EventUpdateOverviewNotification
+import info.nightscout.androidaps.plugins.general.overview.events.EventUpdateOverviewSensitivity
 import info.nightscout.androidaps.plugins.general.overview.graphData.GraphData
 import info.nightscout.androidaps.plugins.general.overview.notifications.NotificationStore
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatusProvider
@@ -67,7 +71,6 @@ import info.nightscout.androidaps.utils.ToastUtils
 import info.nightscout.androidaps.utils.TrendCalculator
 import info.nightscout.androidaps.utils.alertDialogs.OKDialog
 import info.nightscout.androidaps.interfaces.BuildHelper
-import info.nightscout.androidaps.plugins.aps.openAPSSMBDynamicISF.OpenAPSSMBDynamicISFPlugin
 import info.nightscout.androidaps.utils.protection.ProtectionCheck
 import info.nightscout.androidaps.utils.rx.AapsSchedulers
 import info.nightscout.androidaps.utils.ui.SingleClickButton
@@ -78,7 +81,6 @@ import info.nightscout.shared.sharedPreferences.SP
 import info.nightscout.shared.weardata.EventData
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
-import org.json.JSONObject
 import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -253,10 +255,6 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             .observeOn(aapsSchedulers.main)
             .subscribe({ updateGraph() }, fabricPrivacy::logException)
         disposable += activePlugin.activeOverview.overviewBus
-            .toObservable(EventUpdateOverviewPumpStatus::class.java)
-            .observeOn(aapsSchedulers.main)
-            .subscribe({ updatePumpStatus() }, fabricPrivacy::logException)
-        disposable += activePlugin.activeOverview.overviewBus
             .toObservable(EventUpdateOverviewNotification::class.java)
             .observeOn(aapsSchedulers.main)
             .subscribe({ updateNotification() }, fabricPrivacy::logException)
@@ -324,7 +322,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         }
         handler.postDelayed(refreshLoop, 60 * 1000L)
 
-        refreshAll()
+        handler.post { refreshAll() }
         updatePumpStatus()
         updateCalcProgress()
     }

@@ -97,10 +97,8 @@ def allCommitted = { ->
     return stringBuilder.toString().isEmpty()
 }
 
-tasks.matching { it instanceof Test }.all {
-    testLogging.events = ["failed", "skipped", "started"]
-    // testLogging.events = ["failed", "skipped", "started", "standard_out"] use to display stdout in travis
-    testLogging.exceptionFormat = "full"
+def appCenterKey = { ->
+    return System.getenv("APPCENTER_KEY") ? System.getenv("APPCENTER_KEY").toString() : ""
 }
 
 android {
@@ -111,13 +109,13 @@ android {
     defaultConfig {
         multiDexEnabled true
         versionCode 1500
-        version "3.1-beta1"
+        version "3.1.0"
         buildConfigField "String", "VERSION", '"' + version + '"'
         buildConfigField "String", "BUILDVERSION", '"' + generateGitBuild() + '-' + generateDate() + '"'
         buildConfigField "String", "REMOTE", '"' + generateGitRemote() + '"'
         buildConfigField "String", "HEAD", '"' + generateGitBuild() + '"'
         buildConfigField "String", "COMMITTED", '"' + allCommitted() + '"'
-
+        buildConfigField "String", "APPCENTER_KEY", '"' + appCenterKey() + '"'
     }
 
     flavorDimensions "standard"
@@ -204,6 +202,10 @@ dependencies {
 
     /* Dagger2 - default dependency */
     kapt "com.google.dagger:dagger-compiler:$dagger_version"
+    def appCenterSdkVersion = '4.3.1'
+    implementation "com.microsoft.appcenter:appcenter-analytics:${appCenterSdkVersion}"
+    implementation "com.microsoft.appcenter:appcenter-crashes:${appCenterSdkVersion}"
+
 }
 
 apply from: "${project.rootDir}/core/test_dependencies.gradle"

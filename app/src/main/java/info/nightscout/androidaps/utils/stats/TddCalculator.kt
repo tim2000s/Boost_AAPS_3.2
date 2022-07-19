@@ -1,6 +1,5 @@
 package info.nightscout.androidaps.utils.stats
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Typeface
 import android.util.LongSparseArray
@@ -99,14 +98,19 @@ class TddCalculator @Inject constructor(
         return result
     }
 
+    fun calculateToday(): TotalDailyDose {
+        var startTime = MidnightTime.calc(dateUtil.now())
+        val endTime = dateUtil.now()
+        return calculate(startTime, endTime)
+    }
+
     fun calculateDaily(startHours: Long, endHours: Long): TotalDailyDose {
         val startTime = dateUtil.now() + T.hours(hour = startHours).msecs()
         val endTime = dateUtil.now() + T.hours(hour = endHours).msecs()
-        return calculateForRange(startTime, endTime)
+        return calculate(startTime, endTime)
     }
 
-    private fun calculateForRange(startTime: Long, endTime: Long) :TotalDailyDose
-    {
+    fun calculate(startTime: Long, endTime: Long): TotalDailyDose {
         val tdd = TotalDailyDose(timestamp = startTime)
         repository.getBolusesDataFromTimeToTime(startTime, endTime, true).blockingGet()
             .filter { it.type != Bolus.Type.PRIMING }
@@ -138,19 +142,19 @@ class TddCalculator @Inject constructor(
     fun calculate4Daily():TotalDailyDose {
         val  startTime = dateUtil.now() - T.hours(hour = 4).msecs()
         val endTime = dateUtil.now()
-        return calculateForRange(startTime, endTime)
+        return calculate(startTime, endTime)
     }
 
     fun calculate8Daily():TotalDailyDose {
         val startTime = dateUtil.now() - T.hours(hour = 8).msecs()
         val endTime = dateUtil.now()
-        return calculateForRange(startTime, endTime)
+        return calculate(startTime, endTime)
     }
 
     fun calculate8Gap():TotalDailyDose {
         val startTime = dateUtil.now() - T.hours(hour = 8).msecs()
         val endTime = dateUtil.now() - T.hours(hour = 4).msecs()
-        return calculateForRange(startTime, endTime)
+        return calculate(startTime, endTime)
     }
 
     fun averageTDD(tdds: LongSparseArray<TotalDailyDose>): TotalDailyDose? {
@@ -170,10 +174,10 @@ class TddCalculator @Inject constructor(
         return totalTdd
     }
 
-    @SuppressLint("SetTextI18n")
     fun stats(context: Context): TableLayout {
         val tdds = calculate(7)
         val averageTdd = averageTDD(tdds)
+        val todayTdd = calculateToday()
         val lp = TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT)
         return TableLayout(context).also { layout ->
             layout.layoutParams = TableLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
@@ -195,6 +199,13 @@ class TddCalculator @Inject constructor(
                 })
                 layout.addView(averageTdd.toTableRow(context, rh, tdds.size(), includeCarbs = true))
             }
+            layout.addView(TextView(context).apply {
+                text = rh.gs(R.string.today)
+                setTypeface(typeface, Typeface.BOLD)
+                gravity = Gravity.CENTER_HORIZONTAL
+                setTextAppearance(android.R.style.TextAppearance_Material_Medium)
+            })
+            layout.addView(todayTdd.toTableRow(context, rh, dateUtil, includeCarbs = true))
         }
     }
 }
