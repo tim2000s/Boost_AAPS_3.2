@@ -56,6 +56,10 @@ class VersionCheckerPlugin @Inject constructor(
     }
 
     override fun isClosedLoopAllowed(value: Constraint<Boolean>): Constraint<Boolean> {
+        val byPass = sp.getBoolean(R.string.key_bypass_old_version_check, false);
+        if (byPass)
+            return value;
+
         checkWarning()
         versionCheckerUtils.triggerCheckVersion()
         if (isOldVersion(gracePeriod.veryOld.daysToMillis()))

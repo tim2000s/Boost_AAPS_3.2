@@ -14,6 +14,9 @@ import info.nightscout.androidaps.utils.T
 import javax.inject.Inject
 import kotlin.math.exp
 import kotlin.math.pow
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.hours
 
 /**
  * Created by adrian on 13.08.2017.
@@ -71,23 +74,62 @@ abstract class InsulinOrefBasePlugin(
         }
 
     override fun iobCalcForTreatment(bolus: Bolus, time: Long, dia: Double): Iob {
-        val insulin = activePlugin.activeInsulin
+        val insulinInterface = activePlugin.activeInsulin
+        val insulinID = insulinInterface.id.value
         val result = Iob()
         if (bolus.amount != 0.0) {
             val bolusTime = bolus.timestamp
             val t = (time - bolusTime) / 1000.0 / 60.0
+            val now = System.currentTimeMillis() / (1000*60*60)
+
+            var circadian_sensitivity = 1.0
+            /*if (now >= 0 && now < 2){
+                circadian_sensitivity = 1.4
+            }else if (now >= 2 && now < 3){
+                 circadian_sensitivity = 0.8
+            }else if (now >= 3 && now < 8){
+                 circadian_sensitivity = 0.8
+            }else if (now >= 8 && now < 11){
+                 circadian_sensitivity = 0.6
+            }else if (now >= 11 && now < 15){
+                 circadian_sensitivity = 0.8
+            }else if (now >= 15 && now <= 22){
+                 circadian_sensitivity = 1.0
+            }else if (now >= 22 && now <= 24){
+                circadian_sensitivity = 1.2
+            }*/
+            if (now >= 0 && now < 2){
+                //circadian_sensitivity = 1.4;
+                circadian_sensitivity = 1.0
+            }else if (now >= 2 && now < 3){
+                //circadian_sensitivity = 0.8;
+                circadian_sensitivity = 1.0
+            }else if (now >= 3 && now < 8){
+                //circadian_sensitivity = 0.8;
+                circadian_sensitivity = 1.0
+            }else if (now >= 8 && now < 11){
+                //circadian_sensitivity = 0.6;
+                circadian_sensitivity = 1.0
+            }else if (now >= 11 && now < 15){
+                //circadian_sensitivity = 0.8;
+                circadian_sensitivity = 1.0
+            }else if (now >= 15 && now <= 22){
+                circadian_sensitivity = 1.0
+            }else if (now >= 22 && now <= 24){
+                //circadian_sensitivity = 1.2;
+                circadian_sensitivity = 1.0
+            }
             // force the IOB to 0 if over DIA hours have passed
-            if (t < 8 * 60 && (insulin is InsulinLyumjevU100PDPlugin || insulin is InsulinLyumjevU200PDPlugin)) { //MP: Fixed DIA cut-off of 8 h - the model automatically changes its DIA based on
-                // the bolus size, thus no user-set DIA is required.
+            if (t < 3.8 * circadian_sensitivity * 60 && (insulinID == 6 || insulinID == 7)) { //MP: Fixed DIA cut-off of 8 h - the model automatically changes its DIA based on the bolus size, thus no user-set DIA is required.
                 //MP Model for estimation of PD-based peak time: (a0 + a1*X)/(1+b1*X), where X = bolus size
-                val a0 = 61.33 //MP Units = min
+                val a0 = 61.33
                 val a1 = 12.27
                 val b1 = 0.05185
                 val tp: Double
-                if (insulin is InsulinLyumjevU200PDPlugin) { //MP ID = 205 for Lyumjev U200
-                    tp = (a0 + a1 * 2 * bolus.amount)/(1 + b1 * 2 * bolus.amount) //MP Units = min
+                if (insulinID == 6) { //MP ID = 6 for Lyumjev U200
+                    tp = (a0 + a1 * 2 * bolus.amount)/(1 + b1 * 2 * bolus.amount)
                 } else {
-                    tp = (a0 + a1 * bolus.amount) / (1 + b1 * bolus.amount) //MP Units = min
+                    tp = (a0 + a1 * bolus.amount) / (1 + b1 * bolus.amount)
                 }
                 val tp_model = tp.pow(2.0) * 2 //MP The peak time in the model is defined as half of the square root of this variable - thus the tp entered into the model must be transformed first
                 //MP Calculate remaining IOB of this bolus (PD based approach)
@@ -108,11 +150,10 @@ abstract class InsulinOrefBasePlugin(
                 result.activityContrib = (2 * bolus.amount / tp_model) * t * exp(-t.pow(2.0) / tp_model)
 
                 //MP New IOB formula - integrated version of the above activity curve
-                val lowerLimit = t //MP lower integration limit, in min
-                val upperLimit = 8.0 * 60 //MP upper integration limit, in min
-                result.iobContrib = bolus.amount * (exp(-lowerLimit.pow(2.0)/tp_model) - exp(-upperLimit.pow(2.0)/tp_model))
+                val lowerLimit = t //MP lower integration limit
+                val upperLimit = 3.8 * circadian_sensitivity //MP upper integration limit
+                result.iobContrib = bolus.amount - (0.5 * (2 * bolus.amount / tp_model) * tp_model * (exp(-upperLimit.pow(2)/tp_model) - exp(-lowerLimit.pow(2)/tp_model)))
 
-                //bolus.amount * (exp(-lowerLimit.pow(2.0)/tp_model) - exp(-upperLimit.pow(2.0)/tp_model))
                 //MP Below: old IOB formula; produces (almost?) identical results, but requires for loop
                 //var pct_ins_left = 0.0 //MP insulin equivalents in U that are still "unused"
                 //for (i in 0..t.toInt()) {
@@ -121,9 +162,9 @@ abstract class InsulinOrefBasePlugin(
                 //result.iobContrib = bolus.amount * (1 - (pct_ins_left/bolus.amount))
 
             } else {
-                // MP: If the Lyumjev pharmacodynamic models are not used (IDs 105 & 205), use the traditional PK-based insulin model instead;
-                val peak = peak
-                val td = dia * 60 //getDIA() always >= MIN_DIA
+                // MP: If the Lyumjev pharmacodynamic models are not used (IDs 6 & 7), use the traditional PK-based insulin model instead;
+                val peak = peak * circadian_sensitivity
+                val td = dia * circadian_sensitivity * 60 //getDIA() always >= MIN_DIA
                 val tp = peak.toDouble()
                 // force the IOB to 0 if over DIA hours have passed
                 if (t < td) {
