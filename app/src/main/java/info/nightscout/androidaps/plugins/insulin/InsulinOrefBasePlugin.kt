@@ -79,8 +79,7 @@ abstract class InsulinOrefBasePlugin(
         assert(dia != 0.0)
         assert(peak != 0)
         val result = Iob()
-        val insulinInterface = activePlugin.activeInsulin
-        val insulinID = insulinInterface.id.value
+        val insulin = activePlugin.activeInsulin
 
         if (bolus.amount != 0.0) {
             val bolusTime = bolus.timestamp
@@ -88,13 +87,15 @@ abstract class InsulinOrefBasePlugin(
 
             var circadian_sensitivity = 1.0
             // force the IOB to 0 if over DIA hours have passed
-            if (t < 3.8 * circadian_sensitivity * 60 && (insulinID == 6 || insulinID == 7)) { //MP: Fixed DIA cut-off of 8 h - the model automatically changes its DIA based on the bolus size, thus no user-set DIA is required.
+            if (t < 3.8 * circadian_sensitivity * 60 && (insulin is InsulinLyumjevU100PDPlugin || insulin is InsulinLyumjevU200PDPlugin)) { //MP: Fixed DIA cut-off of 8 h - the model automatically
+                // changes its DIA based on the bolus size,
+                // thus no user-set DIA is required.
                 //MP Model for estimation of PD-based peak time: (a0 + a1*X)/(1+b1*X), where X = bolus size
                 val a0 = 61.33
                 val a1 = 12.27
                 val b1 = 0.05185
                 val tp: Double
-                if (insulinID == 6) { //MP ID = 6 for Lyumjev U200
+                if (insulin is InsulinLyumjevU100PDPlugin) { //MP ID = 6 for Lyumjev U200
                     tp = (a0 + a1 * 2 * bolus.amount)/(1 + b1 * 2 * bolus.amount)
                 } else {
                     tp = (a0 + a1 * bolus.amount) / (1 + b1 * bolus.amount)
