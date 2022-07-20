@@ -46,7 +46,8 @@ class BoostPlugin @Inject constructor(
     private val repository: AppRepository,
     private val glucoseStatusProvider: GlucoseStatusProvider,
     private val buildHelper: BuildHelper
-) : PluginBase(PluginDescription()
+) : PluginBase(
+    PluginDescription()
     .mainType(PluginType.APS)
     .fragmentClass(BoostFragment::class.java.name)
     .pluginIcon(R.drawable.ic_generic_icon)
@@ -54,7 +55,8 @@ class BoostPlugin @Inject constructor(
     .shortName(R.string.Boost_shortname)
     .preferencesId(R.xml.pref_boost)
     .description(R.string.description_Boost)
-    .setDefault(),
+    .setDefault(false)
+    .showInList(buildHelper.isEngineeringMode()),
     aapsLogger, rh, injector
 ), APS, Constraints {
 
