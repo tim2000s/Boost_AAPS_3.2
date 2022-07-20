@@ -70,7 +70,7 @@ class OpenAPSSMBDynamicISFPlugin @Inject constructor(
             .setDefault(false)
     }
 
-    override fun specialEnableCondition(): Boolean = buildHelper.isEngineeringMode() && buildHelper.isDev()
+    override fun specialEnableCondition(): Boolean = buildHelper.isEngineeringMode()
 
     override fun provideDetermineBasalAdapter(): DetermineBasalAdapterInterface = DetermineBasalAdapterSMBDynamicISFJS(ScriptReader(context), injector)
 }

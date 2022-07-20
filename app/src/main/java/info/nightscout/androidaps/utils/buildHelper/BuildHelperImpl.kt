@@ -21,7 +21,7 @@ class BuildHelperImpl constructor(
         val engineeringModeSemaphore = File(fileListProvider.ensureExtraDirExists(), "engineering_mode")
 
         engineeringMode = engineeringModeSemaphore.exists() && engineeringModeSemaphore.isFile || sp.getBoolean(R.string.key_engineering_mode, false)
-        devBranch = BuildConfig.VERSION.contains("-") || BuildConfig.VERSION.matches(Regex(".*[a-zA-Z]+.*"))
+        devBranch = true
     }
 
     override fun isEngineeringModeOrRelease(): Boolean =
