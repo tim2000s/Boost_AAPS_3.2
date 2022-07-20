@@ -3,17 +3,15 @@ package info.nightscout.androidaps.plugins.aps.Boost
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.text.TextUtils
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import dagger.android.support.DaggerFragment
 import info.nightscout.androidaps.R
 import info.nightscout.androidaps.databinding.OpenapsamaFragmentBinding
+import info.nightscout.androidaps.interfaces.ActivePlugin
 import info.nightscout.shared.logging.AAPSLogger
 import info.nightscout.shared.logging.LTag
 import info.nightscout.androidaps.plugins.aps.events.EventOpenAPSUpdateGui
 import info.nightscout.androidaps.plugins.aps.events.EventOpenAPSUpdateResultGui
-import info.nightscout.androidaps.plugins.aps.Boost.BoostPlugin
 import info.nightscout.androidaps.plugins.bus.RxBus
 import info.nightscout.androidaps.utils.DateUtil
 import info.nightscout.androidaps.utils.FabricPrivacy
@@ -35,9 +33,11 @@ class BoostFragment : DaggerFragment() {
     @Inject lateinit var rxBus: RxBus
     @Inject lateinit var rh: ResourceHelper
     @Inject lateinit var fabricPrivacy: FabricPrivacy
-    @Inject lateinit var BoostPlugin: BoostPlugin
+    @Inject lateinit var activePlugin: ActivePlugin
     @Inject lateinit var dateUtil: DateUtil
     @Inject lateinit var jsonFormatter: JSONFormatter
+
+    private val ID_MENU_RUN = 1
 
     private var _binding: OpenapsamaFragmentBinding? = null
 
@@ -45,11 +45,30 @@ class BoostFragment : DaggerFragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View {
-        _binding = OpenapsamaFragmentBinding.inflate(inflater, container, false)
-        return binding.root
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        if (isResumed) {
+            menu.removeItem(ID_MENU_RUN)
+            menu.add(Menu.FIRST, ID_MENU_RUN, 0, rh.gs(R.string.openapsma_run)).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+            menu.setGroupDividerEnabled(true)
+        }
     }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean =
+        when (item.itemId) {
+            ID_MENU_RUN -> {
+                binding.lastrun.text = rh.gs(R.string.executing)
+                Thread { activePlugin.activeAPS.invoke("OpenAPSSMB menu", false) }.start()
+                true
+            }
+            else        -> false
+        }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
+        OpenapsamaFragmentBinding.inflate(inflater, container, false).also {
+            _binding = it
+            setHasOptionsMenu(true)
+        }.root
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -58,7 +77,7 @@ class BoostFragment : DaggerFragment() {
             setColorSchemeColors(rh.gac(context, R.attr.colorPrimaryDark), rh.gac(context, R.attr.colorPrimary), rh.gac(context, R.attr.colorSecondary))
             setOnRefreshListener {
                 binding.lastrun.text = rh.gs(info.nightscout.androidaps.R.string.executing)
-                Thread { BoostPlugin.invoke("Boost swiperefresh", false) }.start()
+                Thread { activePlugin.activeAPS.invoke("Boost swiperefresh", false) }.start()
             }
         }
 
@@ -97,11 +116,12 @@ class BoostFragment : DaggerFragment() {
     @Synchronized
     fun updateGUI() {
         if (_binding == null) return
-        BoostPlugin.lastAPSResult?.let { lastAPSResult ->
+        val boostPlugin = activePlugin.activeAPS as BoostPlugin
+        boostPlugin.lastAPSResult?.let { lastAPSResult ->
             binding.result.text = jsonFormatter.format(lastAPSResult.json)
             binding.request.text = lastAPSResult.toSpanned()
         }
-        BoostPlugin.lastDetermineBasalAdapterBoostJS?.let { determineBasalAdapterBoostJS ->
+        boostPlugin.lastDetermineBasalAdapterBoostJS?.let { determineBasalAdapterBoostJS ->
             binding.glucosestatus.text = jsonFormatter.format(determineBasalAdapterBoostJS.glucoseStatusParam)
             binding.currenttemp.text = jsonFormatter.format(determineBasalAdapterBoostJS.currentTempParam)
             try {
@@ -116,16 +136,17 @@ class BoostFragment : DaggerFragment() {
             binding.profile.text = jsonFormatter.format(determineBasalAdapterBoostJS.profileParam)
             binding.mealdata.text = jsonFormatter.format(determineBasalAdapterBoostJS.mealDataParam)
             binding.scriptdebugdata.text = determineBasalAdapterBoostJS.scriptDebug
-            BoostPlugin.lastAPSResult?.inputConstraints?.let {
+            boostPlugin.lastAPSResult?.inputConstraints?.let {
                 binding.constraints.text = it.getReasons(aapsLogger)
             }
         }
-        if (BoostPlugin.lastAPSRun != 0L) {
-            binding.lastrun.text = dateUtil.dateAndTimeString(BoostPlugin.lastAPSRun)
+        if (boostPlugin.lastAPSRun != 0L) {
+            binding.lastrun.text = dateUtil.dateAndTimeString(boostPlugin.lastAPSRun)
         }
-        BoostPlugin.lastAutosensResult.let {
+        boostPlugin.lastAutosensResult.let {
             binding.autosensdata.text = jsonFormatter.format(it.json())
         }
+        binding.swipeRefresh.isRefreshing = false
     }
 
     @Synchronized

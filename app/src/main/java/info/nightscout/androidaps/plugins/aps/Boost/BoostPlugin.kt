@@ -44,7 +44,8 @@ class BoostPlugin @Inject constructor(
     private val sp: SP,
     private val dateUtil: DateUtil,
     private val repository: AppRepository,
-    private val glucoseStatusProvider: GlucoseStatusProvider
+    private val glucoseStatusProvider: GlucoseStatusProvider,
+    private val buildHelper: BuildHelper
 ) : PluginBase(PluginDescription()
     .mainType(PluginType.APS)
     .fragmentClass(BoostFragment::class.java.name)
@@ -65,6 +66,8 @@ class BoostPlugin @Inject constructor(
     override var lastAutosensResult: AutosensResult = AutosensResult()
 
     override fun specialEnableCondition(): Boolean {
+        if (!buildHelper.isEngineeringMode())
+            return false
         return try {
             activePlugin.activePump.pumpDescription.isTempBasalCapable
         } catch (ignored: Exception) {
