@@ -195,9 +195,10 @@ class SafetyPlugin @Inject constructor(
     override fun applyMaxIOBConstraints(maxIob: Constraint<Double>): Constraint<Double> {
         val apsMode = sp.getString(R.string.key_aps_mode, "open")
         val maxIobPref: Double = when {
-            (openAPSSMBPlugin.isEnabled(PluginType.APS)) -> sp.getDouble(R.string.key_openapssmb_max_iob, 3.0)
-            BoostPlugin.isEnabled(PluginType.APS)        -> sp.getDouble(R.string.key_openapssmb_max_iob, 3.0)
-            else                                         -> sp.getDouble(R.string.key_openapsma_max_iob, 1.5)
+            (openAPSSMBPlugin.isEnabled(PluginType.APS))           -> sp.getDouble(R.string.key_openapssmb_max_iob, 3.0)
+            (openAPSSMBDynamicISFPlugin.isEnabled(PluginType.APS)) -> sp.getDouble(R.string.key_openapssmb_max_iob, 3.0)
+            BoostPlugin.isEnabled(PluginType.APS)                  -> sp.getDouble(R.string.key_openapssmb_max_iob, 3.0)
+            else                                                   -> sp.getDouble(R.string.key_openapsma_max_iob, 1.5)
         }
         maxIob.setIfSmaller(aapsLogger, maxIobPref, String.format(rh.gs(R.string.limitingiob), maxIobPref, rh.gs(R.string.maxvalueinpreferences)), this)
         if (openAPSAMAPlugin.isEnabled()) maxIob.setIfSmaller(aapsLogger, hardLimits.maxIobAMA(), String.format(rh.gs(R.string.limitingiob), hardLimits.maxIobAMA(), rh.gs(R.string.hardlimit)), this)
