@@ -919,7 +919,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
     fun updateIobCob() {
         val iobText = overviewData.iobText(iobCobCalculator)
         val iobDialogText = overviewData.iobDialogText(iobCobCalculator)
-        val displayText = overviewData.cobInfo(iobCobCalculator).displayText(rh, dateUtil, buildHelper.isEngineeringMode())
+        val displayText = overviewData.cobInfo(iobCobCalculator).displayText(rh, dateUtil, buildHelper.isDev())
         val lastCarbsTime = overviewData.lastCarbsTime
         runOnUiThread {
             _binding ?: return@runOnUiThread
