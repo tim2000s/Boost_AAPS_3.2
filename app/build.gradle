@@ -53,7 +53,8 @@ def generateGitRemote = { ->
 
 def generateDate = { ->
     StringBuilder stringBuilder = new StringBuilder()
-    stringBuilder.append((new Date()).format('yyyy.MM.dd-HH:mm'))
+    stringBuilder.append((new Date()).format('yyyy.MM.dd'))
+    //stringBuilder.append((new Date()).format('yyyy.MM.dd-HH:mm'))
     return stringBuilder.toString()
 }
 
@@ -111,7 +112,7 @@ android {
         versionCode 1500
         version "3.1.0.2"
         buildConfigField "String", "VERSION", '"' + version + '"'
-        buildConfigField "String", "BUILDVERSION", '"' + generateGitBuild() + '-' + generateDate() + '"'
+        buildConfigField "String", "BUILDVERSION", '"' + generateGitBuild() + '-' + generateDate() + '-custom"'
         buildConfigField "String", "REMOTE", '"' + generateGitRemote() + '"'
         buildConfigField "String", "HEAD", '"' + generateGitBuild() + '"'
         buildConfigField "String", "COMMITTED", '"' + allCommitted() + '"'
@@ -251,7 +252,7 @@ printf('--------------\n')
 if (isMaster() && !gitAvailable()) {
     throw new GradleException('GIT system is not available. On Windows try to run Android Studio as an Administrator. Check if GIT is installed and Studio have permissions to use it')
 }
-if (isMaster() && !allCommitted()) {
+/*if (isMaster() && !allCommitted()) {
     throw new GradleException('There are uncommitted changes. Clone sources again as described in wiki and do not allow gradle update')
-}
+}*/
 
