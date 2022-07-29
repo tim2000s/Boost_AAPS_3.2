@@ -2,6 +2,7 @@ package info.nightscout.androidaps.plugins.iob.iobCobCalculator
 
 import androidx.collection.LongSparseArray
 import info.nightscout.androidaps.annotations.OpenForTesting
+import info.nightscout.androidaps.core.BuildConfig
 import info.nightscout.androidaps.core.R
 import info.nightscout.androidaps.data.InMemoryGlucoseValue
 import info.nightscout.androidaps.database.AppRepository
