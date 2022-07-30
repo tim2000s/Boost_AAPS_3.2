@@ -68,5 +68,5 @@ class PrepareBgDataWorker(
     }
 
     private fun addUpperChartMargin(maxBgValue: Double) =
-        if (profileFunction.getUnits() == GlucoseUnit.MGDL) Round.roundTo(maxBgValue, 40.0) + 80 else Round.roundTo(maxBgValue, 2.0) + 4
+        if (profileFunction.getUnits() == GlucoseUnit.MGDL) Round.roundTo(maxBgValue, 40.0) + 80 else Round.roundTo(maxBgValue, 2.0) + 2
 }
