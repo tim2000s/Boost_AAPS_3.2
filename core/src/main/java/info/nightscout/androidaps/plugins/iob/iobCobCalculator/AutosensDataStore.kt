@@ -41,12 +41,6 @@ class AutosensDataStore @Inject constructor(val sp: SP) {
         @Synchronized set
         @Synchronized get
 
-    var useBgSmoothing: Boolean = false
-
-    init {
-        useBgSmoothing = sp.getBoolean(R.string.key_use_data_smoothing, false)
-    }
-
     fun clone(): AutosensDataStore =
         AutosensDataStore(sp).also {
             synchronized(dataLock) {
@@ -245,6 +239,7 @@ class AutosensDataStore @Inject constructor(val sp: SP) {
             bucketedData = null
             return
         }
+        val  useBgSmoothing = sp.getBoolean(R.string.key_use_data_smoothing, false)
         val newBucketedData = ArrayList<InMemoryGlucoseValue>()
         var currentTime = bgReadings[0].timestamp - bgReadings[0].timestamp % T.mins(5).msecs()
         val adjustedTime = adjustToReferenceTime(currentTime)
@@ -282,6 +277,7 @@ class AutosensDataStore @Inject constructor(val sp: SP) {
             return
         }
         val bData: MutableList<InMemoryGlucoseValue> = ArrayList()
+        val useBgSmoothing = sp.getBoolean(R.string.key_use_data_smoothing, false)
         bData.add(InMemoryGlucoseValue(bgReadings[0]))
         aapsLogger.debug(LTag.AUTOSENS, "Adding. bgTime: " + dateUtil.toISOString(bgReadings[0].timestamp) + " lastBgTime: " + "none-first-value" + " " + bgReadings[0].toString())
         var j = 0
