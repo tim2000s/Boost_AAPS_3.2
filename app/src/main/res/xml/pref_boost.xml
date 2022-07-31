@@ -229,7 +229,6 @@
             validate:minNumber="15"
             validate:testType="numericRange" />
 
-
         <SwitchPreference
             android:defaultValue="false"
             android:key="@string/key_use_uam"
