@@ -164,6 +164,16 @@ android {
     }
 
     useLibrary "org.apache.http.legacy"
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def flavor = variant.productFlavors[0].name
+            if (flavor == "full") flavor = "aaps"
+            def date = new Date().format('yyMMdd')
+            def fileName = "$flavor-$version-custom-$date"
+            outputFileName = new File(fileName + ".apk")
+        }
+    }
 }
 
 allprojects {
@@ -210,7 +220,6 @@ dependencies {
 }
 
 apply from: "${project.rootDir}/core/test_dependencies.gradle"
-
 
 /*
 // Run 'adb' shell command to clear application data of main app for 'debug' variant
