@@ -10,6 +10,7 @@ class DetermineBasalResultBoost private constructor(injector: HasAndroidInjector
 
     private var eventualBG = 0.0
     private var snoozeBG = 0.0
+    var variableSens: Double? = null
 
     internal constructor(injector: HasAndroidInjector, result: JSONObject) : this(injector) {
         date = dateUtil.now()
@@ -34,10 +35,10 @@ class DetermineBasalResultBoost private constructor(injector: HasAndroidInjector
                 rate = (-1).toDouble()
                 duration = -1
             }
-            smb = if (result.has("units")) {
-                result.getDouble("units")
+            if (result.has("units")) {
+                smb = result.getDouble("units")
             } else {
-                0.0
+                smb = 0.0
             }
             if (result.has("targetBG")) {
                 targetBG = result.getDouble("targetBG")
@@ -50,6 +51,7 @@ class DetermineBasalResultBoost private constructor(injector: HasAndroidInjector
                     aapsLogger.error(LTag.APS, "Error parsing 'deliverAt' date: $date", e)
                 }
             }
+            if (result.has("variable_sens")) variableSens = result.getDouble("variable_sens")
         } catch (e: JSONException) {
             aapsLogger.error(LTag.APS, "Error parsing determine-basal result JSON", e)
         }

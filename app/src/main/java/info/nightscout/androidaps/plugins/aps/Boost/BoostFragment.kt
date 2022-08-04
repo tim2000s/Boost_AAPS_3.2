@@ -8,8 +8,6 @@ import dagger.android.support.DaggerFragment
 import info.nightscout.androidaps.R
 import info.nightscout.androidaps.databinding.OpenapsamaFragmentBinding
 import info.nightscout.androidaps.interfaces.ActivePlugin
-import info.nightscout.shared.logging.AAPSLogger
-import info.nightscout.shared.logging.LTag
 import info.nightscout.androidaps.plugins.aps.events.EventOpenAPSUpdateGui
 import info.nightscout.androidaps.plugins.aps.events.EventOpenAPSUpdateResultGui
 import info.nightscout.androidaps.plugins.bus.RxBus
@@ -18,6 +16,8 @@ import info.nightscout.androidaps.utils.FabricPrivacy
 import info.nightscout.androidaps.utils.JSONFormatter
 import info.nightscout.androidaps.interfaces.ResourceHelper
 import info.nightscout.androidaps.utils.rx.AapsSchedulers
+import info.nightscout.shared.logging.AAPSLogger
+import info.nightscout.shared.logging.LTag
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import org.json.JSONArray
@@ -36,6 +36,7 @@ class BoostFragment : DaggerFragment() {
     @Inject lateinit var activePlugin: ActivePlugin
     @Inject lateinit var dateUtil: DateUtil
     @Inject lateinit var jsonFormatter: JSONFormatter
+    private lateinit var refreshDialog: Runnable
 
     private val ID_MENU_RUN = 1
 
@@ -44,6 +45,24 @@ class BoostFragment : DaggerFragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
+        OpenapsamaFragmentBinding.inflate(inflater, container, false).also {
+            _binding = it
+            setHasOptionsMenu(true)
+        }.root
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        with(binding.swipeRefresh) {
+            setColorSchemeColors(rh.gac(context, R.attr.colorPrimaryDark), rh.gac(context, R.attr.colorPrimary), rh.gac(context, R.attr.colorSecondary))
+            setOnRefreshListener {
+                binding.lastrun.text = rh.gs(info.nightscout.androidaps.R.string.executing)
+                Thread { activePlugin.activeAPS.invoke("OpenAPSSMB swiperefresh", false) }.start()
+            }
+        }
+    }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
@@ -64,24 +83,6 @@ class BoostFragment : DaggerFragment() {
             else        -> false
         }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
-        OpenapsamaFragmentBinding.inflate(inflater, container, false).also {
-            _binding = it
-            setHasOptionsMenu(true)
-        }.root
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        with(binding.swipeRefresh) {
-            setColorSchemeColors(rh.gac(context, R.attr.colorPrimaryDark), rh.gac(context, R.attr.colorPrimary), rh.gac(context, R.attr.colorSecondary))
-            setOnRefreshListener {
-                binding.lastrun.text = rh.gs(info.nightscout.androidaps.R.string.executing)
-                Thread { activePlugin.activeAPS.invoke("Boost swiperefresh", false) }.start()
-            }
-        }
-
-    }
     @Synchronized
     override fun onResume() {
         super.onResume()
@@ -89,14 +90,14 @@ class BoostFragment : DaggerFragment() {
             .toObservable(EventOpenAPSUpdateGui::class.java)
             .observeOn(aapsSchedulers.main)
             .subscribe({
-                updateGUI()
-            }, fabricPrivacy::logException)
+                           updateGUI()
+                       }, fabricPrivacy::logException)
         disposable += rxBus
             .toObservable(EventOpenAPSUpdateResultGui::class.java)
             .observeOn(aapsSchedulers.main)
             .subscribe({
-                updateResultGUI(it.text)
-            }, fabricPrivacy::logException)
+                           updateResultGUI(it.text)
+                       }, fabricPrivacy::logException)
 
         updateGUI()
     }
@@ -116,12 +117,12 @@ class BoostFragment : DaggerFragment() {
     @Synchronized
     fun updateGUI() {
         if (_binding == null) return
-        val boostPlugin = activePlugin.activeAPS as BoostPlugin
+        val boostPlugin = activePlugin.activeAPS
         boostPlugin.lastAPSResult?.let { lastAPSResult ->
             binding.result.text = jsonFormatter.format(lastAPSResult.json)
             binding.request.text = lastAPSResult.toSpanned()
         }
-        boostPlugin.lastDetermineBasalAdapterBoostJS?.let { determineBasalAdapterBoostJS ->
+        boostPlugin.lastDetermineBasalAdapter?.let { determineBasalAdapterBoostJS ->
             binding.glucosestatus.text = jsonFormatter.format(determineBasalAdapterBoostJS.glucoseStatusParam)
             binding.currenttemp.text = jsonFormatter.format(determineBasalAdapterBoostJS.currentTempParam)
             try {
@@ -162,5 +163,6 @@ class BoostFragment : DaggerFragment() {
         binding.scriptdebugdata.text = ""
         binding.request.text = ""
         binding.lastrun.text = ""
+        binding.swipeRefresh.isRefreshing = false
     }
 }

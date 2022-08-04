@@ -84,14 +84,10 @@ abstract class InsulinOrefBasePlugin(
         if (bolus.amount != 0.0) {
             val bolusTime = bolus.timestamp
             val t = (time - bolusTime) / 1000.0 / 60.0
-
-            var circadian_sensitivity = 1.0
             // force the IOB to 0 if over DIA hours have passed
-            if (t < 3.8 * circadian_sensitivity * 60 && (insulin is InsulinLyumjevU100PDPlugin || insulin is InsulinLyumjevU200PDPlugin)) { //MP: Fixed DIA cut-off of 8 h - the model automatically
-                // changes its DIA based on the bolus size,
-                // thus no user-set DIA is required.
+            if (t < 8 * 60 && (insulin is InsulinLyumjevU100PDPlugin || insulin is InsulinLyumjevU200PDPlugin)) { //MP: Fixed DIA cut-off of 8 h - the model automatically changes its DIA based on the bolus size, thus no user-set DIA is required.
                 //MP Model for estimation of PD-based peak time: (a0 + a1*X)/(1+b1*X), where X = bolus size
-                val a0 = 61.33
+                val a0 = 61.33 //MP Units = min
                 val a1 = 12.27
                 val b1 = 0.05185
                 val tp: Double
@@ -119,9 +115,9 @@ abstract class InsulinOrefBasePlugin(
                 result.activityContrib = (2 * bolus.amount / tp_model) * t * exp(-t.pow(2.0) / tp_model)
 
                 //MP New IOB formula - integrated version of the above activity curve
-                val lowerLimit = t //MP lower integration limit
-                val upperLimit = 3.8 * circadian_sensitivity //MP upper integration limit
-                result.iobContrib = bolus.amount - (0.5 * (2 * bolus.amount / tp_model) * tp_model * (exp(-upperLimit.pow(2)/tp_model) - exp(-lowerLimit.pow(2)/tp_model)))
+                val lowerLimit = t //MP lower integration limit, in min
+                val upperLimit = 8.0 * 60 //MP upper integration limit, in min
+                result.iobContrib = bolus.amount * (exp(-lowerLimit.pow(2.0)/tp_model) - exp(-upperLimit.pow(2.0)/tp_model))
 
                 //MP Below: old IOB formula; produces (almost?) identical results, but requires for loop
                 //var pct_ins_left = 0.0 //MP insulin equivalents in U that are still "unused"
@@ -131,17 +127,17 @@ abstract class InsulinOrefBasePlugin(
                 //result.iobContrib = bolus.amount * (1 - (pct_ins_left/bolus.amount))
 
             } else {
-                // MP: If the Lyumjev pharmacodynamic models are not used (IDs 6 & 7), use the traditional PK-based insulin model instead;
-                val peak = peak * circadian_sensitivity
-                val td = dia * circadian_sensitivity * 60 //getDIA() always >= MIN_DIA
+                // MP: If the Lyumjev pharmacodynamic models are not used (IDs 105 & 205), use the traditional PK-based insulin model instead;
+                val peak = peak
+                val td = dia * 60 //getDIA() always >= MIN_DIA
                 val tp = peak.toDouble()
                 // force the IOB to 0 if over DIA hours have passed
                 if (t < td) {
                     val tau = tp * (1 - tp / td) / (1 - 2 * tp / td)
                     val a = 2 * tau / td
-                    val s = 1 / (1 - a + (1 + a) * exp(-td / tau))
-                    result.activityContrib = bolus.amount * (s / tau.pow(2.0)) * t * (1 - t / td) * exp(-t / tau)
-                    result.iobContrib = bolus.amount * (1 - s * (1 - a) * ((t.pow(2.0) / (tau * td * (1 - a)) - t / tau - 1) * exp(-t / tau) + 1))
+                    val S = 1 / (1 - a + (1 + a) * exp(-td / tau))
+                    result.activityContrib = bolus.amount * (S / tau.pow(2.0)) * t * (1 - t / td) * exp(-t / tau)
+                    result.iobContrib = bolus.amount * (1 - S * (1 - a) * ((t.pow(2.0) / (tau * td * (1 - a)) - t / tau - 1) * Math.exp(-t / tau) + 1))
                 }
             }
         }

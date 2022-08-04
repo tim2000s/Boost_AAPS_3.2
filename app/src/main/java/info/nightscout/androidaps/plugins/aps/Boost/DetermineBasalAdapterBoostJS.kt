@@ -4,8 +4,6 @@ import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.R
 import info.nightscout.androidaps.data.IobTotal
 import info.nightscout.androidaps.data.MealData
-import info.nightscout.androidaps.database.AppRepository
-import info.nightscout.androidaps.database.entities.Bolus
 import info.nightscout.androidaps.extensions.convertedToAbsolute
 import info.nightscout.androidaps.extensions.getPassedDurationToTimeInMinutes
 import info.nightscout.androidaps.extensions.plannedRemainingMinutes
@@ -13,15 +11,13 @@ import info.nightscout.androidaps.interfaces.*
 import info.nightscout.shared.logging.AAPSLogger
 import info.nightscout.shared.logging.LTag
 import info.nightscout.androidaps.plugins.aps.logger.LoggerCallback
+import info.nightscout.androidaps.plugins.aps.loop.APSResult
 import info.nightscout.androidaps.plugins.aps.loop.ScriptReader
 import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatus
-import info.nightscout.androidaps.utils.DateUtil
 import info.nightscout.shared.SafeParse
-import info.nightscout.androidaps.utils.T
+import info.nightscout.androidaps.interfaces.ResourceHelper
 import info.nightscout.shared.sharedPreferences.SP
-import info.nightscout.androidaps.utils.stats.TddCalculator
-import info.nightscout.androidaps.utils.MidnightTime
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -31,11 +27,10 @@ import java.io.IOException
 import java.lang.reflect.InvocationTargetException
 import java.nio.charset.StandardCharsets
 import javax.inject.Inject
-import info.nightscout.androidaps.utils.stats.TirCalculator
-//import info.nightscout.androidaps.dana.DanaPump
+import info.nightscout.androidaps.utils.stats.TddCalculator
 
 
-class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader: ScriptReader, private val injector: HasAndroidInjector) {
+class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader: ScriptReader, private val injector: HasAndroidInjector) : DetermineBasalAdapterInterface {
 
     @Inject lateinit var aapsLogger: AAPSLogger
     @Inject lateinit var constraintChecker: ConstraintChecker
@@ -44,10 +39,7 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
     @Inject lateinit var profileFunction: ProfileFunction
     @Inject lateinit var iobCobCalculator: IobCobCalculator
     @Inject lateinit var activePlugin: ActivePlugin
-    @Inject lateinit var repository: AppRepository
-    @Inject lateinit var dateUtil: DateUtil
-    //@Inject lateinit var danaPump: DanaPump
-
+    @Inject lateinit var tddCalculator: TddCalculator
 
     private var profile = JSONObject()
     private var mGlucoseStatus = JSONObject()
@@ -59,28 +51,16 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
     private var smbAlwaysAllowed = false
     private var currentTime: Long = 0
     private var saveCgmSource = false
-    private var lastBolusNormalTime: Long = 0
-    private val millsToThePast = T.hours(4).msecs()
-    private var tddAIMI: TddCalculator? = null
-    private var StatTIR: TirCalculator? = null
 
-    var currentTempParam: String? = null
-        private set
-    var iobDataParam: String? = null
-        private set
-    var glucoseStatusParam: String? = null
-        private set
-    var profileParam: String? = null
-        private set
-    var mealDataParam: String? = null
-        private set
-    var scriptDebug = ""
-        private set
-
-
+    override var currentTempParam: String? = null
+    override var iobDataParam: String? = null
+    override var glucoseStatusParam: String? = null
+    override var profileParam: String? = null
+    override var mealDataParam: String? = null
+    override var scriptDebug = ""
 
     @Suppress("SpellCheckingInspection")
-    operator fun invoke(): DetermineBasalResultBoost? {
+    override operator fun invoke(): APSResult? {
         aapsLogger.debug(LTag.APS, ">>> Invoking determine_basal <<<")
         aapsLogger.debug(LTag.APS, "Glucose status: " + mGlucoseStatus.toString().also { glucoseStatusParam = it })
         aapsLogger.debug(LTag.APS, "IOB data:       " + iobData.toString().also { iobDataParam = it })
@@ -170,22 +150,24 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
         return determineBasalResultBoost
     }
 
-    @Suppress("SpellCheckingInspection") fun setData(profile: Profile,
-                                                     maxIob: Double,
-                                                     maxBasal: Double,
-                                                     minBg: Double,
-                                                     maxBg: Double,
-                                                     targetBg: Double,
-                                                     basalRate: Double,
-                                                     iobArray: Array<IobTotal>,
-                                                     glucoseStatus: GlucoseStatus,
-                                                     mealData: MealData,
-                                                     autosensDataRatio: Double,
-                                                     tempTargetSet: Boolean,
-                                                     microBolusAllowed: Boolean,
-                                                     uamAllowed: Boolean,
-                                                     advancedFiltering: Boolean,
-                                                     isSaveCgmSource: Boolean
+    @Suppress("SpellCheckingInspection")
+    override fun setData(
+        profile: Profile,
+        maxIob: Double,
+        maxBasal: Double,
+        minBg: Double,
+        maxBg: Double,
+        targetBg: Double,
+        basalRate: Double,
+        iobArray: Array<IobTotal>,
+        glucoseStatus: GlucoseStatus,
+        mealData: MealData,
+        autosensDataRatio: Double,
+        tempTargetSet: Boolean,
+        microBolusAllowed: Boolean,
+        uamAllowed: Boolean,
+        advancedFiltering: Boolean,
+        isSaveCgmSource: Boolean
     ) {
         val pump = activePlugin.activePump
         val pumpBolusStep = pump.pumpDescription.bolusStep
@@ -196,7 +178,7 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
 
 
         this.profile.put("max_iob", maxIob)
-        this.profile.put("dia", profile.dia)
+        //mProfile.put("dia", profile.getDia());
         this.profile.put("type", "current")
         this.profile.put("max_daily_basal", profile.getMaxDailyBasal())
         this.profile.put("max_basal", maxBasal)
@@ -207,6 +189,7 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
         this.profile.put("sens", profile.getIsfMgdl())
         this.profile.put("max_daily_safety_multiplier", sp.getInt(R.string.key_openapsama_max_daily_safety_multiplier, 3))
         this.profile.put("current_basal_safety_multiplier", sp.getDouble(R.string.key_openapsama_current_basal_safety_multiplier, 4.0))
+        this.profile.put("lgsThreshold", Profile.toMgdl(sp.getDouble(R.string.key_lgs_threshold, 65.0)))
 
         //mProfile.put("high_temptarget_raises_sensitivity", SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, BoostDefaults.high_temptarget_raises_sensitivity));
 //**********************************************************************************************************************************************
@@ -229,7 +212,7 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
         //if (mealData.usedMinCarbsImpact > 0) {
         //    mProfile.put("min_5m_carbimpact", mealData.usedMinCarbsImpact);
         //} else {
-        //    mProfile.put("min_5m_carbimpact", SP.getDouble(R.string.key_openapsama_min_5m_carbimpact, BoostDefaults.min_5m_carbimpact));
+        //    mProfile.put("min_5m_carbimpact", SP.getDouble(R.string.key_openapsama_min_5m_carbimpact, SMBDefaults.min_5m_carbimpact));
         //}
         this.profile.put("remainingCarbsCap", BoostDefaults.remainingCarbsCap)
         this.profile.put("enableUAM", uamAllowed)
@@ -254,7 +237,6 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
         this.profile.put("temptargetSet", tempTargetSet)
         this.profile.put("autosens_max", SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_autosens_max, "1.2")))
         this.profile.put("autosens_min", SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_autosens_min, "0.8")))
-        this.profile.put("lgsThreshold", Profile.toMgdl(sp.getDouble(R.string.key_lgs_threshold, 65.0)))
 //**********************************************************************************************************************************************
         //this.profile.put("scale_min",SafeParse.stringToDouble(sp.getString(R.string.key_scale_min,"70")))
         //this.profile.put("scale_max",SafeParse.stringToDouble(sp.getString(R.string.key_scale_max,"20")))
@@ -290,7 +272,6 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
         } else {
             mGlucoseStatus.put("delta", glucoseStatus.delta)
         }
-        bolusMealLinks(now)?.forEach { bolus -> if (bolus.type == Bolus.Type.NORMAL && bolus.isValid && bolus.timestamp > lastBolusNormalTime ) lastBolusNormalTime = bolus.timestamp }
 
         mGlucoseStatus.put("short_avgdelta", glucoseStatus.shortAvgDelta)
         mGlucoseStatus.put("long_avgdelta", glucoseStatus.longAvgDelta)
@@ -300,32 +281,14 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
         this.mealData.put("slopeFromMaxDeviation", mealData.slopeFromMaxDeviation)
         this.mealData.put("slopeFromMinDeviation", mealData.slopeFromMinDeviation)
         this.mealData.put("lastBolusTime", mealData.lastBolusTime)
-        this.mealData.put("lastBolusNormalTime", lastBolusNormalTime)
         this.mealData.put("lastCarbTime", mealData.lastCarbTime)
 
-        tddAIMI = TddCalculator(aapsLogger,rh,activePlugin,profileFunction,dateUtil,iobCobCalculator, repository)
-        this.mealData.put("TDDAIMI7", tddAIMI!!.averageTDD(tddAIMI!!.calculate(7))?.totalAmount)
-        //this.mealData.put("TDDPUMP", tddAIMI!!.calculateDaily().totalAmount)
-        //this.mealData.put("TDDLast24", tddAIMI!!.calculate24Daily().totalAmount)
-        this.mealData.put("TDDLast4", tddAIMI!!.calculate4Daily().totalAmount)
-        //this.mealData.put("TDDLast6", tddAIMI!!.calculate6Daily().totalAmount)
-        this.mealData.put("TDDLast8", tddAIMI!!.calculate8Daily().totalAmount)
-        this.mealData.put("TDD4to8", tddAIMI!!.calculate8Gap().totalAmount)
-        this.mealData.put("TDDAIMI1", tddAIMI!!.averageTDD(tddAIMI!!.calculate(1))?.totalAmount)
-        //this.mealData.put("TDDAIMI3", tddAIMI!!.averageTDD(tddAIMI!!.calculate(3)).totalAmount)
-        //this.mealData.put("TDDAIMI5", tddAIMI!!.averageTDD(tddAIMI!!.calculate(5)).totalAmount)
-        //this.mealData.put("TDDPUMPmsec",tddAIMI!!.calculateDaily().totalAmount/(now-MidnightTime.calc(now))*86400000)
-        //this.mealData.put("TDDPUMP", danaPump.dailyTotalUnits)
-        /*StatTIR = TirCalculator(rh,profileFunction,dateUtil,repository)
-        this.mealData.put("StatLow7", StatTIR!!.averageTIR(StatTIR!!.calculate(7, 70.0, 180.0)).belowPct())
-        this.mealData.put("StatInRange7", StatTIR!!.averageTIR(StatTIR!!.calculate(7, 70.0, 180.0)).inRangePct())
-        this.mealData.put("StatAbove7", StatTIR!!.averageTIR(StatTIR!!.calculate(7, 70.0, 180.0)).abovePct())
-        this.mealData.put("currentTIRLow", StatTIR!!.averageTIR(StatTIR!!.calculateDaily(80.0, 180.0)).belowPct())
-        this.mealData.put("currentTIRRange", StatTIR!!.averageTIR(StatTIR!!.calculateDaily(80.0, 180.0)).inRangePct())
-        this.mealData.put("currentTIRAbove", StatTIR!!.averageTIR(StatTIR!!.calculateDaily(80.0, 180.0)).abovePct())
-        this.mealData.put("currentTIR_70_140_Above", StatTIR!!.averageTIR(StatTIR!!.calculateDaily(70.0, 140.0)).abovePct())
-        //this.mealData.put("TDDPUMP1", danaPump.dailyTotalUnits)
-        //this.mealData.put("TDDPUMP2", pumpHistory.tddHistory.get(DEFAULT_BUFFER_SIZE))*/
+        this.mealData.put("TDDAIMI1", tddCalculator.averageTDD(tddCalculator.calculate(1))?.totalAmount)
+        this.mealData.put("TDDAIMI7", tddCalculator.averageTDD(tddCalculator.calculate(7))?.totalAmount)
+        this.mealData.put("TDDLast4", tddCalculator.calculateDaily(-4, 0).totalAmount)
+        this.mealData.put("TDDLast8", tddCalculator.calculateDaily(-8, 0).totalAmount)
+        this.mealData.put("TDD4to8", tddCalculator.calculateDaily(-8, -4).totalAmount)
+        this.mealData.put("TDD24", tddCalculator.calculateDaily(-24, 0).totalAmount)
 
 
 
@@ -348,8 +311,6 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
     private fun makeParamArray(jsonArray: JSONArray?, rhino: Context, scope: Scriptable): Any {
         return NativeJSON.parse(rhino, scope, jsonArray.toString()) { _: Context?, _: Scriptable?, _: Scriptable?, objects: Array<Any?> -> objects[1] }
     }
-
-    private fun bolusMealLinks(now: Long) = repository.getBolusesDataFromTime(now - millsToThePast, false).blockingGet()
 
     @Throws(IOException::class) private fun readFile(filename: String): String {
         val bytes = scriptReader.readFile(filename)

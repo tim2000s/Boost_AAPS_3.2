@@ -247,14 +247,15 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         else {
             console.error("Time now is "+now+"; ");
         }
-    var delta_accl = glucose_status.delta - glucose_status.short_avgdelta;
+    var delta_accl = round(( glucose_status.delta - glucose_status.short_avgdelta ) / Math.abs(glucose_status.short_avgdelta),2);
+    delta_accl = 100 * delta_accl;
 
     //*********************************************************************************
     //**                   Start of Dynamic ISF code for predictions                 **
     //*********************************************************************************
 
         console.error("---------------------------------------------------------");
-        console.error( "     Boost version 3.6.4 ");
+        console.error( "     Boost version 3.6.5 ");
         console.error("---------------------------------------------------------");
 
     if (meal_data.TDDAIMI7){
@@ -288,7 +289,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var dynISFadjust = profile.DynISFAdjust;
     var dynISFadjust = ( dynISFadjust / 100 );
     var TDD = (dynISFadjust * TDD);
-    var variable_sens_old = (277700 / (TDD * bg));
 
     var insulin = profile.insulinType;
 
@@ -332,7 +332,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     variable_sens =  1800 / ( TDD * (Math.log(( bg / ins_val ) + 1 ) ) );
     variable_sens = round(variable_sens,1);
     console.log("Current sensitivity for predictions is " +variable_sens+" based on current bg");
-    console.log("Sensitivity for predictions using old model is " +variable_sens_old+" based on current bg");
 
 //Circadian ISF Adjustment
 
@@ -955,39 +954,51 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         // set eventualBG based on COB or UAM predBGs
         rT.eventualBG = eventualBG;
     }
+    minIOBPredBG = Math.max(39,minIOBPredBG);
+    minCOBPredBG = Math.max(39,minCOBPredBG);
+    minUAMPredBG = Math.max(39,minUAMPredBG);
+    minPredBG = round(minIOBPredBG);
 
     console.error("UAM Impact:",uci,"mg/dL per 5m; UAM Duration:",UAMduration,"hours");
 
         console.log("EventualBG is" +eventualBG+" ;");
 
-        if( glucose_status.delta >= 6 && meal_data.mealCOB > 0) {
-            var future_sens_old = ( 277700 / (TDD * ( (eventualBG * 0.75) + (bg * 0.25) )));
-            var future_sens = ( 1800 / (Math.log((((eventualBG * 0.75) + (bg * 0.25))/75)+1)*TDD));
+        if( meal_data.mealCOB > 0 && delta_accl > 0 ) {
+
+            var future_sens = ( 1800 / (Math.log((((eventualBG * 0.75) + (bg * 0.25))/ins_val)+1)*TDD));
             console.log("Future state sensitivity is " +future_sens+" weighted on eventual BG due to COB");
             rT.reason += "Dosing sensitivity: " +future_sens+" weighted on predicted BG due to COB;";
             }
-        else if( glucose_status.delta > 4 && delta_accl > 0 ) {
-           var future_sens_old = ( 277700 / (TDD * ( (eventualBG * 0.75) + (bg * 0.25) )));
-            var future_sens = ( 1800 / (Math.log((((eventualBG * 0.5) + (bg * 0.5))/75)+1)*TDD));
+        else if( glucose_status.delta > 4 && delta_accl > 10 && bg < 180 && eventualBG > bg ) {
+
+            var future_sens = ( 1800 / (Math.log((((eventualBG * 0.5) + (bg * 0.5))/ins_val)+1)*TDD));
             console.log("Future state sensitivity is " +future_sens+" weighted on predicted bg due to increasing deltas");
             rT.reason += "Dosing sensitivity: " +future_sens+" weighted on predicted BG due to delta;";
             }
-        else if( glucose_status.delta > 6 ) {
-            var future_sens_old = ( 277700 / (TDD * ( (eventualBG * 0.25) + (bg * 0.75) )));
+        /*else if( glucose_status.delta > 6 && bg < 180) {
+
             var future_sens = ( 1800 / (Math.log((((eventualBG * 0.25) + (bg * 0.75))/75)+1)*TDD));
             console.log("Future state sensitivity is " +future_sens+" weighted on current bg due to no COB");
             rT.reason += "Dosing sensitivity: " +future_sens+" weighted on current BG;";
-            }
-        else if( glucose_status.delta > 0 || bg > 60 && glucose_status.delta < 2 && glucose_status.delta > -2 && glucose_status.short_avgdelta > -2 && glucose_status.short_avgdelta < 2 ) {
-            var future_sens_old = ( 277700 / (TDD * (( 0.5 * bg) + ( 0.5 * eventualBG )) ));
-            var future_sens = ( 1800 / (Math.log((((eventualBG * 0.5) + (bg * 0.5))/75)+1)*TDD));
+            }*/
+        else if( bg > 160 && bg < 270 && glucose_status.delta < 2 && glucose_status.delta > -2 && glucose_status.short_avgdelta > -2 && glucose_status.short_avgdelta < 2 && eventualBG < bg) {
+            var future_sens = ( 1800 / (Math.log((((minPredBG * 0.6) + (bg * 0.4))/ins_val)+1)*TDD));
             console.log("Future state sensitivity is " +future_sens+" using current bg due to no COB & small delta or variation");
             rT.reason += "Dosing sensitivity: " +future_sens+" using current BG;";
             }
+        /*else if( glucose_status.delta > 0 && delta_accl > 0 && bg > 198 || eventualBG > bg && bg >
+         198) {
+            var future_sens = ( 1800 / (Math.log((((minPredBG * 0.4) + (bg * 0.6))/ins_val)+1)*TDD));
+            console.log("Future state sensitivity is " +future_sens+" based on current bg due to +ve delta");
+            }*/
+
+        else if( glucose_status.delta > 0 && delta_accl > 1 || eventualBG > bg) {
+            var future_sens = ( 1800 / (Math.log((bg/ins_val)+1)*TDD));
+            console.log("Future state sensitivity is " +future_sens+" based on current bg due to +ve delta");
+            }
         else {
-            var future_sens_old = ( 277700 / (TDD * eventualBG));
-            var future_sens = ( 1800 / (Math.log((eventualBG/75)+1)*TDD));
-        console.log("Future state sensitivity is " +future_sens+" based on eventual bg due to -ve delta");
+            var future_sens = ( 1800 / (Math.log((Math.max(minPredBG,1)/ins_val)+1)*TDD));
+        console.log("Future state sensitivity is " +future_sens+" based on min predited bg due to -ve delta");
         rT.reason += "Dosing sensitivity: " +future_sens+" using eventual BG;";
         }
         //future_sens = future_sens * circadian_sensitivity;
@@ -995,13 +1006,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         var future_sens = round(future_sens,1);
 
         console.log("Future sens adjusted to : "+future_sens+"; ");
-        console.log("Future sens from old model is: "+future_sens_old+"; ");
 
 
-    minIOBPredBG = Math.max(39,minIOBPredBG);
-    minCOBPredBG = Math.max(39,minCOBPredBG);
-    minUAMPredBG = Math.max(39,minUAMPredBG);
-    minPredBG = round(minIOBPredBG);
 
     var fractionCarbsLeft = meal_data.mealCOB/meal_data.carbs;
     // if we have COB and UAM is enabled, average both
@@ -1180,7 +1186,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
 
     // don't low glucose suspend if IOB is already super negative and BG is rising faster than predicted
-    if (bg < threshold && iob_data.iob < -profile.current_basal*20/60 && minDelta > 0 && minDelta > expectedDelta) {
+    if (bg < threshold && iob_data.iob < -profile.current_basal*40/60 && minDelta > 0 && minDelta > expectedDelta) {
         rT.reason += "IOB "+iob_data.iob+" < " + round(-profile.current_basal*20/60,2);
         rT.reason += " and minDelta " + convert_bg(minDelta, profile) + " > " + "expectedDelta " + convert_bg(expectedDelta, profile) + "; ";
     // predictive low glucose suspend mode: BG is / is projected to be < threshold
@@ -1371,7 +1377,10 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                     console.error("profile.maxSMBBasalMinutes:",profile.maxSMBBasalMinutes,"profile.current_basal:",profile.current_basal);
                     maxBolus = round( profile.current_basal * profile.maxSMBBasalMinutes / 60 ,1);
                 }
-// Start of TS experimental closed loop code to enable scaling of SMBs to increase insulin early in glucose rise
+
+            //*********************************************************************************************************************
+            //* Start of TS experimental closed loop code to enable scaling of SMBs to increase insulin early in glucose rise
+            //***********************************************************************************************************************
                 var roundSMBTo = 1 / profile.bolus_increment;
                 var scaleSMB = (target_bg/(eventualBG-target_bg));
                 /*console.error("                       ");

@@ -32,8 +32,7 @@ class InsulinLyumjevU200PDPlugin @Inject constructor(
 
     override fun commentStandardText(): String = rh.gs(R.string.lyumjev_U200_PD)
 
-
-    override val peak = 30
+    override val peak = 45
 
     init {
         pluginDescription
