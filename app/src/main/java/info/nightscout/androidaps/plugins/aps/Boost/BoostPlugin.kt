@@ -22,6 +22,7 @@ import info.nightscout.androidaps.utils.HardLimits
 import info.nightscout.androidaps.utils.Profiler
 import info.nightscout.androidaps.utils.Round
 import info.nightscout.androidaps.interfaces.ResourceHelper
+import info.nightscout.androidaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
 import info.nightscout.shared.logging.AAPSLogger
 import info.nightscout.shared.logging.LTag
 import info.nightscout.shared.sharedPreferences.SP
@@ -63,7 +64,7 @@ class BoostPlugin @Inject constructor(
 
     // last values
     override var lastAPSRun: Long = 0
-    override var lastAPSResult: DetermineBasalResultBoost? = null
+    override var lastAPSResult: DetermineBasalResultSMB? = null
     override var lastDetermineBasalAdapter: DetermineBasalAdapterInterface? = null
     override var lastAutosensResult = AutosensResult()
 
@@ -212,9 +213,9 @@ class BoostPlugin @Inject constructor(
                 activePlugin.activeBgSource.javaClass.simpleName == "DexcomPlugin"
             )
             val now = System.currentTimeMillis()
-            val determineBasalResultBoost = determineBasalAdapterBoostJS.invoke()
+            val determineBasalResult = determineBasalAdapterBoostJS.invoke() as DetermineBasalResultSMB
             profiler.log(LTag.APS, "SMB calculation", start)
-            if (determineBasalResultBoost == null) {
+            if (determineBasalResult == null) {
                 aapsLogger.error(LTag.APS, "SMB calculation returned null")
                 lastDetermineBasalAdapter = null
                 lastAPSResult = null
@@ -222,14 +223,14 @@ class BoostPlugin @Inject constructor(
             } else {
                 // TODO still needed with oref1?
                 // Fix bug determine basal
-                if (determineBasalResultBoost.rate == 0.0 && determineBasalResultBoost.duration == 0 && iobCobCalculator.getTempBasalIncludingConvertedExtended(dateUtil.now()) == null)
-                    determineBasalResultBoost.tempBasalRequested =
+                if (determineBasalResult.rate == 0.0 && determineBasalResult.duration == 0 && iobCobCalculator.getTempBasalIncludingConvertedExtended(dateUtil.now()) == null)
+                    determineBasalResult.tempBasalRequested =
                     false
-                determineBasalResultBoost.iob = iobArray[0]
-                determineBasalResultBoost.json?.put("timestamp", dateUtil.toISOString(now))
-                determineBasalResultBoost.inputConstraints = inputConstraints
+                determineBasalResult.iob = iobArray[0]
+                determineBasalResult.json?.put("timestamp", dateUtil.toISOString(now))
+                determineBasalResult.inputConstraints = inputConstraints
                 lastDetermineBasalAdapter = determineBasalAdapterBoostJS
-                lastAPSResult = determineBasalResultBoost as DetermineBasalResultBoost
+                lastAPSResult = determineBasalResult
                 lastAPSRun = now
             }
         }
