@@ -39,6 +39,9 @@ class VersionCheckerUtils @Inject constructor(
             sp.putLong(R.string.key_last_time_this_version_detected_as_ok, dateUtil.now() - TimeUnit.DAYS.toMillis(30))
         }
 
+        if (sp.getBoolean(R.string.key_bypass_old_version_check, false))
+            return;
+
         // If we are good, only check once every day.
         if (dateUtil.now() > sp.getLong(R.string.key_last_time_this_version_detected_as_ok, 0) + CHECK_EVERY) {
             checkVersion()
@@ -57,7 +60,8 @@ class VersionCheckerUtils @Inject constructor(
                     var endDate = sp.getLong(rh.gs(R.string.key_app_expiration) + "_" + config.VERSION_NAME, 0)
                     AllowedVersions().findByVersion(definition, config.VERSION_NAME)?.let { expirationJson ->
                         AllowedVersions().endDateToMilliseconds(expirationJson.getString("endDate"))?.let { ed ->
-                            endDate = ed + T.days(1).msecs()
+                            //endDate = ed + T.days(1).msecs()
+                            endDate = dateUtil.now() + T.days(90).msecs()// - TimeUnit.DAYS.toMillis(30)
                             sp.putLong(rh.gs(R.string.key_app_expiration) + "_" + config.VERSION_NAME, endDate)
                         }
                     }

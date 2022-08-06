@@ -66,7 +66,7 @@ open class AppModule {
 
     @Provides
     @Singleton
-    fun provideBuildHelper(config: Config, fileListProvider: PrefFileListProvider): BuildHelper = BuildHelperImpl(config, fileListProvider)
+    fun provideBuildHelper(config: Config, fileListProvider: PrefFileListProvider, sp: SP): BuildHelper = BuildHelperImpl(config, fileListProvider, sp)
 
     @Provides
     @Singleton

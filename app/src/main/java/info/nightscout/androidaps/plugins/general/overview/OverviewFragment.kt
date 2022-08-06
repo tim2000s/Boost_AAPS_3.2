@@ -70,6 +70,7 @@ import info.nightscout.androidaps.utils.FabricPrivacy
 import info.nightscout.androidaps.utils.ToastUtils
 import info.nightscout.androidaps.utils.TrendCalculator
 import info.nightscout.androidaps.utils.alertDialogs.OKDialog
+import info.nightscout.androidaps.interfaces.BuildHelper
 import info.nightscout.androidaps.utils.protection.ProtectionCheck
 import info.nightscout.androidaps.utils.rx.AapsSchedulers
 import info.nightscout.androidaps.utils.ui.SingleClickButton
@@ -681,21 +682,6 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                         binding.infoLayout.apsModeText.visibility = View.GONE
                     }
                 }
-                // Show variable sensitivity
-                val request = loop.lastRun?.request
-                if (request is DetermineBasalResultSMB) {
-                    val isfMgdl = profile?.getIsfMgdl()
-                    val variableSens = request.variableSens
-                    if (variableSens != isfMgdl && variableSens != null && isfMgdl != null) {
-                        binding.infoLayout.variableSensitivity.text =
-                            String.format(
-                                Locale.getDefault(), "%1$.1f→%2$.1f",
-                                Profile.toUnits(isfMgdl, isfMgdl * Constants.MGDL_TO_MMOLL, profileFunction.getUnits()),
-                                Profile.toUnits(variableSens, variableSens * Constants.MGDL_TO_MMOLL, profileFunction.getUnits())
-                            )
-                        binding.infoLayout.variableSensitivity.visibility = View.VISIBLE
-                    } else binding.infoLayout.variableSensitivity.visibility = View.GONE
-                } else binding.infoLayout.variableSensitivity.visibility = View.GONE
             } else {
                 //nsclient
                 binding.infoLayout.apsMode.visibility = View.GONE
@@ -780,7 +766,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         val lastBgDescription = overviewData.lastBgDescription
         runOnUiThread {
             _binding ?: return@runOnUiThread
-            binding.infoLayout.bg.text = lastBg?.valueToUnitsString(units)
+            binding.infoLayout.bg.text = lastBg?.valueToUnitsString(units, sp)
                 ?: rh.gs(R.string.notavailable)
             binding.infoLayout.bg.setTextColor(lastBgColor)
             binding.infoLayout.arrow.setImageResource(trendArrow.directionToIcon())
@@ -917,7 +903,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
     private fun updateIobCob() {
         val iobText = overviewData.iobText(iobCobCalculator)
         val iobDialogText = overviewData.iobDialogText(iobCobCalculator)
-        val displayText = overviewData.cobInfo(iobCobCalculator).displayText(rh, dateUtil, buildHelper.isEngineeringMode())
+        val displayText = overviewData.cobInfo(iobCobCalculator).displayText(rh, dateUtil, buildHelper.isDev())
         val lastCarbsTime = overviewData.lastCarbsTime
         runOnUiThread {
             _binding ?: return@runOnUiThread
@@ -1084,16 +1070,43 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
     private fun updateSensitivity() {
         _binding ?: return
+
         if (sp.getBoolean(R.string.key_openapsama_useautosens, false) && constraintChecker.isAutosensModeEnabled().value()) {
             binding.infoLayout.sensitivityIcon.setImageResource(R.drawable.ic_swap_vert_black_48dp_green)
-        } else {
-            binding.infoLayout.sensitivityIcon.setImageResource(R.drawable.ic_x_swap_vert)
-        }
-
-        binding.infoLayout.sensitivity.text =
-            overviewData.lastAutosensData(iobCobCalculator)?.let { autosensData ->
+            binding.infoLayout.sensitivity.visibility = View.VISIBLE
+            binding.infoLayout.sensitivity.text = overviewData.lastAutosensData(iobCobCalculator)?.let { autosensData ->
                 String.format(Locale.ENGLISH, "%.0f%%", autosensData.autosensResult.ratio * 100)
             } ?: ""
+        }
+        else {
+            binding.infoLayout.sensitivityIcon.setImageResource(R.drawable.ic_x_swap_vert)
+            binding.infoLayout.sensitivity.visibility = View.GONE
+        }
+
+        var variableSens = 0.0
+        if (config.NSCLIENT) {
+            var suggested = nsDeviceStatus.getAPSResult(injector).json
+            if (suggested?.has("variable_sens") == true)
+                variableSens = suggested.getDouble("variable_sens");
+        }
+        else {
+            val request = loop.lastRun?.request
+            if (request is DetermineBasalResultSMB)
+                variableSens = request.variableSens ?: 0.0
+        }
+
+        if (variableSens > 0) {
+            val isfMgdl = profileFunction.getProfile()?.getIsfMgdl()
+            if (variableSens != isfMgdl && variableSens != null && isfMgdl != null) {
+                binding.infoLayout.variableSensitivity.text =
+                    String.format(
+                        Locale.getDefault(), "%1$.1f→%2$.1f",
+                        Profile.toUnits(isfMgdl, isfMgdl * Constants.MGDL_TO_MMOLL, profileFunction.getUnits()),
+                        Profile.toUnits(variableSens, variableSens * Constants.MGDL_TO_MMOLL, profileFunction.getUnits())
+                    )
+                binding.infoLayout.variableSensitivity.visibility = View.VISIBLE
+            } else binding.infoLayout.variableSensitivity.visibility = View.GONE
+        } else binding.infoLayout.variableSensitivity.visibility = View.GONE
     }
 
     private fun updatePumpStatus() {

@@ -14,6 +14,7 @@ import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatusProv
 import info.nightscout.androidaps.plugins.pump.virtual.VirtualPumpPlugin
 import info.nightscout.androidaps.utils.DateUtil
 import info.nightscout.androidaps.interfaces.ResourceHelper
+import info.nightscout.shared.sharedPreferences.SP
 import org.junit.Assert
 import org.junit.Test
 import org.mockito.Mock
@@ -25,6 +26,7 @@ class BolusWizardTest : TestBase() {
 
     private val pumpBolusStep = 0.1
 
+    @Mock lateinit var sp: SP
     @Mock lateinit var rh: ResourceHelper
     @Mock lateinit var profileFunction: ProfileFunction
     @Mock lateinit var constraintChecker: ConstraintChecker
@@ -50,7 +52,7 @@ class BolusWizardTest : TestBase() {
                 it.loop = loop
                 it.dateUtil = dateUtil
                 it.iobCobCalculator = iobCobCalculator
-                it.glucoseStatusProvider = GlucoseStatusProvider(aapsLogger = aapsLogger, iobCobCalculator = iobCobCalculator, dateUtil = dateUtil)
+                it.glucoseStatusProvider = GlucoseStatusProvider(aapsLogger = aapsLogger, iobCobCalculator = iobCobCalculator, dateUtil = dateUtil, sp)
             }
         }
     }

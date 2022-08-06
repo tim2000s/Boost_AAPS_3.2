@@ -324,11 +324,11 @@ class SmsCommunicatorPlugin @Inject constructor(
         var reply = ""
         val units = profileFunction.getUnits()
         if (actualBG != null) {
-            reply = rh.gs(R.string.sms_actualbg) + " " + actualBG.valueToUnitsString(units) + ", "
+            reply = rh.gs(R.string.sms_actualbg) + " " + actualBG.valueToUnitsString(units, sp) + ", "
         } else if (lastBG != null) {
             val agoMilliseconds = dateUtil.now() - lastBG.timestamp
             val agoMin = (agoMilliseconds / 60.0 / 1000.0).toInt()
-            reply = rh.gs(R.string.sms_lastbg) + " " + lastBG.valueToUnitsString(units) + " " + rh.gs(R.string.sms_minago, agoMin) + ", "
+            reply = rh.gs(R.string.sms_lastbg) + " " + lastBG.valueToUnitsString(units, sp) + " " + rh.gs(R.string.sms_minago, agoMin) + ", "
         }
         val glucoseStatus = glucoseStatusProvider.glucoseStatusData
         if (glucoseStatus != null) reply += rh.gs(R.string.sms_delta) + " " + Profile.toUnitsString(glucoseStatus.delta, glucoseStatus.delta * Constants.MGDL_TO_MMOLL, units) + " " + units + ", "
@@ -1130,8 +1130,22 @@ class SmsCommunicatorPlugin @Inject constructor(
         return true
     }
 
-    private fun generatePassCode(): String =
-        rh.gs(R.string.smscommunicator_code_from_authenticator_for, otp.name())
+    private fun generatePassCode(): String {
+        if (otp.isEnabled()) {
+            // this not realy generate password - rather info to use Authenticator TOTP instead
+            return rh.gs(R.string.smscommunicator_code_from_authenticator_for, otp.name())
+        }
+
+        val startChar1 = 'A'.toInt() // on iphone 1st char is uppercase :)
+        var passCode = Character.toString((startChar1 + Math.random() * ('z' - 'a' + 1)).toChar())
+        val startChar2: Int = if (Math.random() > 0.5) 'a'.toInt() else 'A'.toInt()
+        passCode += Character.toString((startChar2 + Math.random() * ('z' - 'a' + 1)).toChar())
+        val startChar3: Int = if (Math.random() > 0.5) 'a'.toInt() else 'A'.toInt()
+        passCode += Character.toString((startChar3 + Math.random() * ('z' - 'a' + 1)).toChar())
+        passCode = passCode.replace('l', 'k').replace('I', 'J')
+        return passCode
+    }
+
 
     private fun stripAccents(str: String): String {
         var s = str

@@ -82,7 +82,7 @@ class SmsCommunicatorPluginTest : TestBaseWithProfile() {
     private var hasBeenRun = false
 
     @Before fun prepareTests() {
-        val reading = GlucoseValue(raw = 0.0, noise = 0.0, value = 100.0, timestamp = 1514766900000, sourceSensor = GlucoseValue.SourceSensor.UNKNOWN, trendArrow = GlucoseValue.TrendArrow.FLAT)
+        val reading = GlucoseValue(raw = 0.0, noise = 0.0, value = 100.0, smoothed = null, timestamp = 1514766900000, sourceSensor = GlucoseValue.SourceSensor.UNKNOWN, trendArrow = GlucoseValue.TrendArrow.FLAT)
         val bgList: MutableList<GlucoseValue> = ArrayList()
         bgList.add(reading)
 
@@ -96,7 +96,7 @@ class SmsCommunicatorPluginTest : TestBaseWithProfile() {
             repository.runTransactionForResult(anyObject<InsertAndCancelCurrentTemporaryTargetTransaction>())
         ).thenReturn(Single.just(InsertAndCancelCurrentTemporaryTargetTransaction.TransactionResult().apply {
         }))
-        val glucoseStatusProvider = GlucoseStatusProvider(aapsLogger = aapsLogger, iobCobCalculator = iobCobCalculator, dateUtil = dateUtilMocked)
+        val glucoseStatusProvider = GlucoseStatusProvider(aapsLogger = aapsLogger, iobCobCalculator = iobCobCalculator, dateUtil = dateUtilMocked, sp)
 
         smsCommunicatorPlugin = SmsCommunicatorPlugin(injector, aapsLogger, rh, smsManager, aapsSchedulers, sp, constraintChecker, rxBus, profileFunction, fabricPrivacy, activePlugin, commandQueue,
                                                       loop, iobCobCalculator, xDripBroadcast,

@@ -32,6 +32,10 @@ class OneTimePassword @Inject constructor(
         configure()
     }
 
+    fun isEnabled(): Boolean {
+        return sp.getBoolean(R.string.key_smscommunicator_otp_enabled, true)
+    }
+
     /**
      * Name of master device (target of OTP)
      */

@@ -24,6 +24,7 @@ import info.nightscout.androidaps.extensions.valueToUnitsString
 import info.nightscout.androidaps.interfaces.*
 import info.nightscout.androidaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
 import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
+import info.nightscout.androidaps.plugins.general.nsclient.data.NSDeviceStatus
 import info.nightscout.androidaps.plugins.general.overview.OverviewData
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatusProvider
 import info.nightscout.androidaps.utils.DateUtil
@@ -40,6 +41,7 @@ import kotlin.math.abs
  */
 class Widget : AppWidgetProvider() {
 
+    @Inject lateinit var injector: HasAndroidInjector
     @Inject lateinit var profileFunction: ProfileFunction
     @Inject lateinit var overviewData: OverviewData
     @Inject lateinit var trendCalculator: TrendCalculator
@@ -53,6 +55,7 @@ class Widget : AppWidgetProvider() {
     @Inject lateinit var config: Config
     @Inject lateinit var sp: SP
     @Inject lateinit var constraintChecker: ConstraintChecker
+    @Inject lateinit var nsDeviceStatus: NSDeviceStatus
 
     private var handler = Handler(HandlerThread(this::class.simpleName + "Handler").also { it.start() }.looper)
     private val intentAction = "OpenApp"
@@ -105,7 +108,7 @@ class Widget : AppWidgetProvider() {
 
     private fun updateBg(views: RemoteViews) {
         val units = profileFunction.getUnits()
-        views.setTextViewText(R.id.bg, overviewData.lastBg?.valueToUnitsString(units) ?: rh.gs(R.string.notavailable))
+        views.setTextViewText(R.id.bg, overviewData.lastBg?.valueToUnitsString(units, sp) ?: rh.gs(R.string.notavailable))
         views.setTextColor(
             R.id.bg, when {
                 overviewData.isLow  -> rh.gc(R.color.widget_low)
@@ -226,20 +229,34 @@ class Widget : AppWidgetProvider() {
     }
 
     private fun updateSensitivity(views: RemoteViews) {
-        if (sp.getBoolean(R.string.key_openapsama_useautosens, false) && constraintChecker.isAutosensModeEnabled().value())
+        if (sp.getBoolean(R.string.key_openapsama_useautosens, false) && constraintChecker.isAutosensModeEnabled().value()) {
             views.setImageViewResource(R.id.sensitivity_icon, R.drawable.ic_swap_vert_black_48dp_green)
-        else
+            views.setViewVisibility(R.id.sensitivity, View.VISIBLE)
+            views.setTextViewText(R.id.sensitivity, overviewData.lastAutosensData(iobCobCalculator)?.let { autosensData ->
+                String.format(Locale.ENGLISH, "%.0f%%", autosensData.autosensResult.ratio * 100)
+            } ?: "")
+        }
+        else {
             views.setImageViewResource(R.id.sensitivity_icon, R.drawable.ic_x_swap_vert)
-        views.setTextViewText(R.id.sensitivity, overviewData.lastAutosensData(iobCobCalculator)?.let { autosensData ->
-            String.format(Locale.ENGLISH, "%.0f%%", autosensData.autosensResult.ratio * 100)
-        } ?: "")
+            views.setViewVisibility(R.id.sensitivity, View.GONE)
+        }
 
         // Show variable sensitivity
-        val request = loop.lastRun?.request
-        if (request is DetermineBasalResultSMB) {
+        var variableSens = 0.0
+        if (config.NSCLIENT) {
+            var suggested = nsDeviceStatus.getAPSResult(injector).json
+            if (suggested?.has("variable_sens") == true)
+                variableSens = suggested.getDouble("variable_sens");
+        }
+        else {
+            val request = loop.lastRun?.request
+            if (request is DetermineBasalResultSMB)
+                variableSens = request.variableSens ?: 0.0
+        }
+
+        if (variableSens > 0) {
             val isfMgdl = profileFunction.getProfile()?.getIsfMgdl()
-            val variableSens = request.variableSens
-            if (variableSens != isfMgdl && variableSens != null && isfMgdl != null) {
+            if (variableSens != isfMgdl && isfMgdl != null) {
                 views.setTextViewText(
                     R.id.variable_sensitivity,
                     String.format(

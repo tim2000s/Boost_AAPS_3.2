@@ -68,10 +68,10 @@ class OpenAPSSMBDynamicISFPlugin @Inject constructor(
             .shortName(R.string.dynisf_shortname)
             .preferencesId(R.xml.pref_openapssmbdynamicisf)
             .setDefault(false)
-            .showInList(buildHelper.isEngineeringMode() && buildHelper.isDev())
+            .showInList(buildHelper.isEngineeringMode())
     }
 
-    override fun specialEnableCondition(): Boolean = buildHelper.isEngineeringMode() && buildHelper.isDev()
+    override fun specialEnableCondition(): Boolean = buildHelper.isEngineeringMode()
 
     override fun provideDetermineBasalAdapter(): DetermineBasalAdapterInterface = DetermineBasalAdapterSMBDynamicISFJS(ScriptReader(context), injector)
 }

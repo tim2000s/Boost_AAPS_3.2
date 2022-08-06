@@ -133,14 +133,14 @@ class IobCobOref1Worker(
                 //console.error(bgTime , bucketed_data[i].glucose);
                 var avgDelta: Double
                 var delta: Double
-                val bg: Double = bucketedData[i].value
-                if (bg < 39 || bucketedData[i + 3].value < 39) {
+                val bg: Double = bucketedData[i].rawOrSmoothed(sp)
+                if (bg < 39 || bucketedData[i + 3].rawOrSmoothed(sp) < 39) {
                     aapsLogger.error("! value < 39")
                     continue
                 }
                 autosensData.bg = bg
-                delta = bg - bucketedData[i + 1].value
-                avgDelta = (bg - bucketedData[i + 3].value) / 3
+                delta = bg - bucketedData[i + 1].rawOrSmoothed(sp)
+                avgDelta = (bg - bucketedData[i + 3].rawOrSmoothed(sp)) / 3
                 val iob = data.iobCobCalculator.calculateFromTreatmentsAndTemps(bgTime, profile)
                 val bgi = -iob.activity * sens * 5
                 val deviation = delta - bgi
@@ -302,7 +302,7 @@ class IobCobOref1Worker(
                 // add an extra negative deviation if a high temp target is running and exercise mode is set
                 // TODO AS-FIX
                 @Suppress("SimplifyBooleanWithConstants")
-                if (false && sp.getBoolean(R.string.key_high_temptarget_raises_sensitivity, SMBDefaults.high_temptarget_raises_sensitivity)) {
+                if (sp.getBoolean(R.string.key_high_temptarget_raises_sensitivity, SMBDefaults.high_temptarget_raises_sensitivity)) {
                     val tempTarget = repository.getTemporaryTargetActiveAt(dateUtil.now()).blockingGet()
                     if (tempTarget is ValueWrapper.Existing && tempTarget.value.target() >= 100) {
                         autosensData.extraDeviation.add(-(tempTarget.value.target() - 100) / 20)

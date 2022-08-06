@@ -201,7 +201,7 @@ class MainApp : DaggerApplication() {
                 sp.putBoolean(R.string.key_ns_wifi, true)
             } else {
                 sp.putBoolean(R.string.key_ns_cellular, true)
-                sp.putBoolean(R.string.key_ns_wifi, false)
+                sp.putBoolean(R.string.key_ns_wifi, true)
             }
             sp.remove("ns_wifionly")
         }

@@ -122,13 +122,13 @@ class TddCalculator @Inject constructor(
         }
         val calculationStep = T.mins(5).msecs()
         for (t in startTime until endTime step calculationStep) {
+
             val tbr = iobCobCalculator.getTempBasalIncludingConvertedExtended(t)
             val profile = profileFunction.getProfile(t) ?: continue
             val absoluteRate = tbr?.convertedToAbsolute(t, profile) ?: profile.getBasal(t)
             tdd.basalAmount += absoluteRate / 60.0 * 5.0
 
             if (!activePlugin.activePump.isFakingTempsByExtendedBoluses) {
-                // they are not included in TBRs
                 val eb = iobCobCalculator.getExtendedBolus(t)
                 val absoluteEbRate = eb?.rate ?: 0.0
                 tdd.bolusAmount += absoluteEbRate / 60.0 * 5.0
@@ -137,6 +137,24 @@ class TddCalculator @Inject constructor(
         tdd.totalAmount = tdd.bolusAmount + tdd.basalAmount
         aapsLogger.debug(LTag.CORE, tdd.toString())
         return tdd
+    }
+
+    fun calculate4Daily():TotalDailyDose {
+        val  startTime = dateUtil.now() - T.hours(hour = 4).msecs()
+        val endTime = dateUtil.now()
+        return calculate(startTime, endTime)
+    }
+
+    fun calculate8Daily():TotalDailyDose {
+        val startTime = dateUtil.now() - T.hours(hour = 8).msecs()
+        val endTime = dateUtil.now()
+        return calculate(startTime, endTime)
+    }
+
+    fun calculate8Gap():TotalDailyDose {
+        val startTime = dateUtil.now() - T.hours(hour = 8).msecs()
+        val endTime = dateUtil.now() - T.hours(hour = 4).msecs()
+        return calculate(startTime, endTime)
     }
 
     fun averageTDD(tdds: LongSparseArray<TotalDailyDose>): TotalDailyDose? {
