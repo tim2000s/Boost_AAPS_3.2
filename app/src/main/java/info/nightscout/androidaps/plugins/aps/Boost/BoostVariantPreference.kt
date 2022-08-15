@@ -4,16 +4,30 @@ import android.content.Context
 import android.util.AttributeSet
 import androidx.preference.DropDownPreference
 import dagger.android.HasAndroidInjector
+import info.nightscout.androidaps.R
+import info.nightscout.shared.sharedPreferences.SP
+import java.util.*
+import javax.inject.Inject
+
 class BoostVariantPreference(context: Context, attrs: AttributeSet?)
     : DropDownPreference(context, attrs) {
 
-    constructor(context: Context) : this(context, null)
+    @Inject lateinit var sp: SP
 
     init {
         (context.applicationContext as HasAndroidInjector).androidInjector().inject(this)
 
-        entryValues = arrayOf("default", "3.6.5-capped")
-        setEntries(arrayOf("default (3.6.5)", "3.6.5-capped"))
-        //setDefaultValue("default")
+        val entries = Vector<CharSequence>()
+        entries.add(BoostDefaults.variant)
+
+        val list = context.assets.list("Boost/")
+        list?.forEach {
+            if (!it.endsWith(".js"))
+                entries.add(it)
+        }
+
+        entryValues = entries.toTypedArray()
+        setEntries(entries.toTypedArray())
+        setDefaultValue(sp.getString(R.string.key_boost_variant, BoostDefaults.variant))
     }
 }
