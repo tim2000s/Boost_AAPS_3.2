@@ -1306,6 +1306,7 @@
     <string name="a11y_only_on_phone">only on phone</string>
     <string name="a11y_drag_and_drop_handle">drag and drop handle</string>
     <string name="key_Boost_InsulinReq" translatable="false">Boost_InsulinReq</string>
+    <string name="key_boost_variant" translatable="false">boost_variant</string>
     <string name="Boost_InsulinReq_title">Boost Insulin required %</string>
     <string name="Boost_InsulinReq_summary">percentage of the algos determined insulin to give</string>
     <string name="search">Search</string>
