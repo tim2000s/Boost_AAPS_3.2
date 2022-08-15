@@ -9,8 +9,7 @@
         app:initialExpandedChildrenCount="0">
 
         <info.nightscout.androidaps.plugins.aps.Boost.BoostVariantPreference
-            android:dialogMessage="Boost variant to use"
-            android:title="Boost variant"
+            android:title="@string/Boost_Variant_title"
             android:key="@string/key_boost_variant"
             android:defaultValue="default"
             android:selectable="true"
