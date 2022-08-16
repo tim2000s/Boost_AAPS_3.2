@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
 import androidx.core.app.NotificationCompat
+import com.microsoft.appcenter.analytics.Analytics
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.BuildConfig
 import info.nightscout.androidaps.Constants
@@ -52,7 +53,6 @@ import info.nightscout.androidaps.utils.DateUtil
 import info.nightscout.androidaps.utils.FabricPrivacy
 import info.nightscout.androidaps.utils.HardLimits
 import info.nightscout.androidaps.utils.T
-import info.nightscout.androidaps.interfaces.ResourceHelper
 import info.nightscout.androidaps.utils.rx.AapsSchedulers
 import info.nightscout.shared.logging.AAPSLogger
 import info.nightscout.shared.logging.LTag
@@ -229,6 +229,14 @@ class LoopPlugin @Inject constructor(
             if ((usedAPS as PluginBase).isEnabled()) {
                 usedAPS.invoke(initiator, tempBasalFallback)
                 apsResult = usedAPS.lastAPSResult
+
+                Analytics.isEnabled().thenAccept {
+                    if(it) {
+                        val properties: MutableMap<String, String> = HashMap()
+                        properties["APSPlugin"] = usedAPS.name
+                        Analytics.trackEvent("Loop", properties)
+                    }
+                }
             }
 
             // Check if we have any result

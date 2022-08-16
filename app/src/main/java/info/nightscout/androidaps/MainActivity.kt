@@ -111,11 +111,12 @@ class MainActivity : NoSplashAppCompatActivity() {
             it.syncState()
         }
 
-        if (BuildConfig.APPCENTER_KEY != "") {
+        if (BuildConfig.APPCENTER_KEY != "" && !BuildConfig.DEBUG) {
             AppCenter.start(
                 application, BuildConfig.APPCENTER_KEY,
                 Analytics::class.java, Crashes::class.java
             )
+            Analytics.setTransmissionInterval(1800)
         }
         // initialize screen wake lock
         processPreferenceChange(EventPreferenceChange(rh.gs(R.string.key_keep_screen_on)))
