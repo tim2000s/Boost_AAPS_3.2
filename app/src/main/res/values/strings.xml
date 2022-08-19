@@ -1327,4 +1327,37 @@
     <string name="use_data_smoothing_title" translatable="false">Smooth incoming glucose values</string>
     <string name="internal_smoothing_enabled">Smoothing of incoming sensor readings is enabled.</string>
     <!-- Tsunami Data Smoothing end-->
+
+    <!-- Eating Now-->
+    <string name="description_EN">Eating Now bolusing method</string>
+    <string name="EN">Eating Now</string>
+    <string name="EN_shortname">EN</string>
+    <string name="pref_en">EN</string>
+    <string name="key_use_eatingnow">key_use_eatingnow</string>
+    <string name="key_eatingnow_smbbgoffset">key_eatingnow_smbbgoffset</string>
+    <string name="key_use_ghostcob" translatable="false">key_use_ghostcob</string>
+    <string name="key_eatingnow_cobboostminutes" translatable="false">key_eatingnow_cobboostminutes</string>
+    <string name="key_eatingnow_enwindowminutes" translatable="false">key_eatingnow_enwindowminutes</string>
+    <string name="key_enbkfstwindowminutes" translatable="false">key_enbkfstwindowminutes</string>
+    <string name="key_enwindowiob" translatable="false">key_enwindowiob</string>
+    <string name="key_enwminbolus" translatable="false">key_enwminbolus</string>
+    <string name="key_enautostart" translatable="false">key_enautostart</string>
+    <string name="key_eatingnow_cobboost_maxbolus_breakfast">key_eatingnow_cobboost_maxbolus_breakfast</string>
+    <string name="key_eatingnow_breakfastpct">key_eatingnow_breakfastpct</string>
+    <string name="key_eatingnow_uam_maxbolus_breakfast">key_eatingnow_uam_maxbolus_breakfast</string>
+    <string name="key_eatingnow_cobboost_maxbolus">key_eatingnow_cobboost_maxbolus</string>
+    <string name="key_eatingnow_uamboost_maxbolus">key_eatingnow_uamboost_maxbolus</string>
+    <string name="key_eatingnow_uam_maxbolus">key_eatingnow_uam_maxbolus</string>
+    <string name="key_eatingnow_isfboost_maxbolus">key_eatingnow_isfboost_maxbolus</string>
+    <string name="key_use_dynamicISF">key_use_dynamicISF</string>
+    <string name="key_eatingnow_isfbgscaler">key_eatingnow_isfbgscaler</string>
+    <string name="key_use_sr_tdd">key_use_sr_tdd</string>
+    <string name="key_eatingnow_maxisfpct">key_eatingnow_maxisfpct</string>
+    <string name="key_eatingnow_timestart">key_eatingnow_timestart</string>
+    <string name="key_eatingnow_timeend">key_eatingnow_timeend</string>
+    <string name="key_openapsama_TDD" translatable="false">7 day average Total Daily Dose</string>
+    <string name="key_use_3pm_basal" translatable="false">key_use_3pm_basal</string>
+    <string name="key_use_sens_tdd" translatable="false">key_use_sens_tdd</string>
+    <string name="key_sens_tdd_scale" translatable="false">key_sens_tdd_scale</string>
+    <!-- Eating Now end-->
 </resources>
