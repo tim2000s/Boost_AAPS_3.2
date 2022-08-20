@@ -1359,5 +1359,7 @@
     <string name="key_use_3pm_basal" translatable="false">key_use_3pm_basal</string>
     <string name="key_use_sens_tdd" translatable="false">key_use_sens_tdd</string>
     <string name="key_sens_tdd_scale" translatable="false">key_sens_tdd_scale</string>
+    <string name="key_eatingnow_showbutton" translatable="false">key_eatingnow_showbutton</string>
+    <string name="en_eatingnow_showbutton">Eatin Now temp target</string>
     <!-- Eating Now end-->
 </resources>
