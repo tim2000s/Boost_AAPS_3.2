@@ -22,6 +22,7 @@ import info.nightscout.androidaps.utils.HardLimits
 import info.nightscout.androidaps.utils.Profiler
 import info.nightscout.androidaps.utils.Round
 import info.nightscout.androidaps.interfaces.ResourceHelper
+import info.nightscout.androidaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
 import info.nightscout.shared.logging.AAPSLogger
 import info.nightscout.shared.logging.LTag
 import info.nightscout.shared.sharedPreferences.SP
@@ -60,7 +61,7 @@ class ENPlugin @Inject constructor(
 
     // last values
     override var lastAPSRun: Long = 0
-    override var lastAPSResult: DetermineBasalResultEN? = null
+    override var lastAPSResult: DetermineBasalResultSMB? = null
     override var lastDetermineBasalAdapter: DetermineBasalAdapterInterface? = null
     override var lastAutosensResult = AutosensResult()
 
@@ -214,7 +215,7 @@ class ENPlugin @Inject constructor(
                 determineBasalResultEN.json?.put("timestamp", dateUtil.toISOString(now))
                 determineBasalResultEN.inputConstraints = inputConstraints
                 lastDetermineBasalAdapter = determineBasalAdapterENJS
-                lastAPSResult = determineBasalResultEN as DetermineBasalResultEN
+                lastAPSResult = determineBasalResultEN as DetermineBasalResultSMB
                 lastAPSRun = now
             }
         }

@@ -22,6 +22,7 @@ import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatus
 import info.nightscout.androidaps.utils.MidnightTime
 import info.nightscout.shared.SafeParse
 import info.nightscout.androidaps.interfaces.ResourceHelper
+import info.nightscout.androidaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
 import info.nightscout.shared.sharedPreferences.SP
 import info.nightscout.androidaps.utils.stats.TddCalculator
 // import info.nightscout.androidaps.utils.stats.TirCalculator
@@ -82,7 +83,7 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         aapsLogger.debug(LTag.APS, "SMBAlwaysAllowed:  $smbAlwaysAllowed")
         aapsLogger.debug(LTag.APS, "CurrentTime: $currentTime")
         aapsLogger.debug(LTag.APS, "isSaveCgmSource: $saveCgmSource")
-        var determineBasalResultEN: DetermineBasalResultEN? = null
+        var determineBasalResultEN: DetermineBasalResultSMB? = null
         val rhino = Context.enter()
         val scope: Scriptable = rhino.initStandardObjects()
         // Turn off optimization to make Rhino Android compatible
@@ -131,7 +132,7 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
                 aapsLogger.debug(LTag.APS, "Result: $result")
                 try {
                     val resultJson = JSONObject(result)
-                    determineBasalResultEN = DetermineBasalResultEN(injector, resultJson)
+                    determineBasalResultEN = DetermineBasalResultSMB(injector, resultJson)
                 } catch (e: JSONException) {
                     aapsLogger.error(LTag.APS, "Unhandled exception", e)
                 }
