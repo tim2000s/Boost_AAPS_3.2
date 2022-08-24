@@ -427,18 +427,16 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var tdd_last8_wt = (((1.4 * tdd_4) + (0.6 * tdd8to4)) * 3);
     var tdd8_exp = (3 * tdd_8);
     console.error("TDD:                                ");
-    console.log("8 hour extrapolated = " + tdd8_exp + "; ");
+    console.log("  8h extrapolated: " + round(tdd8_exp, 2));
 
     var TDD = (tdd_last8_wt * 0.33) + (tdd7 * 0.34) + (tdd1 * 0.33);
-    console.log("TDD = " + TDD + " using rolling 8h Total extrapolation + TDD7 (60/40); ");
+    console.log("  Weighted 8h/TDD7/TDD1: " + round(TDD, 2));
     //var TDD = (tdd7 * 0.4) + (tdd_24 * 0.6);
 
-    console.error("                                 ");
     //console.error("7-day average TDD is: " +tdd7+ "; ");
-    console.error("Rolling 8 hours weight average: " + tdd_last8_wt + "; ");
-    console.error("Calculated TDD: " + TDD + "; ");
-    console.error("1-day average TDD is: " + tdd1 + "; ");
-    console.error("7-day average TDD is: " + tdd7 + "; ");
+    console.error("  8h rolling weight average: " + round(tdd_last8_wt, 2));
+    console.error("  7d avg: " + round(tdd7, 2));
+    console.error("  1d avg: " + round(tdd1, 2));
 
     // just after midnight there is a big spike in TDD this will use the 3d avg during this time
     //    var TDD = (nowhrs >=2 ? (tdd24h+tdd3d+tdd_pump_now_ms)/3 : tdd3d);
@@ -455,7 +453,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     enlog += "* advanced ISF:\n";
     // Limit ISF increase for sens_currentBG at 10mmol / 180mgdl
     var ISFbgMax = 180;
-    enlog += "ISFbgMax:" + convert_bg(ISFbgMax, profile) + "\n";
+    enlog += "ISFbgMax: " + convert_bg(ISFbgMax, profile) + "\n";
 
     // TIR_sens - the amount of % like AS *** UNDER CONSTRUCTION ****
     var TIR_sens = 0;
@@ -469,18 +467,18 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     // ISF at normal target
     var sens_normalTarget = sens, sens_profile = sens; // use profile sens and keep profile sens with any SR
-    enlog += "sens_normalTarget:" + convert_bg(sens_normalTarget, profile) + "\n";
+    enlog += "sens_normalTarget: " + convert_bg(sens_normalTarget, profile) + "\n";
 
     // MaxISF is the user defined limit for sens_TDD based on a percentage of the current profile based ISF
     var MaxISF = sens_profile / (profile.MaxISFpct / 100);
     // ISF based on TDD
     //var sens_TDD = 1800 / ( TDD * (Math.log(( Math.min(normalTarget,ISFbgMax) / ins_val ) + 1 ) ) );
     var sens_TDD = 1800 / (TDD * (Math.log(normalTarget / ins_val) + 1));
-    enlog += "sens_TDD:" + convert_bg(sens_TDD, profile) + "\n";
+    enlog += "sens_TDD: " + convert_bg(sens_TDD, profile) + "\n";
     sens_TDD = sens_TDD / (profile.sens_TDD_scale / 100);
     sens_TDD = (sens_TDD > sens * 3 ? sens : sens_TDD); // fresh install of v3
 
-    enlog += "sens_TDD scaled by " + profile.sens_TDD_scale + "%:" + convert_bg(sens_TDD, profile) + "\n";
+    enlog += "sens_TDD scaled by " + round(profile.sens_TDD_scale, 2) + "%: " + convert_bg(sens_TDD, profile) + "\n";
     // If Use TDD ISF is enabled in profile restrict by MaxISF also adjust for when a high TT using SR if applicable
     sens_normalTarget = (profile.use_sens_TDD && ENactive ? Math.max(MaxISF, sens_TDD) : sens_normalTarget);
 
@@ -556,30 +554,30 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     //                       Time 00 ,  01 ,  02 ,  03 ,  04 ,  05 ,  06 ,  07 ,  08 ,  09 ,  10 ,  11 ,  12 ,  13 ,  14 ,  15 ,  16 ,  17 ,  18 ,  19 ,  20 ,  21 ,  22 , 23 ,  24 .
     //var sens_circadian_curve = [1.40, 1.40, 0.80, 0.60, 0.52, 0.47, 0.43, 0.41, 0.40, 0.45, 0.60, 0.72, 0.83, 0.91, 0.97, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.20, 1.40];
     //enlog += "sens_circadian_curve["+nowhrs+"]:" + sens_circadian_curve[nowhrs]+"\n";
-    enlog += "nowmins:" + nowmins + "\n";
+    enlog += "nowmins: " + nowmins + "\n";
     //var sens_circadian_now = round(sens_circadian_curve[nowhrs]+((sens_circadian_curve[nowhrs+1]-sens_circadian_curve[nowhrs])/60) * nowmins,1);
 
     // experimenting with basal rate from 3PM
     var sens_circadian_now = (profile.enableBasalAt3PM ? round(profile.current_basal / profile.BasalAt3PM, 2) : 1);
-    enlog += "sens_circadian_now:" + sens_circadian_now + "\n";
+    enlog += "sens_circadian_now: " + sens_circadian_now + "\n";
 
     // Apply circadian variance to ISF
     sens_normalTarget *= sens_circadian_now;
-    enlog += "sens_normalTarget with circadian variance:" + convert_bg(sens_normalTarget, profile) + "\n";
+    enlog += "sens_normalTarget with circadian variance: " + convert_bg(sens_normalTarget, profile) + "\n";
 
     // Threshold for SMB at night
     var SMBbgOffset = (profile.SMBbgOffset > 0 ? target_bg + profile.SMBbgOffset : target_bg);
     var ENSleepMode = !ENactive && !ENtimeOK && bg < SMBbgOffset && !COB;
-    enlog += "SMBbgOffset:" + SMBbgOffset + "\n";
+    enlog += "SMBbgOffset: " + SMBbgOffset + "\n";
 
     // Allow user preferences to adjust the scaling of ISF as BG increases
     // Scaling is converted to a percentage, 0 is normal scaling (1), 5 is 5% stronger (0.95) and -5 is 5% weaker (1.05)
     // When eating now is not active during the day or at night do not apply additional scaling unless weaker
     var ISFBGscaler = (ENSleepMode || !ENactive && ENtimeOK ? Math.min(profile.ISFbgscaler, 0) : profile.ISFbgscaler);
-    enlog += "ISFBGscaler is now:" + ISFBGscaler + "\n";
+    enlog += "ISFBGscaler is now :" + round(ISFBGscaler, 2) + "\n";
     // Convert ISFBGscaler to %
     ISFBGscaler = (100 - ISFBGscaler) / 100;
-    enlog += "ISFBGscaler % is now:" + ISFBGscaler + "\n";
+    enlog += "ISFBGscaler % is now: " + round(ISFBGscaler, 2) + "\n";
 
     // sens_target_bg is used like a target, when the number is lower the ISF scaling is stronger
     // only allow adjusted ISF target when eatingnow time is OK dont use at night
@@ -590,27 +588,27 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     // define & apply ISFBGscaler as % to sens_BGscaler
     var sens_BGscaler = Math.log(bg / sens_target_bg) + 1;
     sens_BGscaler = (profile.useDynISF ? sens_BGscaler / ISFBGscaler : 1);
-    enlog += "sens_BGscaler adjusted with ISFBGscaler:" + sens_BGscaler + "\n";
+    enlog += "sens_BGscaler adjusted with ISFBGscaler: " + round(sens_BGscaler, 2) + "\n";
 
     // define the sensitivity for the current bg using previously defined sens at normal target
     var sens_currentBG = sens_normalTarget / sens_BGscaler;
-    enlog += "sens_currentBG after scaling:" + convert_bg(sens_currentBG, profile) + "\n";
+    enlog += "sens_currentBG after scaling: " + convert_bg(sens_currentBG, profile) + "\n";
 
     // SAFETY: if below normal target at night use normal ISF otherwise use dynamic ISF
     sens_currentBG = (bg < normalTarget && ENSleepMode ? sens_normalTarget : sens_currentBG);
 
     sens_currentBG = round(sens_currentBG, 1);
-    enlog += "sens_currentBG final result:" + convert_bg(sens_currentBG, profile) + "\n";
+    enlog += "sens_currentBG final result: " + convert_bg(sens_currentBG, profile) + "\n";
 
     // sens is the current bg when EN active e.g. no TT otherwise use previously defined sens at normal target
     sens = (ENactive ? sens_currentBG : sens_normalTarget);
     // at night use sens_currentBG, additional scaling from ISFBGscaler has been reduced earlier
     sens = (!ENactive && !ENtimeOK ? sens_currentBG : sens);
-    enlog += "sens final result:" + sens + "=" + convert_bg(sens, profile) + "\n";
+    enlog += "sens final result: " + round(sens, 2) + "=" + convert_bg(sens, profile) + "\n";
 
     // HypoPredBG - TS
     var eRatio = round(sens / 13.2);
-    console.error("CR:", eRatio);
+    console.error("CR: ", eRatio);
     var HypoPredBG = round(bg - (iob_data.iob * sens)) + round(60 / 5 * (minDelta - round((-iob_data.activity * sens * 5), 2)));
     var EBG = (0.02 * glucose_status.delta * glucose_status.delta) + (0.58 * glucose_status.long_avgdelta) + bg;
     //console.log("Experimental test, EBG : "+EBG+" REBG : "+REBG+" ; ");
@@ -655,7 +653,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
     //console.error("currenttemp:",currenttemp,"lastTemp:",JSON.stringify(iob_data.lastTemp),"lastTempAge:",lastTempAge,"m");
     var tempModulus = (lastTempAge + currenttemp.duration) % 30;
-    console.error("currenttemp:", currenttemp, "lastTempAge:", lastTempAge, "m", "tempModulus:", tempModulus, "m");
+    console.error("currenttemp: ", currenttemp, "lastTempAge: ", lastTempAge, "m", "tempModulus: ", tempModulus, "m");
     rT.temp = 'absolute';
     rT.deliverAt = deliverAt;
     if (microBolusAllowed && currenttemp && iob_data.lastTemp && currenttemp.rate !== iob_data.lastTemp.rate && lastTempAge > 10 && currenttemp.duration) {
@@ -821,7 +819,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     // autotuned CR is still in effect even when basals and ISF are being adjusted by TT or autosens
     // this avoids overdosing insulin for large meals when low temp targets are active
     csf = sens_currentBG / carb_ratio;
-    console.error("profile.sens:", profile.sens, "sens:", sens, "CSF:", csf);
+    console.error("profile.sens: ", round(profile.sens, 2), "sens: ", round(sens, 2), "CSF: ", round(csf, 2));
 
     var maxCarbAbsorptionRate = 30; // g/h; maximum rate to assume carbs will absorb if no CI observed
     // limit Carb Impact to maxCarbAbsorptionRate * csf in mg/dL per 5m
@@ -850,7 +848,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         remainingCATime = remainingCATimeMin + 1.5 * lastCarbAge / 60;
         remainingCATime = round(remainingCATime, 1);
         //console.error(fractionCOBAbsorbed, remainingCATimeAdjustment, remainingCATime)
-        console.error("Last carbs", lastCarbAge, "minutes ago; remainingCATime:", remainingCATime, "hours;", round(fractionCOBAbsorbed * 100) + "% carbs absorbed");
+        console.error("Last carbs", lastCarbAge, "minutes ago; remainingCATime: ", remainingCATime, "hours;", round(fractionCOBAbsorbed * 100) + "% carbs absorbed");
     }
 
     // calculate the number of carbs absorbed over remainingCATime hours at current CI
@@ -892,7 +890,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
     var acid = Math.max(0, meal_data.mealCOB * csf / aci);
     // duration (hours) = duration (5m) * 5 / 60 * 2 (to account for linear decay)
-    console.error("Carb Impact:", ci, "mg/dL per 5m; CI Duration:", round(cid * 5 / 60 * 2, 1), "hours; remaining CI (~2h peak):", round(remainingCIpeak, 1), "mg/dL per 5m");
+    console.error("Carb Impact: ", ci, "mg/dL per 5m; CI Duration: ", round(cid * 5 / 60 * 2, 1), "hours; remaining CI (~2h peak): ", round(remainingCIpeak, 1), "mg/dL per 5m");
     //console.error("Accel. Carb Impact:",aci,"mg/dL per 5m; ACI Duration:",round(acid*5/60*2,1),"hours");
     var minIOBPredBG = 999;
     var minCOBPredBG = 999;
@@ -995,8 +993,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         console.error("Problem with iobArray.  Optional feature Advanced Meal Assist disabled");
     }
     if (meal_data.mealCOB) {
-        console.error("predCIs (mg/dL/5m):", predCIs.join(" "));
-        console.error("remainingCIs:      ", remainingCIs.join(" "));
+        console.error("predCIs (mg/dL/5m): ", predCIs.join(" "));
+        console.error("remainingCIs:       ", remainingCIs.join(" "));
     }
     rT.predBGs = {};
     IOBpredBGs.forEach(function (p, i, theArray) {
@@ -1059,7 +1057,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         rT.eventualBG = eventualBG;
     }
 
-    console.error("UAM Impact:", uci, "mg/dL per 5m; UAM Duration:", UAMduration, "hours");
+    console.error("UAM Impact: ", uci, "mg/dL per 5m; UAM Duration: ", UAMduration, "hours");
 
 
     minIOBPredBG = Math.max(39, minIOBPredBG);
@@ -1156,7 +1154,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     if (minUAMPredBG < 999) {
         console.log(" minUAMPredBG: " + minUAMPredBG);
     }
-    console.error(" avgPredBG:", avgPredBG, "COB:", meal_data.mealCOB, "/", meal_data.carbs);
+    console.error(" avgPredBG: ", avgPredBG, "COB: ", meal_data.mealCOB, "/", meal_data.carbs);
     // But if the COB line falls off a cliff, don't trust UAM too much:
     // use maxCOBPredBG if it's been set and lower than minPredBG
     if (maxCOBPredBG > bg && !ignoreCOB) { //MD#01 Only if we aren't using GhostCOB
@@ -1324,7 +1322,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var carbsReq = (bgUndershoot - zeroTempEffect) / csf - COBforCarbsReq;
     zeroTempEffect = round(zeroTempEffect);
     carbsReq = round(carbsReq);
-    console.error("naive_eventualBG:", naive_eventualBG, "bgUndershoot:", bgUndershoot, "zeroTempDuration:", zeroTempDuration, "zeroTempEffect:", zeroTempEffect, "carbsReq:", carbsReq);
+    console.error("naive_eventualBG: ", naive_eventualBG)
+    console.error("bgUndershoot: ", bgUndershoot)
+    console.error("zeroTempDuration: ", zeroTempDuration)
+    console.error("zeroTempEffect: ", zeroTempEffect)
+    console.error("carbsReq: ", carbsReq);
     console.log("=======================");
     console.log("Eating Now");
     console.log("=======================");
@@ -1515,9 +1517,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         if (microBolusAllowed && enableSMB && bg > threshold) {
             // never bolus more than maxSMBBasalMinutes worth of basal
             var mealInsulinReq = round(meal_data.mealCOB / carb_ratio, 3);
-            if (typeof profile.maxSMBBasalMinutes === 'undefined') {
-                var maxBolus = round(profile.current_basal * 30 / 60, 1);
-                console.error("profile.maxSMBBasalMinutes undefined: defaulting to 30m");
+                if (typeof profile.maxSMBBasalMinutes === 'undefined') {
+                    var maxBolus = round(profile.current_basal * 30 / 60, 1);
+                    console.error("profile.maxSMBBasalMinutes undefined: defaulting to 30m");
                 // if IOB covers more than COB, limit maxBolus to 30m of basal
             } else if (iob_data.iob > mealInsulinReq && iob_data.iob > 0) {
                 console.error("IOB", iob_data.iob, "> COB", meal_data.mealCOB + "; mealInsulinReq =", mealInsulinReq);
@@ -1532,7 +1534,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 console.error("profile.maxSMBBasalMinutes:", profile.maxSMBBasalMinutes, "profile.current_basal:", profile.current_basal);
                 maxBolus = round(profile.current_basal * profile.maxSMBBasalMinutes / 60, 1);
             }
-
 
             // ============  EATING NOW MODE  ==================== START ===
             var insulinReqPctDefault = 0.65; // this is the default insulinReqPct and maxBolus is respected outside of eating now
