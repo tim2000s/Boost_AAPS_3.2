@@ -251,9 +251,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     //**                   Start of Dynamic ISF code for predictions                 **
     //*********************************************************************************
 
-    console.error("---------------------------------------------------------");
-    console.error("     Boost version 3.6.5 ");
-    console.error("---------------------------------------------------------");
+        console.error("---------------------------------------------------------");
+        console.error( "     Boost version 3.7 ");
+        console.error("---------------------------------------------------------");
 
     if (meal_data.TDDAIMI7) {
         var tdd7 = meal_data.TDDAIMI7;
@@ -823,8 +823,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             var predZTBGI = round((-iobTick.iobWithZeroTemp.activity * sens * 5), 2);
             // for IOBpredBGs, predicted deviation impact drops linearly from current deviation down to zero
             // over 60 minutes (data points every 5m)
-            var predDev = ci * (1 - Math.min(1, IOBpredBGs.length / (60 / 5)));
-            IOBpredBG = IOBpredBGs[IOBpredBGs.length - 1] + predBGI + predDev;
+            var predDev = ci * ( 1 - Math.min(1,IOBpredBGs.length/(60/5)) );
+            IOBpredBG = IOBpredBGs[IOBpredBGs.length-1] + predBGI + predDev;
+            IOBpredBG = IOBpredBGs[IOBpredBGs.length-1] + (round(( -iobTick.activity * (1800 / ( TDD * (Math.log(( IOBpredBGs[IOBpredBGs.length-1] / ins_val ) + 1 ) ) )) * 5 ),2)) + predDev;
             // calculate predBGs with long zero temp without deviations
             var ZTpredBG = ZTpredBGs[ZTpredBGs.length - 1] + predZTBGI;
             // for COBpredBGs, predicted carb impact drops linearly from current carb impact down to zero
