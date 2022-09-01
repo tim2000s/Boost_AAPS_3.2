@@ -978,20 +978,21 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
     /*else if( glucose_status.delta > 6 && bg < 180) {
 
-        var future_sens = ( 1800 / (Math.log((((eventualBG * 0.25) + (bg * 0.75))/75)+1)*TDD));
-        console.log("Future state sensitivity is " +future_sens+" weighted on current bg due to no COB");
-        rT.reason += "Dosing sensitivity: " +future_sens+" weighted on current BG;";
-        }*/
-    else if (bg > 160 && bg < 270 && glucose_status.delta < 2 && glucose_status.delta > -2 && glucose_status.short_avgdelta > -2 && glucose_status.short_avgdelta < 2 && eventualBG < bg) {
-        future_sens = (1800 / (Math.log((((minPredBG * 0.6) + (bg * 0.4)) / ins_val) + 1) * TDD));
-        console.log("Future state sensitivity is " + round(future_sens, 2) + " using current bg due to no COB & small delta or variation");
-        rT.reason += "Dosing sensitivity: " + round(future_sens, 2) + " using current BG;";
-    }
-    /*else if( glucose_status.delta > 0 && delta_accl > 0 && bg > 198 || eventualBG > bg && bg >
-     198) {
-        var future_sens = ( 1800 / (Math.log((((minPredBG * 0.4) + (bg * 0.6))/ins_val)+1)*TDD));
-        console.log("Future state sensitivity is " +future_sens+" based on current bg due to +ve delta");
-        }*/
+            var future_sens = ( 1800 / (Math.log((((eventualBG * 0.25) + (bg * 0.75))/75)+1)*TDD));
+            console.log("Future state sensitivity is " +future_sens+" weighted on current bg due to no COB");
+            rT.reason += "Dosing sensitivity: " +future_sens+" weighted on current BG;";
+            }*/
+       /* else if( bg > 160 && bg < 270 && glucose_status.delta < 2 && glucose_status.delta > -2 &&
+       glucose_status.short_avgdelta > -2 && glucose_status.short_avgdelta < 2 && eventualBG < bg) {
+            var future_sens = ( 1800 / (Math.log((((minPredBG * 0.6) + (bg * 0.4))/ins_val)+1)*TDD));
+            console.log("Future state sensitivity is " +future_sens+" using current bg due to no COB & small delta or variation");
+            rT.reason += "Dosing sensitivity: " +future_sens+" using current BG;";
+            }
+        /*else if( glucose_status.delta > 0 && delta_accl > 0 && bg > 198 || eventualBG > bg && bg >
+         198) {
+            var future_sens = ( 1800 / (Math.log((((minPredBG * 0.4) + (bg * 0.6))/ins_val)+1)*TDD));
+            console.log("Future state sensitivity is " +future_sens+" based on current bg due to +ve delta");
+            }*/
 
     else if (glucose_status.delta > 0 && delta_accl > 1 || eventualBG > bg) {
         future_sens = (1800 / (Math.log((bg / ins_val) + 1) * TDD));
