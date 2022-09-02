@@ -1423,13 +1423,13 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             console.error("            ");
 
             var boostMaxIOB = profile.boost_maxIOB;
-            var boost_start = profile.boost_start;
-            var boost_end = profile.boost_end;
-            var boost_max = profile.boost_bolus;
-
             console.error("Max IOB from automated boluses = " + boostMaxIOB + "; ");
             console.error("Max automated bolus is " + boost_max + "; ");
             console.error("            ");
+
+            var boost_start = profile.boost_start;
+            var boost_end = profile.boost_end;
+            var boost_max = profile.boost_bolus;
             console.error("Boost start time is " + (boost_start) + "hrs and boost end time is " + (boost_end) + "hrs; ");
             var now1 = new Date().getHours();
             var boost_time = now1 >= boost_start && now1 <= boost_end;
