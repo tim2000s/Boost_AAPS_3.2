@@ -467,9 +467,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var ISFbgMax = 180;
     enlog += "ISFbgMax: " + convert_bg(ISFbgMax, profile) + "\n";
 
-    // TIR_sens - a very simple implementation of autoISF 5% per hour
+    // TIR_sens - a very simple implementation of autoISF configurable % per hour
     var TIR_sens = 0, TIRH_percent = profile.resistancePerHr/100;
-    if (TIRH_percent) {
+    if (TIRH_percent && delta >= -3 && delta <= 3) {
         enlog += "* TIR_sens:\n";
         if (meal_data.TIRW1H > 50) TIR_sens = meal_data.TIRW1H/100;
         if (meal_data.TIRW2H > 0 && TIR_sens == 1) TIR_sens += meal_data.TIRW2H/100;
@@ -780,8 +780,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     // min_bg of 90 -> threshold of 65, 100 -> 70 110 -> 75, and 130 -> 85
     //var threshold = Math.max(min_bg - 0.5*(min_bg-40),72); // minimum 72
-    //    var threshold = Math.max(min_bg-0.5*(min_bg-40), profile.normal_target_bg-9, 75); // minimum 75 or current profile target - 10
-    var threshold = (ENWindowOK ? Math.max(min_bg - 0.5 * (min_bg - 40), 75) : Math.max(profile.normal_target_bg - 9, 75)); // minimum 75 or current profile target - 10
+//    var threshold = Math.max(min_bg-0.5*(min_bg-40), profile.normal_target_bg-9, 75); // minimum 75 or current profile target - 10
+    var threshold = (ENWindowOK || ENSleepMode ? Math.max(min_bg - 0.5 * (min_bg - 40), 75) : Math.max(profile.normal_target_bg - 13, 75)); // minimum 75 or current profile target - 13
 
     //console.error(reservoir_data);
 
@@ -949,10 +949,12 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             var predZTBGI = round((-iobTick.iobWithZeroTemp.activity * sens * 5), 2);
             // for IOBpredBGs, predicted deviation impact drops linearly from current deviation down to zero
             // over 60 minutes (data points every 5m)
-            var predDev = ci * (1 - Math.min(1, IOBpredBGs.length / (60 / 5)));
-            IOBpredBG = IOBpredBGs[IOBpredBGs.length - 1] + predBGI + predDev;
+            var predDev = ci * ( 1 - Math.min(1,IOBpredBGs.length/(60/5)) );
+            //IOBpredBG = IOBpredBGs[IOBpredBGs.length-1] + predBGI + predDev;
+            IOBpredBG = IOBpredBGs[IOBpredBGs.length-1] + (round(( -iobTick.activity * sens_normalTarget / (Math.log(Math.max(IOBpredBGs[IOBpredBGs.length-1],39)/ins_val)+1) * 5 ),2)) + predDev; //dynISF
             // calculate predBGs with long zero temp without deviations
-            var ZTpredBG = ZTpredBGs[ZTpredBGs.length - 1] + predZTBGI;
+            //var ZTpredBG = ZTpredBGs[ZTpredBGs.length-1] + predZTBGI;
+            var ZTpredBG = ZTpredBGs[ZTpredBGs.length-1] + (round(( -iobTick.iobWithZeroTemp.activity * sens_normalTarget / (Math.log(Math.max(ZTpredBGs[ZTpredBGs.length-1],39) /ins_val)+1) * 5 ), 2)); //dynISF
             // for COBpredBGs, predicted carb impact drops linearly from current carb impact down to zero
             // eventually accounting for all carbs (if they can be absorbed over DIA)
             var predCI = Math.max(0, Math.max(0, ci) * (1 - COBpredBGs.length / Math.max(cid * 2, 1)));
@@ -981,7 +983,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 //console.error(UAMpredBGs.length,slopeFromDeviations, predUCI);
                 UAMduration = round((UAMpredBGs.length + 1) * 5 / 60, 1);
             }
-            UAMpredBG = UAMpredBGs[UAMpredBGs.length - 1] + predBGI + Math.min(0, predDev) + predUCI;
+            //UAMpredBG = UAMpredBGs[UAMpredBGs.length-1] + predBGI + Math.min(0, predDev) + predUCI;
+            UAMpredBG = UAMpredBGs[UAMpredBGs.length-1] + (round(( -iobTick.activity * sens_normalTarget / (Math.log(Math.max(UAMpredBGs[UAMpredBGs.length-1],39) /ins_val)+1) * 5 ),2)) + Math.min(0, predDev) + predUCI; //dynISF
             //console.error(predBGI, predCI, predUCI);
             // truncate all BG predictions at 4 hours
             if (IOBpredBGs.length < 48) { IOBpredBGs.push(IOBpredBG); }
@@ -1248,7 +1251,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
         // within ENW allow the eBGw to provide a stronger insulinReq_sens for UAM
         var sens_future = sens_normalTarget / (Math.log(insulinReq_bg / ins_val) + 1);
-        insulinReq_sens = (ENWindowOK && !COB ? Math.min(insulinReq_sens,sens_future) : insulinReq_sens);
+        insulinReq_sens = (!COB && !ENSleepMode ? Math.min(insulinReq_sens,sens_future) : insulinReq_sens);
+        //insulinReq_sens = (ENWindowOK && !COB ? Math.min(insulinReq_sens,sens_future) : insulinReq_sens);
         // If we have SRTDD enabled
         insulinReq_sens = (profile.enableSRTDD ? insulinReq_sens / sensitivityRatio : insulinReq_sens);
     }
@@ -1594,8 +1598,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             if (ENactive && eventualBG > target_bg) {
 
                 // EN insulinReqPct is now used, for ENW use 100% excludes IOB trigger ensuring close proximity to treatment
-                insulinReqPct = (ENWindowRunTime < ENWindowDuration ? 1 : ENinsulinReqPct);
-                //insulinReqPct = (ENWindowOK ? 1 : ENinsulinReqPct);
+                //insulinReqPct = (ENWindowRunTime < ENWindowDuration ? 1 : ENinsulinReqPct);
+                insulinReqPct = (ENWindowOK ? 1 : ENinsulinReqPct);
                 //insulinReqPct = (ENTTActive ? 1 : ENinsulinReqPct);
 
                 // set EN SMB limit for COB or UAM
