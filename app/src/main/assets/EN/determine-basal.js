@@ -1232,6 +1232,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         // SAFETY: when high and delta is faster use minPredBG, slow delta inherits eBGw in an attempt to reduce stubborn high
         eBGweight = (bg > ISFbgMax && delta >= 9 ? eBGweight_orig : eBGweight);
 
+        // SAFETY: when sleeping use original eBGw - negative IOB overnight can cause high predictions
+        eBGweight = (ENSleepMode ? eBGweight_orig : eBGweight);
+
         // SAFETY: if bg is falling or slowing revert to normal minPredBG weighting, excludes first meal
         //eBGweight = (delta < 0 && eventualBG < target_bg || DeltaPct <=1 && !firstMealWindow ? eBGweight_orig : eBGweight);
 
@@ -1249,9 +1252,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         // TBR only if not significant boost
         //if (insulinReq_boost && insulinReq_bg <= target_bg) enableSMB = false; // meh
 
-        // within ENW allow the eBGw to provide a stronger insulinReq_sens for UAM
-        var sens_future = sens_normalTarget / (Math.log(insulinReq_bg/ins_val)+1);
-        insulinReq_sens = (!COB && ENtimeOK ? Math.min(insulinReq_sens,sens_future) : insulinReq_sens);
+        // During active hours allow the eBGw to provide a stronger insulinReq_sens for UAM
+        var sens_future = sens_normalTarget / (insulinReq_boost ? (Math.log(eventualBG/ins_val)+1) : (Math.log(insulinReq_bg/ins_val)+1) );
+        insulinReq_sens = (!COB && ENtimeOK || ENSleepMode ? Math.min(insulinReq_sens,sens_future) : insulinReq_sens); //testing sleepmode inclusion
         //insulinReq_sens = (ENWindowOK && !COB ? Math.min(insulinReq_sens,sens_future) : insulinReq_sens);
         // If we have SRTDD enabled
         insulinReq_sens = (profile.enableSRTDD ? insulinReq_sens / sensitivityRatio : insulinReq_sens);
@@ -1293,7 +1296,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     rT.reason += (ENWTriggerOK && !ENSleepMode ? " IOB&gt;" + round(ENWIOBThreshU, 2) : "");
 
     // other EN stuff
-    rT.reason += (sens_predType != "NA" ? ", eBGw: " + sens_predType + " " + round(eBGweight * 100) + "% (" + convert_bg(insulinReq_bg, profile) + ")" : "");
+    rT.reason += ", eBGw: " + (sens_predType !="NA" ? sens_predType + " " : "") + convert_bg(insulinReq_bg,profile)+ " "+round(eBGweight*100)+"%";
+    //rT.reason += (sens_predType !="NA" ? ", eBGw: " + sens_predType + " " +  round(eBGweight*100) + "% ("+convert_bg(insulinReq_bg,profile)+")" : "");
     if (profile.use_sens_TDD) rT.reason += ", TDD:" + round(TDD, 2) + " " + (profile.sens_TDD_scale !=100 ? profile.sens_TDD_scale + "% " : "") + "("+convert_bg(sens_TDD, profile)+")";
     rT.reason += (TIR_sens > 1 ? ", TIRH:" + round(meal_data.TIRW4H) + "/" + round(meal_data.TIRW3H) + "/" + round(meal_data.TIRW2H) +"/"+round(meal_data.TIRW1H) : "");
     //    rT.reason += (TIR_sens <1 ? ", TIRL:" + round(meal_data.TIRW4L) + "/" + round(meal_data.TIRW3L) + "/" + round(meal_data.TIRW2L) +"/"+round(meal_data.TIRW1L) : "");
