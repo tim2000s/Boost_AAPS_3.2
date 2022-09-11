@@ -469,7 +469,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     // TIR_sens - a very simple implementation of autoISF configurable % per hour
     var TIR_sens = 0, TIRH_percent = profile.resistancePerHr/100;
-    if (TIRH_percent && delta >= -3 && delta <= 3) {
+    if (TIRH_percent && delta >= -4 && delta <= 4) {
         enlog += "* TIR_sens:\n";
         if (meal_data.TIRW1H > 50) TIR_sens = meal_data.TIRW1H/100;
         if (meal_data.TIRW2H > 0 && TIR_sens == 1) TIR_sens += meal_data.TIRW2H/100;
@@ -1252,10 +1252,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         // TBR only if not significant boost
         //if (insulinReq_boost && insulinReq_bg <= target_bg) enableSMB = false; // meh
 
-        // During active hours allow the eBGw to provide a stronger insulinReq_sens for UAM
+        // sens_future determines the sens used for insulinReq
+        ins_val = (ENtimeOK ?  ins_val : target_bg); // weaken sens_future overnight
         var sens_future = sens_normalTarget / (insulinReq_boost ? (Math.log(eventualBG/ins_val)+1) : (Math.log(insulinReq_bg/ins_val)+1) );
-        insulinReq_sens = (!COB && ENtimeOK || ENSleepMode ? Math.min(insulinReq_sens,sens_future) : insulinReq_sens); //testing sleepmode inclusion
-        //insulinReq_sens = (ENWindowOK && !COB ? Math.min(insulinReq_sens,sens_future) : insulinReq_sens);
+        insulinReq_sens = (!firstMealWindow && !COB ? Math.min(insulinReq_sens,sens_future) : insulinReq_sens);
+
         // If we have SRTDD enabled
         insulinReq_sens = (profile.enableSRTDD ? insulinReq_sens / sensitivityRatio : insulinReq_sens);
     }
