@@ -513,7 +513,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         sens_normalTarget = round(sens_normalTarget, 1);
         enlog += "sens_normalTarget now " + sens_normalTarget + "due to temp target; ";
     } else {
-        sensitivityRatio = (ENtimeOK && profile.enableSRTDD ? SR_TDD : 1);
+        sensitivityRatio = (profile.enableSRTDD ? SR_TDD : 1);
         sensitivityRatio = (!profile.enableSRTDD && typeof autosens_data !== 'undefined' && autosens_data ? autosens_data.ratio : sensitivityRatio);
         sensitivityRatio = (sensitivityRatio == 1 ? TIR_sens : sensitivityRatio); // TIR sensitivity TESTING
         if (sensitivityRatio > 1) {
@@ -1192,12 +1192,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     // minPredBG and eventualBG based dosing - insulinReq_bg
     // insulinReq_sens is calculated using a percentage of eventualBG (eBGweight) with the rest as minPredBG, to reduce the risk of overdosing.
-    var insulinReq_sens = sens_normalTarget,
-        insulinReq_bg_orig = Math.min(minPredBG, eventualBG),
-        insulinReq_bg = insulinReq_bg_orig,
-        sens_predType = "NA",
-        eBGweight_orig = (minPredBG < eventualBG ? 0 : 1),
-        eBGweight = eBGweight_orig;
+    var insulinReq_bg_orig = Math.min(minPredBG,eventualBG), insulinReq_bg = insulinReq_bg_orig, sens_predType = "NA", eBGweight_orig = (minPredBG < eventualBG ? 0 : 1), eBGweight = eBGweight_orig;
+    var insulinReq_sens = sens_normalTarget;
 
     // EN TT active and no bolus yet with UAM increase insulinReq_bg to provide initial insulinReq to 50% peak minutes of delta, max 90
     var insulinReq_boost = (ENTTActive && lastBolusAge > ttTime && !COB);
