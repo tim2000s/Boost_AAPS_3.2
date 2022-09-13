@@ -515,12 +515,12 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     } else {
         sensitivityRatio = (profile.enableSRTDD ? SR_TDD : 1);
         sensitivityRatio = (!profile.enableSRTDD && typeof autosens_data !== 'undefined' && autosens_data ? autosens_data.ratio : sensitivityRatio);
-        sensitivityRatio = (sensitivityRatio == 1 ? TIR_sens : sensitivityRatio); // TIR sensitivity TESTING
+        sensitivityRatio *= TIR_sens; // apply TIRS if applicable
         if (sensitivityRatio > 1) {
             sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
-            sensitivityRatio = (!profile.enableSRTDD ? TIR_sens : sensitivityRatio);
-            sensitivityRatio = round(sensitivityRatio, 2);
-            enlog += "Sensitivity ratio >1 is now: " + sensitivityRatio + ";\n";
+            //sensitivityRatio = (!profile.enableSRTDD ? TIR_sens : sensitivityRatio);
+            sensitivityRatio = round(sensitivityRatio,2);
+            enlog += "Sensitivity ratio >1 is now: "+sensitivityRatio+";\n";
         } else if (sensitivityRatio < 1) {
             sensitivityRatio = Math.max(sensitivityRatio, profile.autosens_min);
             sensitivityRatio = round(sensitivityRatio, 2);
@@ -534,11 +534,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             // dont adjust sens_normalTarget
             sens_normalTarget = sens_normalTarget;
         } else if (profile.enableSRTDD) {
-            // insulinReq_sens adjusted in later code
-            // dont adjust sens_normalTarget
-            sens_normalTarget = sens_normalTarget;
-            // adjust basal during day
-            basal = (ENactive ? profile.current_basal * sensitivityRatio : profile.current_basal) ;
+            sens_normalTarget = sens_normalTarget / sensitivityRatio;
+            // adjust basal
+            basal = profile.current_basal * sensitivityRatio;
         } else {
             // adjust sens_normalTarget
             sens_normalTarget = sens_normalTarget / sensitivityRatio;
@@ -1198,7 +1196,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     // EN TT active and no bolus yet with UAM increase insulinReq_bg to provide initial insulinReq to 50% peak minutes of delta, max 90
     var insulinReq_boost = (ENTTActive && lastBolusAge > ttTime && !COB);
     //var endebug = "DEBUG: "+ttTime+", "+lastBolusAge+", "+minAgo+";";
-    var insulinReq_bg_boost = (insulinReq_boost && delta >= 0 ? Math.min(ins_peak/2/5 * delta, 90) : 0);
+    var insulinReq_bg_boost = (insulinReq_boost && delta >= 0 ? profile.UAMbgBoost : 0);
 
     // categorize the eventualBG prediction type for more accurate weighting
     if (lastUAMpredBG > 0 && eventualBG >= lastUAMpredBG) sens_predType = "UAM"; // UAM or any prediction > UAM is the default
@@ -1208,13 +1206,14 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     if (ENactive || ENSleepMode) {
         if (sens_predType == "UAM" && !COB) {
             eBGweight = 0.50;
+            //eBGweight = 90/ins_val-1;
             // sens calculation for insulinReq can be stronger when the EN TT and accelerating
             //insulinReq_sens = (delta > 0 && DeltaPct > 1.0 ? sens : insulinReq_sens);
             insulinReq_sens = (DeltaPct > 1.0 ? sens : insulinReq_sens);
             insulinReq_sens = (bg > target_bg && eventualBG > target_bg ? sens : insulinReq_sens);
         }
         if (sens_predType == "COB" || (sens_predType == "UAM" && COB)) {
-            eBGweight = 0.50;
+            eBGweight = (sens_predType == "COB" ? 0.50 : 0.25); // 25% eBGw for UAM with COB
             //eBGweight = (sens_predType == "COB" ? 0.50 : eBGweight);
             // sens calculation for insulinReq can be stronger when the EN TT and accelerating
             //insulinReq_sens = (delta > 0 && DeltaPct > 1.0 && sens_predType == "COB" ? sens : insulinReq_sens);
@@ -1245,16 +1244,13 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         // calculate the prediction bg based on the weightings for minPredBG and eventualBG
         insulinReq_bg = (Math.max(minPredBG, 40) * (1 - eBGweight)) + (Math.max(eventualBG, 40) * eBGweight);
 
-        // TBR only if not significant boost
-        //if (insulinReq_boost && insulinReq_bg <= target_bg) enableSMB = false; // meh
-
         // sens_future determines the sens used for insulinReq
         ins_val = (ENtimeOK ?  ins_val : ins_val * 1.25); // weaken sens_future overnight
         var sens_future = sens_normalTarget / (insulinReq_boost ? (Math.log(eventualBG/ins_val)+1) : (Math.log(insulinReq_bg/ins_val)+1) );
         insulinReq_sens = (!firstMealWindow && !COB ? Math.min(insulinReq_sens,sens_future) : insulinReq_sens);
 
         // If we have SRTDD enabled
-        insulinReq_sens = (profile.enableSRTDD ? insulinReq_sens / sensitivityRatio : insulinReq_sens);
+        //insulinReq_sens = (profile.enableSRTDD ? insulinReq_sens / sensitivityRatio : insulinReq_sens);
     }
 
     insulinReq_sens = round(insulinReq_sens,1);
@@ -1539,7 +1535,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         // insulinReq is the additional insulin required to get minPredBG down to target_bg
         //console.error(minPredBG,eventualBG);
         //insulinReq = round( (Math.min(minPredBG,eventualBG) - target_bg) / insulinReq_sens, 3);
-        insulinReq = round((insulinReq_bg_orig - target_bg) / insulinReq_sens, 3);
+        insulinReq = round( (insulinReq_bg_orig - target_bg) / sens_profile, 3);
 
         // keep the original insulinReq for reporting
         var insulinReqOrig = insulinReq;
@@ -1683,7 +1679,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 smbLowTempReq = round(basal * durationReq / 30, 2);
                 durationReq = 30;
             }
-            rT.reason += " insulinReq" + (insulinReq_bg_boost > 0  ? "+ " : " ") + insulinReq + (insulinReq > insulinReqOrig ? "(" + insulinReqOrig + ")" : "") + "@"+round(insulinReqPct*100,0)+"%";
+            rT.reason += " insulinReq" + (insulinReq_bg_boost > 0  ? "+ " : " ") + insulinReq + (insulinReq != insulinReqOrig ? "(" + insulinReqOrig + ")" : "") + "@"+round(insulinReqPct*100,0)+"%";
 
             if (microBolus >= maxBolus) {
                 rT.reason += "; maxBolus" + (maxBolus > maxBolusOrig ? "^ " : " ") + maxBolus;
