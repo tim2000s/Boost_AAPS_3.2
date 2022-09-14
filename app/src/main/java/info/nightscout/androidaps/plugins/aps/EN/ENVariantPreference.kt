@@ -29,7 +29,7 @@ class ENVariantPreference(context: Context, attrs: AttributeSet?)
 
         entryValues = entries.toTypedArray()
         setEntries(entries.toTypedArray())
-        setDefaultValue(sp.getString(R.string.key_boost_variant, DEFAULT))
+        setDefaultValue(sp.getString(R.string.key_en_variant, DEFAULT))
     }
     companion object {
         const val DEFAULT = "default"

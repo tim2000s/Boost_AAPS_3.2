@@ -455,7 +455,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         console.log("lastCannula: Age: " + lastCannAge + ", TDD: " + tdd_lastCannula + ", tdd8_exp: " + tdd8_exp);
 
         // ISF based on TDD
-        var sens_TDD = 1800 / ( TDD * (Math.log( normalTarget / ins_val ) + 1 ) );
+        var sens_TDD = 1800 / ( TDD * (Math.log(( normalTarget / ins_val ) + 1 ) ) );
         enlog += "sens_TDD:" + convert_bg(sens_TDD, profile) +"\n";
         sens_TDD = sens_TDD / (profile.sens_TDD_scale/100);
         sens_TDD = (sens_TDD > sens*3 ? sens : sens_TDD); // fresh install of v3
@@ -795,7 +795,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         , 'reservoir': reservoir_data // The expected reservoir volume at which to deliver the microbolus (the reservoir volume from right before the last pumphistory run)
         , 'deliverAt': deliverAt // The time at which the microbolus should be delivered
         , 'sensitivityRatio': sensitivityRatio // autosens ratio (fraction of normal basal)
-        , 'variable_sens' : 0
+        , 'variable_sens' : sens
     };
 
     // generate predicted future BGs based on IOB, COB, and current absorption rate
