@@ -449,7 +449,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
         // SR_TDD ********************************
         var lastCannAge = round ((new Date(systemTime).getTime() - profile.lastCannulaTime) / 60000,1);
-        tdd_lastCannula = (lastCannAge > 1440 ? meal_data.TDDLastCannula / (lastCannAge / 1440) : tdd8_exp);
+        tdd_lastCannula = (lastCannAge > 1440 ? meal_data.TDDLastCannula / (lastCannAge / 1440) : tdd1);
+        //tdd_lastCannula = (lastCannAge > 1440 ? meal_data.TDDLastCannula / (lastCannAge / 1440) : tdd8_exp);
         //var SR_TDD = tdd8_exp / tdd7;
         var SR_TDD = tdd_lastCannula / tdd7;
         console.log("lastCannula: Age: " + lastCannAge + ", TDD: " + tdd_lastCannula + ", tdd8_exp: " + tdd8_exp);
@@ -610,9 +611,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
 
     // define & apply ISFBGscaler as % to sens_BGscaler
-    var sens_BGscaler = Math.log(bg / sens_target_bg) + 1;
-    sens_BGscaler = (profile.useDynISF ? sens_BGscaler / ISFBGscaler : 1);
-    enlog += "sens_BGscaler adjusted with ISFBGscaler: " + round(sens_BGscaler, 2) + "\n";
+    var sens_BGscaler = Math.log( (bg/sens_target_bg)+1 );
+    sens_BGscaler = (profile.useDynISF ? sens_BGscaler/ISFBGscaler : 1);
+    enlog += "sens_BGscaler adjusted with ISFBGscaler:" + sens_BGscaler +"\n";
 
     // define the sensitivity for the current bg using previously defined sens at normal target
     var sens_currentBG = sens_normalTarget / sens_BGscaler;
@@ -949,10 +950,10 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             // over 60 minutes (data points every 5m)
             var predDev = ci * ( 1 - Math.min(1,IOBpredBGs.length/(60/5)) );
             //IOBpredBG = IOBpredBGs[IOBpredBGs.length-1] + predBGI + predDev;
-            IOBpredBG = IOBpredBGs[IOBpredBGs.length-1] + (round(( -iobTick.activity * sens_normalTarget / (Math.log(Math.max(IOBpredBGs[IOBpredBGs.length-1],39)/ins_val)+1) * 5 ),2)) + predDev; //dynISF
+            IOBpredBG = IOBpredBGs[IOBpredBGs.length-1] + (round(( -iobTick.activity * sens_normalTarget / (Math.log( (Math.max(IOBpredBGs[IOBpredBGs.length-1],39)/ins_val)+1 )) * 5 ),2)) + predDev; //dynISF
             // calculate predBGs with long zero temp without deviations
             //var ZTpredBG = ZTpredBGs[ZTpredBGs.length-1] + predZTBGI;
-            var ZTpredBG = ZTpredBGs[ZTpredBGs.length-1] + (round(( -iobTick.iobWithZeroTemp.activity * sens_normalTarget / (Math.log(Math.max(ZTpredBGs[ZTpredBGs.length-1],39) /ins_val)+1) * 5 ), 2)); //dynISF
+            var ZTpredBG = ZTpredBGs[ZTpredBGs.length-1] + (round(( -iobTick.iobWithZeroTemp.activity * sens_normalTarget / (Math.log( (Math.max(ZTpredBGs[ZTpredBGs.length-1],39) /ins_val)+1 )) * 5 ), 2)); //dynISF
             // for COBpredBGs, predicted carb impact drops linearly from current carb impact down to zero
             // eventually accounting for all carbs (if they can be absorbed over DIA)
             var predCI = Math.max(0, Math.max(0, ci) * (1 - COBpredBGs.length / Math.max(cid * 2, 1)));
@@ -982,7 +983,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 UAMduration = round((UAMpredBGs.length + 1) * 5 / 60, 1);
             }
             //UAMpredBG = UAMpredBGs[UAMpredBGs.length-1] + predBGI + Math.min(0, predDev) + predUCI;
-            UAMpredBG = UAMpredBGs[UAMpredBGs.length-1] + (round(( -iobTick.activity * sens_normalTarget / (Math.log(Math.max(UAMpredBGs[UAMpredBGs.length-1],39) /ins_val)+1) * 5 ),2)) + Math.min(0, predDev) + predUCI; //dynISF
+            UAMpredBG = UAMpredBGs[UAMpredBGs.length-1] + (round(( -iobTick.activity * sens_normalTarget / (Math.log( (Math.max(UAMpredBGs[UAMpredBGs.length-1],39) /ins_val)+1) ) * 5 ),2)) + Math.min(0, predDev) + predUCI; //dynISF
             //console.error(predBGI, predCI, predUCI);
             // truncate all BG predictions at 4 hours
             if (IOBpredBGs.length < 48) { IOBpredBGs.push(IOBpredBG); }
@@ -1234,7 +1235,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         //eBGweight = (delta < 0 && eventualBG < target_bg || DeltaPct <=1 && !firstMealWindow ? eBGweight_orig : eBGweight);
 
         // SAFETY: if insulinReq_sens is stronger within ENW inherit eBGw else default
-        if (insulinReq_sens < sens_normalTarget) eBGweight = (ENWindowOK ? eBGweight : eBGweight_orig);
+        //if (insulinReq_sens < sens_normalTarget) eBGweight = (ENWindowOK ? eBGweight : eBGweight_orig);
         //if (insulinReq_sens < sens_normalTarget && !firstMealScaling) eBGweight = (ENWindowOK ? eBGweight : eBGweight_orig);
 
         // exaggerate for first UAM bolus
@@ -1246,8 +1247,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
         // sens_future determines the sens used for insulinReq
         ins_val = (ENtimeOK ?  ins_val : ins_val * 1.25); // weaken sens_future overnight
-        var sens_future = sens_normalTarget / (insulinReq_boost ? (Math.log(eventualBG/ins_val)+1) : (Math.log(insulinReq_bg/ins_val)+1) );
+        var sens_future = sens_normalTarget / (insulinReq_boost ? Math.log( (eventualBG/ins_val)+1 ) : Math.log( (insulinReq_bg/ins_val)+1 ) );
         insulinReq_sens = (!firstMealWindow && !COB ? Math.min(insulinReq_sens,sens_future) : insulinReq_sens);
+
+        // TBR only if not significant boost
+        //if (insulinReq_boost && insulinReq_bg <= bg) insulinReqPct = 0;
 
         // If we have SRTDD enabled
         //insulinReq_sens = (profile.enableSRTDD ? insulinReq_sens / sensitivityRatio : insulinReq_sens);
