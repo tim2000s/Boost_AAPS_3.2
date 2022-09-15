@@ -41,6 +41,7 @@ abstract class DashHistoryDatabase : RoomDatabase() {
         private val migration3to4 = object : Migration(3,4) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE `${DASH_TABLE_NAME}` ADD COLUMN `${DASH_BOLUS_COLUMN_PREFIX}notes` TEXT")
+                database.execSQL("ALTER TABLE `${DASH_TABLE_NAME}` RENAME COLUMN `${DASH_BOLUS_COLUMN_PREFIX}amout` TO `${DASH_BOLUS_COLUMN_PREFIX}amount`")
             }
         }
     }
