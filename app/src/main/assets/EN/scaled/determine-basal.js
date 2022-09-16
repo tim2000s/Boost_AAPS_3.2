@@ -611,22 +611,24 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     // only allow adjusted ISF target when eatingnow time is OK dont use at night
     //var sens_target_bg = (ENactive ?  ins_val : target_bg);
     var sens_target_bg = ins_val;
-
     var log_scaler = true;
 
     var getISFforBG = function (bg) {
         if (profile.useDynISF) {
+            var profileScale = (profile.use_sens_TDD && profile.sens_TDD_useProfile) ? (100.0 / profile.percent) : 1;
             var sens_BG = Math.log((bg / sens_target_bg) + 1);
             var scaler = sens_BG / Math.log((normalTarget / sens_target_bg) + 1);
             if (log_scaler) {
-                enlog += "sens_BGscaler adjusted with ISFBGscaler:" + scaler +"\n";
+                enlog += "sens_BGscaler adjusted: " + round(scaler, 2) +"\n";
+                if (profileScale != 1) enlog += "scaling ISF by profile %: " + round(profileScale, 4) +"\n";
             }
-            var base_isf = ( profile.use_sens_TDD ? sens_TDD : sens_normalTarget);
+            var base_isf = (profile.use_sens_TDD ? sens_TDD : sens_normalTarget) * profileScale;
             var diff = base_isf - (base_isf / scaler);
-            return base_isf - diff * ISFBGscaler;
+            return (base_isf - diff * ISFBGscaler);
         }
         else return sens_normalTarget;
     }
+
     // define the sensitivity for the current bg using previously defined sens at normal target
     var sens_currentBG = getISFforBG(bg);
     enlog += "sens_currentBG: " + convert_bg(sens_currentBG, profile) + "\n";
@@ -1205,7 +1207,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     // minPredBG and eventualBG based dosing - insulinReq_bg
     // insulinReq_sens is calculated using a percentage of eventualBG (eBGweight) with the rest as minPredBG, to reduce the risk of overdosing.
     var insulinReq_bg_orig = Math.min(minPredBG,eventualBG), insulinReq_bg = insulinReq_bg_orig, sens_predType = "NA", eBGweight_orig = (minPredBG < eventualBG ? 0 : 1), eBGweight = eBGweight_orig;
-    var insulinReq_sens = getISFforBG(normalTarget);
+    var insulinReq_sens = getISFforBG(bg);
 
     enlog += "insulinReq_sens 0: " + convert_bg(insulinReq_sens, profile) + "\n"
 

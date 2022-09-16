@@ -4,6 +4,7 @@ import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.R
 import info.nightscout.androidaps.data.IobTotal
 import info.nightscout.androidaps.data.MealData
+import info.nightscout.androidaps.data.ProfileSealed
 import info.nightscout.androidaps.database.AppRepository
 import info.nightscout.androidaps.database.ValueWrapper
 import info.nightscout.androidaps.database.entities.Bolus
@@ -357,7 +358,9 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         // TDD related functions
         val enableSensTDD = sp.getBoolean(R.string.key_use_sens_tdd, false)
         this.profile.put("use_sens_TDD", enableSensTDD) // Override profile ISF with TDD ISF if selected in prefs
+        this.profile.put("sens_TDD_useProfile", sp.getBoolean(R.string.key_sens_tdd_use_profile, false))
         this.profile.put("sens_TDD_scale",SafeParse.stringToDouble(sp.getString(R.string.key_sens_tdd_scale,"100")))
+        this.profile.put("percent", if (profile is ProfileSealed.EPS) profile.value.originalPercentage else 100)
         val enableSRTDD = sp.getBoolean(R.string.key_use_sr_tdd, false)
         this.profile.put("enableSRTDD", enableSRTDD)
 
