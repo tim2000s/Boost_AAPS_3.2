@@ -1074,6 +1074,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     minCOBPredBG = Math.max(39, minCOBPredBG);
     minUAMPredBG = Math.max(39, minUAMPredBG);
     minPredBG = round(minIOBPredBG);
+    console.error("minIOBPredBG: ", minIOBPredBG, "minCOBPredBG: ", minCOBPredBG, "minUAMPredBG: ", minUAMPredBG, "minPredBG: ", minPredBG);
 
     var fractionCarbsLeft = meal_data.mealCOB / meal_data.carbs;
     // if we have COB and UAM is enabled, average both
@@ -1109,7 +1110,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
     if (ignoreCOB && enableUAM) minGuardBG = minUAMGuardBG; //MD#01: if we are ignoring COB and have UAM just use minUAMGuardBG as above
     minGuardBG = round(minGuardBG);
-    //console.error(minCOBGuardBG, minUAMGuardBG, minIOBGuardBG, minGuardBG);
+    console.error("minCOBGuardBG: ", "minCOBGuardBG: ", minCOBGuardBG , "minUAMGuardBG: ", minUAMGuardBG, "minIOBGuardBG: ", minIOBGuardBG, "minGuardBG: ", minGuardBG);
 
     var minZTUAMPredBG = minUAMPredBG;
     // if minZTGuardBG is below threshold, bring down any super-high minUAMPredBG by averaging
@@ -1129,7 +1130,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         minZTUAMPredBG = (minUAMPredBG + minZTGuardBG) / 2;
     }
     minZTUAMPredBG = round(minZTUAMPredBG);
-    //console.error("minUAMPredBG:",minUAMPredBG,"minZTGuardBG:",minZTGuardBG,"minZTUAMPredBG:",minZTUAMPredBG);
+    console.error("minUAMPredBG: ", minUAMPredBG, "minZTGuardBG: ", minZTGuardBG, "minZTUAMPredBG: ", minZTUAMPredBG);
     // if any carbs have been entered recently
     if (meal_data.carbs) {
 
@@ -1174,7 +1175,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     // minPredBG and eventualBG based dosing - insulinReq_bg
     // insulinReq_sens is calculated using a percentage of eventualBG (eBGweight) with the rest as minPredBG, to reduce the risk of overdosing.
     var insulinReq_bg_orig = Math.min(minPredBG,eventualBG), insulinReq_bg = insulinReq_bg_orig, sens_predType = "NA", eBGweight_orig = (minPredBG < eventualBG ? 0 : 1), eBGweight = eBGweight_orig;
-     insulinReq_sens = 0;
 
     // EN TT active and no bolus yet with UAM increase insulinReq_bg to provide initial insulinReq to 50% peak minutes of delta, max 90
     var insulinReq_boost = (ENTTActive && lastBolusAge > ttTime && !COB);
@@ -1245,8 +1245,10 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         //insulinReq_sens = (profile.enableSRTDD ? insulinReq_sens / sensitivityRatio : insulinReq_sens);
     }
 
+    enlog += "insulinReq_bg: " + convert_bg(insulinReq_bg, profile) + "\n";
     var insulinReq_sens = round(getISFforBG(insulinReq_bg), 1);
 
+    enlog += "insulinReq_sens: " + insulinReq_sens + "\n";
     rT.variable_sens = insulinReq_sens;
     enlog += "* eBGweight:\n";
     enlog += "sens_predType: " + sens_predType + "\n";

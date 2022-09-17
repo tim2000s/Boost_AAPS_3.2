@@ -271,15 +271,14 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         console.log("TDD:                                ");
         console.log("  8h extrapolated: " + round(tdd8_exp, 2));
 
-    TDD = (tdd_last8_wt * 0.33) + (tdd7 * 0.34) + (tdd1 * 0.33);
+    var TDD = (tdd_last8_wt * 0.33) + (tdd7 * 0.34) + (tdd1 * 0.33);
         console.log("  Weighted 8h/TDD7/TDD1: " + round(TDD, 2));
         console.log("  7d avg: " + round(tdd7, 2));
         console.log("  1d avg: " + round(tdd1, 2));
         console.log("  8h weight average: " + round(tdd_last8_wt, 2));
 
-    var dynISFadjust = profile.DynISFAdjust;
-    var dynISFadjust = (dynISFadjust / 100);
-    var TDD = (dynISFadjust * TDD);
+    var dynISFadjust = profile.DynISFAdjust / 100;
+    TDD = dynISFadjust * TDD;
 
     var insulin = profile.insulinType;
 
