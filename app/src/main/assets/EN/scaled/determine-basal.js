@@ -618,7 +618,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     var getISFforBG = function (bg) {
         if (profile.useDynISF) {
-            var sens_BG = Math.log((bg / ins_val) + 1);
+            var sens_BG = Math.log((Math.min(bg, ISFbgMax) / ins_val) + 1);
             var scaler = sens_BG / Math.log((normalTarget / ins_val) + 1);
             if (log_scaler) {
                 enlog += "sens_BGscaler adjusted: " + round(scaler, 2) +"\n";
