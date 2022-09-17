@@ -194,6 +194,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         rT.error = 'Error: could not determine target_bg. ';
         return rT;
     }
+    var profileScale = (profile.use_sens_TDD && profile.sens_TDD_useProfile) ? (100.0 / profile.percent) : 1;
 
     var sensitivityRatio;
     var high_temptarget_raises_sensitivity = profile.exercise_mode || profile.high_temptarget_raises_sensitivity;
@@ -462,7 +463,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             sens_TDD = sens_TDD / (profile.sens_TDD_scale/100);
             //sens_TDD = (sens_TDD > sens*3 ? sens : sens_TDD); // fresh install of v3
             enlog += "sens_TDD scaled by "+profile.sens_TDD_scale+"%:" + convert_bg(sens_TDD, profile) +"\n";
-            sens = sens_TDD;
+            sens_TDD = sens_TDD * profileScale;
+            enlog += "sens_TDD scaled by profile "+profile.profileScale+"%:" + convert_bg(sens_TDD, profile) +"\n";
         }
     }
 
@@ -487,8 +489,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var sens_normalTarget = sens, sens_profile = sens; // use profile sens and keep profile sens with any SR
     enlog += "sens_normalTarget: " + convert_bg(sens_normalTarget, profile) + "\n";
 
-    // MaxISF is the user defined limit for sens_TDD based on a percentage of the current profile based ISF
-    var MaxISF = (profile.use_sens_TDD ? sens_normalTarget : profile.sens ) / (profile.MaxISFpct / 100);
 //    // ISF based on TDD
 //    var sens_TDD = 1800 / ( TDD * (Math.log( normalTarget / ins_val ) + 1 ) );
 //    enlog += "sens_TDD:" + convert_bg(sens_TDD, profile) +"\n";
@@ -497,7 +497,10 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 //
 //    enlog += "sens_TDD scaled by "+profile.sens_TDD_scale+"%:" + convert_bg(sens_TDD, profile) +"\n";
     // If Use TDD ISF is enabled in profile restrict by MaxISF also adjust for when a high TT using SR if applicable
-    sens_normalTarget = (profile.use_sens_TDD && ENactive ? Math.max(MaxISF, sens_TDD) : sens_normalTarget);
+    sens_normalTarget = (profile.use_sens_TDD && ENactive ? sens_TDD : sens_normalTarget);
+
+    // MaxISF is the user defined limit for sens_TDD based on a percentage of the current profile based ISF
+    var MaxISF = (profile.use_sens_TDD ? sens_normalTarget : profile.sens ) / (profile.MaxISFpct / 100);
 
     //NEW SR CODE
     // SensitivityRatio code relocated for sens_TDD
@@ -615,16 +618,15 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     var getISFforBG = function (bg) {
         if (profile.useDynISF) {
-            var profileScale = (profile.use_sens_TDD && profile.sens_TDD_useProfile) ? (100.0 / profile.percent) : 1;
-            var sens_BG = Math.log((bg / sens_target_bg) + 1);
-            var scaler = sens_BG / Math.log((normalTarget / sens_target_bg) + 1);
+            var sens_BG = Math.log((bg / ins_val) + 1);
+            var scaler = sens_BG / Math.log((normalTarget / ins_val) + 1);
             if (log_scaler) {
                 enlog += "sens_BGscaler adjusted: " + round(scaler, 2) +"\n";
                 if (profileScale != 1) enlog += "scaling ISF by profile %: " + round(profileScale, 4) +"\n";
             }
             var base_isf = (profile.use_sens_TDD ? sens_TDD : sens_normalTarget) * profileScale;
             var diff = base_isf - (base_isf / scaler);
-            return (base_isf - diff * ISFBGscaler);
+            return Math.max(MaxISF, (base_isf - diff * ISFBGscaler));
         }
         else return sens_normalTarget;
     }
