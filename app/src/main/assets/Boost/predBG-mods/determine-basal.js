@@ -262,26 +262,20 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         var tdd7 = ((basal * 12) * 100) / 21;
     }
 
-
-
     var tdd1 = meal_data.TDDAIMI1;
     var tdd_4 = meal_data.TDDLast4;
     var tdd_8 = meal_data.TDDLast8;
     var tdd8to4 = meal_data.TDD4to8;
     var tdd_last8_wt = (((1.4 * tdd_4) + (0.6 * tdd8to4)) * 3);
     var tdd8_exp = (3 * tdd_8);
-    console.log("8 hour extrapolated = " + tdd8_exp + "; ");
+        console.log("TDD:                                ");
+        console.log("  8h extrapolated: " + round(tdd8_exp, 2));
 
     TDD = (tdd_last8_wt * 0.33) + (tdd7 * 0.34) + (tdd1 * 0.33);
-    console.log("TDD = " + TDD + " using rolling 8h Total extrapolation + TDD7 (60/40); ");
-    //var TDD = (tdd7 * 0.4) + (tdd_24 * 0.6);
-
-    console.error("                                 ");
-    //console.error("7-day average TDD is: " +tdd7+ "; ");
-    console.error("Rolling 8 hours weight average: " + tdd_last8_wt + "; ");
-    console.error("Calculated TDD: " + TDD + "; ");
-    console.error("1-day average TDD is: " + tdd1 + "; ");
-    console.error("7-day average TDD is: " + tdd7 + "; ");
+        console.log("  Weighted 8h/TDD7/TDD1: " + round(TDD, 2));
+        console.log("  7d avg: " + round(tdd7, 2));
+        console.log("  1d avg: " + round(tdd1, 2));
+        console.log("  8h weight average: " + round(tdd_last8_wt, 2));
 
     var dynISFadjust = profile.DynISFAdjust;
     var dynISFadjust = (dynISFadjust / 100);
@@ -325,6 +319,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         console.log("Current sensitivity for predictions is limited at 210mg/dl / 11.7mmol/l");
     }
     variable_sens = 1800 / (TDD * (Math.log((bg / ins_val) + 1)));
+
+    console.log("calculating sens_TDD: " + TDD + " /" + convert_bg(bg, profile) + " /" + ins_val + " \n";
     variable_sens = round(variable_sens, 1);
     console.log("Current sensitivity for predictions is " + convert_bg(variable_sens, profile) + " based on current bg");
 
