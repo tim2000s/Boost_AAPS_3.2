@@ -1094,20 +1094,23 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         }
 
         var variableSens = 0.0
-        if (config.NSCLIENT) {
-            var suggested = nsDeviceStatus.getAPSResult(injector).json
-            if (suggested?.has("variable_sens") == true)
-                variableSens = suggested.getDouble("variable_sens");
+        try {
+            if (config.NSCLIENT) {
+                val suggested = nsDeviceStatus.getAPSResult(injector).json
+                if (suggested?.has("variable_sens") == true)
+                    variableSens = suggested.getDouble("variable_sens");
+            }
+            else {
+                val request = loop.lastRun?.request
+                if (request is DetermineBasalResultSMB)
+                    variableSens = request.variableSens ?: 0.0
+            }
         }
-        else {
-            val request = loop.lastRun?.request
-            if (request is DetermineBasalResultSMB)
-                variableSens = request.variableSens ?: 0.0
-        }
+        catch (e: Exception) { }
 
         if (variableSens > 0) {
             val isfMgdl = profileFunction.getProfile()?.getIsfMgdl()
-            if (variableSens != isfMgdl && variableSens != null && isfMgdl != null) {
+            if (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null) {
                 binding.infoLayout.variableSensitivity.text =
                     String.format(
                         Locale.getDefault(), "%1$.1f→%2$.1f",
