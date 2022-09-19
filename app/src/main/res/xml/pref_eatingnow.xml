@@ -244,43 +244,48 @@
                 validate:minNumber="0"
                 validate:testType="numericRange" />
 
-            <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
-                android:defaultValue="17"
-                android:dialogMessage="Enter Eating Now end time in 24h e.g. 17 is 5PM. Finish time of the next day is fully supported."
-                android:inputType="number"
-                android:key="@string/key_eatingnow_timeend"
-                android:title="End Time"
-                validate:maxNumber="23"
-                validate:minNumber="0"
-                validate:testType="numericRange" />
-
-            <SwitchPreference
-                android:defaultValue="false"
-                android:key="key_enautostart"
-                android:title="Enable EN after EN Start Time"
-                android:summary="Allow EN to become active automatically after EN start time without COB or manual bolus entry." />
-
-            <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
-                android:defaultValue="0"
-                android:inputType="numberDecimal"
-                android:title="Overnight SMB Restriction"
-                android:key="@string/key_eatingnow_smbbgoffset"
-                android:dialogMessage="There will be no SMB when below this BG offset at night unless COB or a TT lower or equal to normalTarget\ne.g. if normalTarget is 5.5 (99) and this setting is 1.5 (27) there will be no SMB below 7.0 (126)"
-                validate:floatmaxNumber="270.0"
-                validate:floatminNumber="0"
-                validate:testType="floatNumericRange" />
+        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+            android:defaultValue="17"
+            android:dialogMessage="Enter Eating Now end time in 24h e.g. 17 is 5PM. Finish time of the next day is fully supported."
+            android:inputType="number"
+            android:key="@string/key_eatingnow_timeend"
+            android:title="End Time"
+            validate:maxNumber="23"
+            validate:minNumber="0"
+            validate:testType="numericRange" />
 
         <SwitchPreference
-                android:defaultValue="false"
-                android:key="key_use_enw_overnight"
-                android:title="Allow ENW Overnight"
-                android:summary="ENW will be active after EN End Time with COB or EN-TT." />
+            android:defaultValue="false"
+            android:key="key_enautostart"
+            android:title="Enable EN after EN Start Time"
+            android:summary="Allow EN to become active automatically after EN start time without COB or manual bolus entry." />
 
-            <SwitchPreference
-                android:defaultValue="false"
-                android:key="key_use_ghostcob"
-                android:title="Use GhostCOB"
-                android:summary="Ignore COB after EN Window and rely on UAM predictions.\nWhen disabled COB predictions will be as normal." />
+        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+            android:defaultValue="0"
+            android:inputType="numberDecimal"
+            android:title="Overnight SMB Restriction"
+            android:key="@string/key_eatingnow_smbbgoffset"
+            android:dialogMessage="There will be no SMB when below this BG offset at night unless COB or a TT lower or equal to normalTarget\ne.g. if normalTarget is 5.5 (99) and this setting is 1.5 (27) there will be no SMB below 7.0 (126)"
+            validate:floatmaxNumber="270.0"
+            validate:floatminNumber="0"
+            validate:testType="floatNumericRange" />
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="key_use_enw_overnight"
+            android:title="Allow ENW Overnight"
+            android:summary="ENW will be active after EN End Time with COB or EN-TT." />
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="key_use_ghostcob"
+            android:title="Use GhostCOB"
+            android:summary="Ignore COB after EN Window and rely on UAM predictions.\nWhen disabled COB predictions will be as normal." />
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="key_eatingnow_use_ebgw"
+            android:title="Use eBGw" />
 
         </PreferenceCategory>
 
@@ -454,10 +459,22 @@
                 android:inputType="numberDecimal"
                 android:key="@string/key_eatingnow_isfbgscaler"
                 android:title="ISF BG Scaler"
+                android:summary="Constant scaling % of ISF value"
                 android:dialogMessage="As BG increases ISF will become stronger.\nThe level of scaling can be adjusted.\n0 = normal scaling, 5 is 5% stronger, -5 is 5% weaker ISF scaling.\nRecommended setting is 0."
                 validate:floatmaxNumber="20"
                 validate:floatminNumber="-20"
                 validate:testType="floatNumericRange" />
+
+            <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+                android:defaultValue="100"
+                android:inputType="numberDecimal"
+                android:key="@string/key_eatingnow_isfbgscaler_velocity"
+                android:title="ISF BG Scaling velocity %"
+                android:summary="This controls how fast will be ISF scaled based on BG level"
+                android:dialogMessage="This controls how fast will be ISF scaled based on BG level: 0% means no scaling at all, constant ISF value for every BG level; 100% - normal DynamicISF scaling;"
+                validate:floatmaxNumber="100"
+                validate:floatminNumber="0"
+                validate:testType="floatNumericRange"/>
 
             <SwitchPreference
                 android:defaultValue="false"

@@ -246,6 +246,7 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         this.profile.put("normal_target_bg", profile.getTargetMgdl().roundToInt())
         this.profile.put("enableGhostCOB", sp.getBoolean(R.string.key_use_ghostcob, false))
         this.profile.put("allowENWovernight", sp.getBoolean(R.string.key_use_enw_overnight, false))
+        this.profile.put("use_ebgw", sp.getBoolean(R.string.key_eatingnow_use_ebgw, true))
         //this.profile.put("COBWindow", sp.getInt(R.string.key_eatingnow_cobboostminutes, 0))
 
         // Within the EN Window ********************************************************************************
@@ -271,6 +272,7 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
 
         this.profile.put("SMBbgOffset", Profile.toMgdl(sp.getDouble(R.string.key_eatingnow_smbbgoffset, 0.0),profileFunction.getUnits()))
         this.profile.put("ISFbgscaler", sp.getDouble(R.string.key_eatingnow_isfbgscaler, 0.0))
+        this.profile.put("ISFbgscaler_velocity", sp.getDouble(R.string.key_eatingnow_isfbgscaler_velocity, 100.0))
         this.profile.put("MaxISFpct", sp.getInt(R.string.key_eatingnow_maxisfpct, 100))
         this.profile.put("useDynISF", sp.getBoolean(R.string.key_use_dynamicISF, true))
 

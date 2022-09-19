@@ -612,6 +612,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     // Convert ISFBGscaler to %
     ISFBGscaler = (100 - ISFBGscaler) / 100;
     enlog += "ISFBGscaler % is now: " + round(ISFBGscaler, 2) + "\n";
+    var ISFBGscalerVelocity = profile.ISFbgscaler_velocity / 100;
+    enlog += "ISFBGscalerVelocity is now: " + ISFBGscalerVelocity + "\n";
 
     // sens_target_bg is used like a target, when the number is lower the ISF scaling is stronger
     // only allow adjusted ISF target when eatingnow time is OK dont use at night
@@ -620,16 +622,20 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var log_scaler = true;
 
     var getISFforBG = function (bg) {
+        var result = 0;
         if (profile.useDynISF) {
             var sens_BG = Math.log((Math.min(bg, ISFbgMax) / ins_val) + 1);
             var scaler = sens_BG / Math.log((normalTarget / ins_val) + 1);
+            var base_isf = (profile.use_sens_TDD ? sens_TDD : sens_normalTarget) * profileScale;
+            var diff = base_isf - (base_isf / scaler);
             if (log_scaler) {
+                enlog += "base_isf: " + round(base_isf, 2) +"\n";
+                enlog += "diff: " + round(diff, 2) +"\n";
+                enlog += "sens_BG: " + round(sens_BG, 2) +"\n";
                 enlog += "sens_BGscaler adjusted: " + round(scaler, 2) +"\n";
                 if (profileScale != 1) enlog += "scaling ISF by profile %: " + round(profileScale, 4) +"\n";
             }
-            var base_isf = (profile.use_sens_TDD ? sens_TDD : sens_normalTarget) * profileScale;
-            var diff = base_isf - (base_isf / scaler);
-            var result = Math.max(MaxISF, (base_isf - diff * ISFBGscaler));
+            result = base_isf - diff * ISFBGscalerVelocity;
             if (!result) {
                 enlog += "failed ISF for bg: " + round(bg, 2) +"\n";
                 enlog += "sens_BG: " + round(sens_BG, 2) +"\n";
@@ -638,9 +644,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 enlog += "base_isf: " + round(base_isf, 2) +"\n";
                 enlog += "diff: " + round(diff, 2) +"\n";
             }
-            return result;
         }
-        else return sens_normalTarget;
+        else {
+            result = sens_normalTarget;
+        }
+        return Math.max(MaxISF, result * ISFBGscaler);
     }
 
     // define the sensitivity for the current bg using previously defined sens at normal target
@@ -1202,7 +1210,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     if (lastCOBpredBG > 0 && eventualBG == lastCOBpredBG) sens_predType = "COB"; // if COB prediction is present eventualBG aligns
 
     // evaluate prediction type and weighting - Only use during day or when its night and TBR only
-    if (ENactive || ENSleepMode || TIR_sens > 1) {
+    if ((ENactive || ENSleepMode || TIR_sens > 1) && profile.use_ebgw) {
 
         if (sens_predType == "UAM" && (!COB || ignoreCOB)) {
             eBGweight = (DeltaPct > 1.0 ? 0.50 : 0.25);
