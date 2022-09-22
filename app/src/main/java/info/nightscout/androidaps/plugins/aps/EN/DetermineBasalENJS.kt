@@ -13,22 +13,20 @@ import info.nightscout.androidaps.extensions.convertedToAbsolute
 import info.nightscout.androidaps.extensions.getPassedDurationToTimeInMinutes
 import info.nightscout.androidaps.extensions.plannedRemainingMinutes
 import info.nightscout.androidaps.interfaces.*
-import info.nightscout.shared.logging.AAPSLogger
-import info.nightscout.shared.logging.LTag
 import info.nightscout.androidaps.plugins.aps.logger.LoggerCallback
 import info.nightscout.androidaps.plugins.aps.loop.APSResult
 import info.nightscout.androidaps.plugins.aps.loop.ScriptReader
 import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatus
-// import info.nightscout.androidaps.utils.DateUtil
 import info.nightscout.androidaps.utils.MidnightTime
-import info.nightscout.shared.SafeParse
 import info.nightscout.androidaps.interfaces.ResourceHelper
-import info.nightscout.androidaps.plugins.aps.Boost.BoostDefaults
 import info.nightscout.androidaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
 import info.nightscout.shared.sharedPreferences.SP
 import info.nightscout.androidaps.utils.stats.TddCalculator
 import info.nightscout.androidaps.utils.stats.TirCalculator
+import info.nightscout.shared.SafeParse
+import info.nightscout.shared.logging.AAPSLogger
+import info.nightscout.shared.logging.LTag
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -278,9 +276,6 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
 
         this.profile.put("insulinType", activePlugin.activeInsulin.friendlyName)
         this.profile.put("insulinPeak", activePlugin.activeInsulin.insulinConfiguration.peak/60000)
-        val lastCannula = repository.getLastTherapyRecordUpToNow(TherapyEvent.Type.CANNULA_CHANGE).blockingGet()
-        val lastCannulaTime = if (lastCannula is ValueWrapper.Existing) lastCannula.value.timestamp else 0L
-        this.profile.put("lastCannulaTime", lastCannulaTime)
         // val prevCannula = repository.getLastTherapyRecordUpToTime(TherapyEvent.Type.CANNULA_CHANGE,lastCannulaTime).blockingGet()
         // val prevCannulaTime = if (prevCannula is ValueWrapper.Existing) prevCannula.value.timestamp else 0L
         // this.profile.put("prevCannulaTime", prevCannulaTime)
@@ -426,7 +421,12 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
             this.mealData.put("TDDLast8hfor4h", TDDLast8hfor4h)
             // this.mealData.put("TDDLast8hfor4h", tddCalculator.calculateDaily(-8, -4).totalAmount)
 
-            val TDDLastCannula = tddCalculator.calculate(lastCannulaTime, now).totalAmount
+            val lastCannula = repository.getLastTherapyRecordUpToNow(TherapyEvent.Type.CANNULA_CHANGE).blockingGet()
+            val lastCannulaTime = if (lastCannula is ValueWrapper.Existing) lastCannula.value.timestamp else 0L
+            this.mealData.put("lastCannulaTime", lastCannulaTime)
+            val lastCannAgeMins = ((now - lastCannulaTime) / 60000).toDouble()
+            // this.mealData.put("lastCannAgeMins", lastCannAgeMins)
+            val TDDLastCannula = if (lastCannAgeMins > 1440) tddCalculator.calculate(lastCannulaTime, now).totalAmount / (lastCannAgeMins/1440) else TDDAvg1d
             this.mealData.put("TDDLastCannula", TDDLastCannula)
 
             this.mealData.put("TDDLastUpdate", sp.getLong("TDDLastUpdate", 0))
