@@ -477,14 +477,14 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     // TIR_sens - a very simple implementation of autoISF configurable % per hour
     var TIR_sens = 0, TIRH_percent = profile.resistancePerHr/100;
-    if (TIRH_percent && delta >= -4 && delta <= 4) {
+    if (TIRH_percent && delta >= -4 && delta <= 4 || bg > 160) {
         enlog += "* TIR_sens:\n";
         if (meal_data.TIRW1H > 50) TIR_sens = meal_data.TIRW1H/100;
         if (meal_data.TIRW2H > 0 && TIR_sens == 1) TIR_sens += meal_data.TIRW2H/100;
         if (meal_data.TIRW3H > 0 && TIR_sens == 2) TIR_sens += meal_data.TIRW3H/100;
         if (meal_data.TIRW4H > 0 && TIR_sens == 3) TIR_sens += meal_data.TIRW4H/100;
     }
-    TIR_sens = Math.min (TIR_sens * TIRH_percent + 1 , profile.autosens_max);
+    TIR_sens = TIR_sens * TIRH_percent + 1;
     //TIR_sens = 1; // disabling as testing
 
     // ISF at normal target
@@ -499,11 +499,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 //
 //    enlog += "sens_TDD scaled by "+profile.sens_TDD_scale+"%:" + convert_bg(sens_TDD, profile) +"\n";
     // If Use TDD ISF is enabled in profile restrict by MaxISF also adjust for when a high TT using SR if applicable
-    sens_normalTarget = (profile.use_sens_TDD && ENactive ? sens_TDD : sens_normalTarget);
 
     // MaxISF is the user defined limit for sens_TDD based on a percentage of the current profile based ISF
     var MaxISF = (profile.use_sens_TDD ? sens_normalTarget : profile.sens ) / (profile.MaxISFpct / 100);
     enlog += "MaxISF: " + convert_bg(MaxISF, profile) + "\n";
+    sens_normalTarget = (profile.use_sens_TDD && ENactive ? Math.max(MaxISF, sens_TDD) : sens_normalTarget);
 
     //NEW SR CODE
     // SensitivityRatio code relocated for sens_TDD
@@ -523,19 +523,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         sens_normalTarget = round(sens_normalTarget, 1);
         enlog += "sens_normalTarget now " + sens_normalTarget + "due to temp target; ";
     } else {
-        sensitivityRatio = (profile.enableSRTDD ? SR_TDD : 1);
-        sensitivityRatio = (!profile.enableSRTDD && typeof autosens_data !== 'undefined' && autosens_data ? autosens_data.ratio : sensitivityRatio);
-        sensitivityRatio *= TIR_sens; // apply TIRS if applicable
-        if (sensitivityRatio > 1) {
-            sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
-            //sensitivityRatio = (!profile.enableSRTDD ? TIR_sens : sensitivityRatio);
-            sensitivityRatio = round(sensitivityRatio,2);
-            enlog += "Sensitivity ratio >1 is now: "+sensitivityRatio+";\n";
-        } else if (sensitivityRatio < 1) {
-            sensitivityRatio = Math.max(sensitivityRatio, profile.autosens_min);
-            sensitivityRatio = round(sensitivityRatio, 2);
-            enlog += "Sensitivity ratio <1 is now: " + sensitivityRatio + ";\n";
-        }
+        sensitivityRatio = 1;
+        sensitivityRatio = (typeof autosens_data !== 'undefined' && autosens_data ? autosens_data.ratio : sensitivityRatio);
     }
 
     // adjust profile basal and ISF based on prefs and sensitivityRatio
@@ -543,16 +532,28 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         if (profile.use_sens_TDD) {
             // dont adjust sens_normalTarget
             sens_normalTarget = sens_normalTarget;
+            sensitivityRatio = 1;
         } else if (profile.enableSRTDD) {
-            sens_normalTarget = sens_normalTarget / sensitivityRatio;
+            // apply autosens limits
+            SR_TDD = Math.min(SR_TDD, profile.autosens_max);
+            SR_TDD = Math.max(SR_TDD, profile.autosens_min);
+            sensitivityRatio = SR_TDD;
             // adjust basal
-            basal = profile.current_basal * sensitivityRatio;
+            basal = profile.current_basal * SR_TDD;
         } else {
+            // apply autosens limits
+            sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
+            sensitivityRatio = Math.max(sensitivityRatio, profile.autosens_min);
             // adjust sens_normalTarget
             sens_normalTarget = sens_normalTarget / sensitivityRatio;
             // adjust basal
         basal = profile.current_basal * sensitivityRatio;
         }
+        sensitivityRatio = round(sensitivityRatio,2);
+
+        // apply TIRS to ISF, TIRS will be 1 if not enabled, limit to autosens_max
+        TIR_sens = Math.min(TIR_sens, profile.autosens_max);
+        sens_normalTarget = sens_normalTarget / TIR_sens;
 
         basal = round_basal(basal, profile);
         if (basal !== profile_current_basal) {
@@ -1629,7 +1630,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 // set EN SMB limit for COB or UAM
                 // ISFBooost maxBolus is COB outside of COB Window
                 // UAMBoost maxBolus is for predictions that are UAM with or without COB
-                ENMaxSMB = (sens_predType == "COB" ? profile.COB_maxBolus : profile.UAM_maxBolus);
+                // ENMaxSMB = (sens_predType == "COB" ? profile.COB_maxBolus : profile.UAM_maxBolus);
+                ENMaxSMB = (sens_predType == "COB" ? profile.Win_COB_maxBolus : profile.Win_UAM_maxBolus);
+
 
                 // if ENWindowOK allow further increase max of SMB within the window
                 if (ENWindowOK) {
@@ -1646,9 +1649,18 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 ENMaxSMB = (ENMaxSMB > profile.safety_maxbolus ? profile.current_basal * ENMaxSMB / 60 : ENMaxSMB);
                 // if ENMaxSMB is more than 0 use ENMaxSMB else use AAPS max minutes
                 ENMaxSMB = (ENMaxSMB == 0 ? maxBolus : ENMaxSMB);
+
+                // EXPERIMENT: Restrict SMB when not ENW to original insulinReq, prepare to remove outside ENW SMB settings
+                ENMaxSMB = (!ENWindowOK ? Math.min(insulinReqOrig, ENMaxSMB) : ENMaxSMB);
+
                 // if ENMaxSMB is -1 use TBR
                 insulinReqPct = (ENMaxSMB == -1 ? 0 : insulinReqPct);
                 ENMaxSMB = (ENMaxSMB == -1 ? maxBolus : ENMaxSMB);
+                // TBR only TEST
+                insulinReqPct = ( sens_predType == "TBR" ? 0 : insulinReqPct );
+
+                // if bg numbers resumed after sensor errors dont allow a large SMB
+                ENMaxSMB = ( minAgo < 1 && delta == 0 && glucose_status.short_avgdelta == 0 ? maxBolus : ENMaxSMB );
 
 
                 // ============== DELTA & IOB BASED RESTRICTIONS ==============
