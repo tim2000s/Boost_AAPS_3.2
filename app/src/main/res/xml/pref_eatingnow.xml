@@ -224,11 +224,11 @@
         android:summary="General settings for Eating Now"
         app:initialExpandedChildrenCount="0">
 
-        <info.nightscout.androidaps.plugins.aps.EN.ENVariantPreference
+        <info.nightscout.androidaps.plugins.aps.loop.LoopVariantPreference
             android:title="@string/en_variant_title"
-            android:key="@string/key_en_variant"
             android:defaultValue="default"
             android:selectable="true"
+            app:pluginFolder="EN"
             />
 
         <Preference android:summary="Eating Now operates within the Start and End time specified.\nThe Eating Now Window becomes active when there is a manual bolus or active carb entry after the Start Time setting.\nWhen the Eating Now Window expires this is considered to be the period when not eating and different SMB sizes may be configured.">

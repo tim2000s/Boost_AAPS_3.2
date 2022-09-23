@@ -4,8 +4,7 @@ import dagger.Module
 import dagger.android.ContributesAndroidInjector
 import info.nightscout.androidaps.widget.WidgetConfigureActivity
 import info.nightscout.androidaps.skins.SkinListPreference
-import info.nightscout.androidaps.plugins.aps.Boost.BoostVariantPreference
-import info.nightscout.androidaps.plugins.aps.EN.ENVariantPreference
+import info.nightscout.androidaps.plugins.aps.loop.LoopVariantPreference
 import info.nightscout.androidaps.widget.Widget
 
 @Module
@@ -13,8 +12,7 @@ import info.nightscout.androidaps.widget.Widget
 abstract class UIModule {
 
     @ContributesAndroidInjector abstract fun skinListPreferenceInjector(): SkinListPreference
-    @ContributesAndroidInjector abstract fun boostVariantPreferenceInjector(): BoostVariantPreference
-    @ContributesAndroidInjector abstract fun enVariantPreferenceInjector(): ENVariantPreference
+    @ContributesAndroidInjector abstract fun loopVariantPreferenceInjector(): LoopVariantPreference
     @ContributesAndroidInjector abstract fun aapsWidgetInjector(): Widget
     @ContributesAndroidInjector abstract fun contributesWidgetConfigureActivity(): WidgetConfigureActivity
 

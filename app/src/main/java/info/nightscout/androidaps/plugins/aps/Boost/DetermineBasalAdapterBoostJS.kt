@@ -17,6 +17,7 @@ import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatus
 import info.nightscout.shared.SafeParse
 import info.nightscout.androidaps.interfaces.ResourceHelper
+import info.nightscout.androidaps.plugins.aps.loop.LoopVariantPreference
 import info.nightscout.androidaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
 import info.nightscout.shared.sharedPreferences.SP
 import org.json.JSONArray
@@ -93,12 +94,7 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
             rhino.evaluateString(scope, "require = function() {return round_basal;};", "JavaScript", 0, null)
 
             //generate functions "determine_basal" and "setTempBasal"
-            val boostVariant = sp.getString(R.string.key_boost_variant, BoostDefaults.variant)
-            if (boostVariant == BoostDefaults.variant)
-                rhino.evaluateString(scope, readFile("Boost/determine-basal.js"), "JavaScript", 0, null)
-            else
-                rhino.evaluateString(scope, readFile("Boost/$boostVariant/determine-basal.js"), "JavaScript", 0, null)
-
+            rhino.evaluateString(scope, readFile(LoopVariantPreference.getVariantFileName(sp, "Boost")), "JavaScript", 0, null)
             rhino.evaluateString(scope, readFile("Boost/basal-set-temp.js"), "setTempBasal.js", 0, null)
             val determineBasalObj = scope["determine_basal", scope]
             val setTempBasalFunctionsObj = scope["tempBasalFunctions", scope]

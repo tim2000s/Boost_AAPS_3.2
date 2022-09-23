@@ -8,11 +8,11 @@
         android:title="@string/Boost"
         app:initialExpandedChildrenCount="0">
 
-        <info.nightscout.androidaps.plugins.aps.Boost.BoostVariantPreference
+        <info.nightscout.androidaps.plugins.aps.loop.LoopVariantPreference
             android:title="@string/Boost_Variant_title"
-            android:key="@string/key_boost_variant"
             android:defaultValue="default"
             android:selectable="true"
+            app:pluginFolder="Boost"
             />
 
         <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
