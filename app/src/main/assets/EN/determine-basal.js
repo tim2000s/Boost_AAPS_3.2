@@ -245,7 +245,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     if (now >= ENStartTime && now < ENEndTime && profile.ENautostart) ENtimeOK = true;
     var lastNormalCarbAge = round((new Date(systemTime).getTime() - meal_data.lastNormalCarbTime) / 60000);
     // minutes since last bolus
-    var lastBolusAge = ( new Date(systemTime).getTime() - meal_data.lastBolusTime ) / 60000;
+    var lastBolusAge = (new Date(systemTime).getTime() - meal_data.lastBolusTime) / 60000;
 
 
     enlog += "nowhrs: " + nowhrs + ", now: " + now + "\n";
@@ -317,15 +317,14 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     // If we have UAM enabled with IOB less than max enable eating now mode
     if (profile.enableUAM && ENmaxIOBOK) {
-        // enable eatingnow if no TT and within safe hours
-        if (ENtimeOK) ENactive = true;
-        // If there are COB enable eating now
-        if (COB) ENactive = true;
+        // If there are COB or ENTT enable eating now
+        if (COB || ENTTActive) ENactive = true;
         // no EN with a TT other than normal target
         if (profile.temptargetSet && !ENTTActive) ENactive = false;
-        if (ENTTActive) ENactive = true;
         // allow ENW overnight when EN is active and allowed in prefs
-        if (ENactive && profile.allowENWovernight) ENtimeOK = true;
+        if (!ENtimeOK && ENactive && profile.allowENWovernight) ENtimeOK = true;
+        // enable eatingnow if no TT and within safe hours
+        if (ENtimeOK) ENactive = true;
     }
 
     //ENactive = false; //DEBUG
@@ -414,8 +413,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     sens = (firstMealScaling ? round(profile.sens_midnight / (profile.BreakfastPct / 100), 1) : sens);
 
     enlog += "ENTime: " + ENTime + ", firstMealWindow: " + firstMealWindow + ", firstMealScaling: " + firstMealScaling + ", b1Time:" + b1Time + ", c1Time:" + c1Time + ", tt1Time:" + tt1Time + ", bTime:" + bTime + ", cTime:" + cTime + ", ttTime:" + ttTime + ", ENWindowOK:" + ENWindowOK + "\n";
-    enlog += "ENWindowRunTime: " + ENWindowRunTime+", ENWindowDuration: " + ENWindowDuration+"\n";
-    enlog += "ENTTActive: " + ENTTActive+"\n";
+    enlog += "ENWindowRunTime: " + ENWindowRunTime + ", ENWindowDuration: " + ENWindowDuration + "\n";
+    enlog += "ENTTActive: " + ENTTActive + "\n";
 
     // If GhostCOB is enabled we will use COB when ENWindowOK but outside this window UAM will be used
     if (ignoreCOB && ENWindowOK && meal_data.mealCOB > 0) ignoreCOB = false;
@@ -423,10 +422,10 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     // ins_val used as the divisor for ISF scaling
     var insulinType = profile.insulinType, ins_val = 90, ins_peak = 75;
     // insulin peak including onset min 30, max 75
-    ins_peak = (profile.insulinPeak < 30 ? 30 : Math.min(profile.insulinPeak,75));
+    ins_peak = (profile.insulinPeak < 30 ? 30 : Math.min(profile.insulinPeak, 75));
     // ins_val: Free-Peak^?:55-90, Lyumjev^45:75, Ultra-Rapid^55:65, Rapid-Acting^75:55
-    ins_val = (ins_peak < 60 ? (ins_val-ins_peak)+30 : (ins_val-ins_peak)+40);
-    enlog += "insulinType is " + insulinType + ", ins_val is " + ins_val + ", ins_peak is " + ins_peak+"\n";
+    ins_val = (ins_peak < 60 ? (ins_val - ins_peak) + 30 : (ins_val - ins_peak) + 40);
+    enlog += "insulinType is " + insulinType + ", ins_val is " + ins_val + ", ins_peak is " + ins_peak + "\n";
 
     // TDD ********************************
     // define default vars
@@ -465,16 +464,16 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     enlog += "* advanced ISF:\n";
     // Limit ISF increase for sens_currentBG at 10mmol / 180mgdl
     var ISFbgMax = 180;
-    enlog += "ISFbgMax: " + convert_bg(ISFbgMax, profile) + "\n";
+    enlog += "ISFbgMax:" + convert_bg(ISFbgMax, profile) + "\n";
 
     // TIR_sens - a very simple implementation of autoISF configurable % per hour
-    var TIR_sens = 0, TIRH_percent = profile.resistancePerHr/100;
+    var TIR_sens = 0, TIRH_percent = profile.resistancePerHr / 100;
     if (TIRH_percent && delta >= -4 && delta <= 4 || bg > 160) {
         enlog += "* TIR_sens:\n";
-        if (meal_data.TIRW1H > 50) TIR_sens = meal_data.TIRW1H/100;
-        if (meal_data.TIRW2H > 0 && TIR_sens == 1) TIR_sens += meal_data.TIRW2H/100;
-        if (meal_data.TIRW3H > 0 && TIR_sens == 2) TIR_sens += meal_data.TIRW3H/100;
-        if (meal_data.TIRW4H > 0 && TIR_sens == 3) TIR_sens += meal_data.TIRW4H/100;
+        if (meal_data.TIRW1H > 50) TIR_sens = meal_data.TIRW1H / 100;
+        if (meal_data.TIRW2H > 0 && TIR_sens == 1) TIR_sens += meal_data.TIRW2H / 100;
+        if (meal_data.TIRW3H > 0 && TIR_sens == 2) TIR_sens += meal_data.TIRW3H / 100;
+        if (meal_data.TIRW4H > 0 && TIR_sens == 3) TIR_sens += meal_data.TIRW4H / 100;
     }
     TIR_sens = TIR_sens * TIRH_percent + 1;
     //TIR_sens = 1; // disabling as testing
@@ -533,7 +532,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             // adjust basal
         basal = profile.current_basal * sensitivityRatio;
         }
-        sensitivityRatio = round(sensitivityRatio,2);
+        sensitivityRatio = round(sensitivityRatio, 2);
 
         // apply TIRS to ISF, TIRS will be 1 if not enabled, limit to autosens_max
         TIR_sens = Math.min(TIR_sens, profile.autosens_max);
@@ -573,21 +572,21 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     //                       Time 00 ,  01 ,  02 ,  03 ,  04 ,  05 ,  06 ,  07 ,  08 ,  09 ,  10 ,  11 ,  12 ,  13 ,  14 ,  15 ,  16 ,  17 ,  18 ,  19 ,  20 ,  21 ,  22 , 23 ,  24 .
     //var sens_circadian_curve = [1.40, 1.40, 0.80, 0.60, 0.52, 0.47, 0.43, 0.41, 0.40, 0.45, 0.60, 0.72, 0.83, 0.91, 0.97, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.20, 1.40];
     //enlog += "sens_circadian_curve["+nowhrs+"]:" + sens_circadian_curve[nowhrs]+"\n";
-    enlog += "nowmins: " + nowmins + "\n";
+    enlog += "nowmins:" + nowmins + "\n";
     //var sens_circadian_now = round(sens_circadian_curve[nowhrs]+((sens_circadian_curve[nowhrs+1]-sens_circadian_curve[nowhrs])/60) * nowmins,1);
 
     // experimenting with basal rate from 3PM
     var sens_circadian_now = (profile.enableBasalAt3PM ? round(profile.current_basal / profile.BasalAt3PM, 2) : 1);
-    enlog += "sens_circadian_now: " + sens_circadian_now + "\n";
+    enlog += "sens_circadian_now:" + sens_circadian_now + "\n";
 
     // Apply circadian variance to ISF
     sens_normalTarget *= sens_circadian_now;
-    enlog += "sens_normalTarget with circadian variance: " + convert_bg(sens_normalTarget, profile) + "\n";
+    enlog += "sens_normalTarget with circadian variance:" + convert_bg(sens_normalTarget, profile) + "\n";
 
     // Threshold for SMB at night
     var SMBbgOffset = (profile.SMBbgOffset > 0 ? target_bg + profile.SMBbgOffset : target_bg);
     var ENSleepMode = !ENactive && !ENtimeOK && bg < SMBbgOffset && !COB;
-    enlog += "SMBbgOffset: " + SMBbgOffset + "\n";
+    enlog += "SMBbgOffset:" + SMBbgOffset + "\n";
 
     // Allow user preferences to adjust the scaling of ISF as BG increases
     // Scaling is converted to a percentage, 0 is normal scaling (1), 5 is 5% stronger (0.95) and -5 is 5% weaker (1.05)
@@ -599,9 +598,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     enlog += "ISFBGscaler % is now: " + round(ISFBGscaler, 2) + "\n";
 
     // define & apply ISFBGscaler as % to sens_BGscaler
-    var sens_BGscaler = Math.log( (bg/ins_val)+1 );
-    sens_BGscaler = (profile.useDynISF ? sens_BGscaler/ISFBGscaler : 1);
-    enlog += "sens_BGscaler adjusted with ISFBGscaler:" + sens_BGscaler +"\n";
+    var sens_BGscaler = Math.log((bg / ins_val) + 1);
+    sens_BGscaler = (profile.useDynISF ? sens_BGscaler / ISFBGscaler : 1);
+    enlog += "sens_BGscaler adjusted with ISFBGscaler:" + sens_BGscaler + "\n";
 
     // define the sensitivity for the current bg using previously defined sens at normal target
     var sens_currentBG = sens_normalTarget / sens_BGscaler;
@@ -638,8 +637,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     if (currenttemp && iob_data.lastTemp && currenttemp.duration > 0) {
         // TODO: fix this (lastTemp.duration is how long it has run; currenttemp.duration is time left
         //if ( currenttemp.duration < iob_data.lastTemp.duration - 2) {
-            //rT.reason = "Warning: currenttemp duration "+currenttemp.duration+" << lastTemp duration "+round(iob_data.lastTemp.duration,1)+" from pumphistory; setting neutral temp of "+basal+".";
-            //return tempBasalFunctions.setTempBasal(basal, 30, profile, rT, currenttemp);
+        //rT.reason = "Warning: currenttemp duration "+currenttemp.duration+" << lastTemp duration "+round(iob_data.lastTemp.duration,1)+" from pumphistory; setting neutral temp of "+basal+".";
+        //return tempBasalFunctions.setTempBasal(basal, 30, profile, rT, currenttemp);
         //}
         //console.error(lastTempAge, round(iob_data.lastTemp.duration,1), round(lastTempAge - iob_data.lastTemp.duration,1));
         var lastTempEnded = lastTempAge - iob_data.lastTemp.duration
@@ -650,9 +649,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         }
         // TODO: figure out a way to do this check that doesn't fail across basal schedule boundaries
         //if ( tempModulus < 25 && tempModulus > 5 ) {
-            //rT.reason = "Warning: currenttemp duration "+currenttemp.duration+" + lastTempAge "+lastTempAge+" isn't a multiple of 30m; setting neutral temp of "+basal+".";
-            //console.error(rT.reason);
-            //return tempBasalFunctions.setTempBasal(basal, 30, profile, rT, currenttemp);
+        //rT.reason = "Warning: currenttemp duration "+currenttemp.duration+" + lastTempAge "+lastTempAge+" isn't a multiple of 30m; setting neutral temp of "+basal+".";
+        //console.error(rT.reason);
+        //return tempBasalFunctions.setTempBasal(basal, 30, profile, rT, currenttemp);
         //}
     }
 
@@ -729,7 +728,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     // min_bg of 90 -> threshold of 65, 100 -> 70 110 -> 75, and 130 -> 85
     //var threshold = Math.max(min_bg - 0.5*(min_bg-40),72); // minimum 72
-//    var threshold = Math.max(min_bg-0.5*(min_bg-40), profile.normal_target_bg-9, 75); // minimum 75 or current profile target - 10
+    //    var threshold = Math.max(min_bg-0.5*(min_bg-40), profile.normal_target_bg-9, 75); // minimum 75 or current profile target - 10
     var threshold = (ENWindowOK || ENSleepMode ? Math.max(min_bg - 0.5 * (min_bg - 40), 75) : Math.max(profile.normal_target_bg - 13, 75)); // minimum 75 or current profile target - 13
 
     //console.error(reservoir_data);
@@ -898,12 +897,12 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             var predZTBGI = round((-iobTick.iobWithZeroTemp.activity * sens * 5), 2);
             // for IOBpredBGs, predicted deviation impact drops linearly from current deviation down to zero
             // over 60 minutes (data points every 5m)
-            var predDev = ci * ( 1 - Math.min(1,IOBpredBGs.length/(60/5)) );
+            var predDev = ci * (1 - Math.min(1, IOBpredBGs.length / (60 / 5)));
             //IOBpredBG = IOBpredBGs[IOBpredBGs.length-1] + predBGI + predDev;
-            IOBpredBG = IOBpredBGs[IOBpredBGs.length-1] + (round(( -iobTick.activity * sens_normalTarget / (Math.log( (Math.max(IOBpredBGs[IOBpredBGs.length-1],39)/ins_val)+1 )) * 5 ),2)) + predDev; //dynISF
+            IOBpredBG = IOBpredBGs[IOBpredBGs.length - 1] + (round((-iobTick.activity * sens_normalTarget / (Math.log((Math.max(IOBpredBGs[IOBpredBGs.length - 1], 39) / ins_val) + 1)) * 5), 2)) + predDev; //dynISF
             // calculate predBGs with long zero temp without deviations
             //var ZTpredBG = ZTpredBGs[ZTpredBGs.length-1] + predZTBGI;
-            var ZTpredBG = ZTpredBGs[ZTpredBGs.length-1] + (round(( -iobTick.iobWithZeroTemp.activity * sens_normalTarget / (Math.log( (Math.max(ZTpredBGs[ZTpredBGs.length-1],39) /ins_val)+1 )) * 5 ), 2)); //dynISF
+            var ZTpredBG = ZTpredBGs[ZTpredBGs.length - 1] + (round((-iobTick.iobWithZeroTemp.activity * sens_normalTarget / (Math.log((Math.max(ZTpredBGs[ZTpredBGs.length - 1], 39) / ins_val) + 1)) * 5), 2)); //dynISF
             // for COBpredBGs, predicted carb impact drops linearly from current carb impact down to zero
             // eventually accounting for all carbs (if they can be absorbed over DIA)
             var predCI = Math.max(0, Math.max(0, ci) * (1 - COBpredBGs.length / Math.max(cid * 2, 1)));
@@ -933,7 +932,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 UAMduration = round((UAMpredBGs.length + 1) * 5 / 60, 1);
             }
             //UAMpredBG = UAMpredBGs[UAMpredBGs.length-1] + predBGI + Math.min(0, predDev) + predUCI;
-            UAMpredBG = UAMpredBGs[UAMpredBGs.length-1] + (round(( -iobTick.activity * sens_normalTarget / (Math.log( (Math.max(UAMpredBGs[UAMpredBGs.length-1],39) /ins_val)+1) ) * 5 ),2)) + Math.min(0, predDev) + predUCI; //dynISF
+            UAMpredBG = UAMpredBGs[UAMpredBGs.length - 1] + (round((-iobTick.activity * sens_normalTarget / (Math.log((Math.max(UAMpredBGs[UAMpredBGs.length - 1], 39) / ins_val) + 1)) * 5), 2)) + Math.min(0, predDev) + predUCI; //dynISF
             //console.error(predBGI, predCI, predUCI);
             // truncate all BG predictions at 4 hours
             if (IOBpredBGs.length < 48) { IOBpredBGs.push(IOBpredBG); }
@@ -1141,11 +1140,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     // minPredBG and eventualBG based dosing - insulinReq_bg
     // insulinReq_sens is calculated using a percentage of eventualBG (eBGweight) with the rest as minPredBG, to reduce the risk of overdosing.
-    var insulinReq_bg_orig = Math.min(minPredBG,eventualBG), insulinReq_bg = insulinReq_bg_orig, sens_predType = "NA", eBGweight_orig = (minPredBG < eventualBG ? 0 : 1), eBGweight = eBGweight_orig;
+    var insulinReq_bg_orig = Math.min(minPredBG, eventualBG), insulinReq_bg = insulinReq_bg_orig, sens_predType = "NA", eBGweight_orig = (minPredBG < eventualBG ? 0 : 1), eBGweight = eBGweight_orig;
     var insulinReq_sens = sens_normalTarget;
 
     // EN TT active and no bolus yet with UAM increase insulinReq_bg to provide initial insulinReq to 50% peak minutes of delta, max 90, only run on loop iteration
-    var insulinReq_boost = (ENTTActive && lastBolusAge >= ttTime && minAgo <1 &&!COB);
+    var insulinReq_boost = (ENTTActive && lastBolusAge >= ttTime && minAgo < 1 && !COB);
     //var endebug = "DEBUG: "+ttTime+", "+lastBolusAge+", "+minAgo+";";
     var insulinReq_bg_boost = (insulinReq_boost && delta >= 0 ? profile.UAMbgBoost : 0);
 
@@ -1158,16 +1157,20 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
         if (sens_predType == "UAM" && (!COB || ignoreCOB)) {
             eBGweight = (DeltaPct > 1.0 ? 0.50 : 0.25);
+            eBGweight += (DeltaPct > 1.0 && bg < ISFbgMax && eventualBG > ISFbgMax ? 0.25 : 0); // initial delta accelerating
             //eBGweight = (bg > target_bg && eventualBG > bg ? 0.50 : eBGweight);
             // when not accelerating
-            sens_predType = (DeltaPct <= 1.0 && eventualBG > bg ? "BG" : sens_predType);
-            sens_predType = (bg > ISFbgMax && delta >= 9 ? "BG" : sens_predType);
-            sens_predType = (DeltaPct > 1.0 && eventualBG < bg ? "TBR" : sens_predType);
+            sens_predType = (DeltaPct <= 1.0 && eventualBG > bg ? "TBR" : sens_predType); // delta slowing uses TBR
+            sens_predType = (bg > ISFbgMax && delta >= 9 ? "BG" : sens_predType); // high bg with high delta uses current bg
+            sens_predType = (DeltaPct > 1.0 && eventualBG < bg && insulinReq_boost ? "TBR" : sens_predType); // positive or negative delta with lower eBG uses TBR for more effective insulinReq_bg_boost
+            sens_predType = (DeltaPct > 1.0 && eventualBG < bg && !insulinReq_boost ? "BG" : sens_predType); // positive or negative delta with lower eBG uses TBR - generally for stubborn bg
         }
 
         if (sens_predType == "COB" || (sens_predType == "UAM" && COB)) {
             //eBGweight = 90/ins_val-1;
             eBGweight = (DeltaPct > 1.0 && sens_predType == "COB" ? 0.50 : 0.35);
+            //eBGweight += (DeltaPct > 1.0 && sens_predType == "COB" && bg < ISFbgMax ? 0.25 : 0);
+            sens_predType = (DeltaPct > 1.0 && eventualBG < bg ? "TBR" : sens_predType);
             //eBGweight = (DeltaPct > 1.0 && sens_predType == "UAM" ? 0.35 : eBGweight);
             // when not accelerating
             // sens_predType = (DeltaPct <= 1.0 && !insulinReq_bg_boost && eventualBG > bg ? "BG" : sens_predType);
@@ -1195,11 +1198,12 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         eventualBG += insulinReq_bg_boost;
 
         // calculate the prediction bg based on the weightings for minPredBG and eventualBG, if boosting use eventualBG
-        insulinReq_bg = (insulinReq_bg_boost ? eventualBG : (Math.max(minPredBG,40) * (1-eBGweight)) + (Math.max(eventualBG,40) * eBGweight));
+        insulinReq_bg = (insulinReq_bg_boost ? eventualBG : (Math.max(minPredBG, 40) * (1 - eBGweight)) + (Math.max(eventualBG, 40) * eBGweight));
         // use current bg for insulinReq_bg and ISF
-        //insulinReq_bg = (sens_predType == "BG" && !insulinReq_bg_boost ? bg : insulinReq_bg);
-        insulinReq_bg = (sens_predType == "BG" && !insulinReq_bg_boost ? (Math.max(minPredBG,40) * (1-eBGweight)) + (Math.max(bg,40) * eBGweight) : insulinReq_bg);
+        insulinReq_bg = (sens_predType == "BG" && !insulinReq_bg_boost ? bg : insulinReq_bg);
+        //insulinReq_bg = (sens_predType == "BG" && !insulinReq_bg_boost ? (Math.max(minPredBG,40) * (1-eBGweight)) + (Math.max(bg,40) * eBGweight) : insulinReq_bg);
         insulinReq_bg = (sens_predType == "TBR" && !insulinReq_bg_boost ? bg : insulinReq_bg);
+        eBGweight = (sens_predType == "TBR" || sens_predType == "BG" ? 1 : eBGweight);
 
         // should the eBGw not be adjusted use current bg if not boosting
         //insulinReq_bg = (eBGweight == eBGweight_orig && !insulinReq_bg_boost && bg < ISFbgMax ? bg : insulinReq_bg);
@@ -1207,9 +1211,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
         // insulinReq_sens determines the ISF used for final insulinReq calc
         //ins_val = (ENtimeOK ?  ins_val : ins_val * 1.25); // weaken overnight
-        insulinReq_sens = sens_normalTarget / Math.log( (insulinReq_bg/ins_val)+1 ) ;
+        insulinReq_sens = sens_normalTarget / Math.log((insulinReq_bg / ins_val) + 1);
         // use the strongest ISF when ENW active
-        insulinReq_sens = (!firstMealWindow && !COB && ENWindowRunTime <= ENWindowDuration ? Math.min(insulinReq_sens,sens) : insulinReq_sens);
+        insulinReq_sens = (!firstMealWindow && !COB && ENWindowRunTime <= ENWindowDuration ? Math.min(insulinReq_sens, sens) : insulinReq_sens);
 
         // TBR only if not significant boost
         //if (insulinReq_boost && insulinReq_bg <= bg) insulinReqPct = 0;
@@ -1218,7 +1222,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         //insulinReq_sens = (profile.enableSRTDD ? insulinReq_sens / sensitivityRatio : insulinReq_sens);
     }
 
-    insulinReq_sens = round(insulinReq_sens,1);
+    insulinReq_sens = round(insulinReq_sens, 1);
     rT.variable_sens = insulinReq_sens;
     enlog += "* eBGweight:\n";
     enlog += "sens_predType: " + sens_predType + "\n";
@@ -1253,14 +1257,14 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     rT.reason += (ENWTriggerOK && !ENSleepMode ? " IOB&gt;" + round(ENWIOBThreshU, 2) : "");
 
     // other EN stuff
-    rT.reason += ", eBGw: " + (sens_predType !="NA" ? sens_predType + " " : "") + convert_bg(insulinReq_bg,profile)+ " "+round(eBGweight*100)+"%";
+    rT.reason += ", eBGw: " + (sens_predType != "NA" ? sens_predType + " " : "") + convert_bg(insulinReq_bg, profile) + " " + round(eBGweight * 100) + "%";
     //rT.reason += (sens_predType !="NA" ? ", eBGw: " + sens_predType + " " +  round(eBGweight*100) + "% ("+convert_bg(insulinReq_bg,profile)+")" : "");
-    if (profile.use_sens_TDD) rT.reason += ", TDD:" + round(TDD, 2) + " " + (profile.sens_TDD_scale !=100 ? profile.sens_TDD_scale + "% " : "") + "("+convert_bg(sens_TDD, profile)+")";
-    rT.reason += (TIR_sens > 1 ? ", TIRH:" + round(meal_data.TIRW4H) + "/" + round(meal_data.TIRW3H) + "/" + round(meal_data.TIRW2H) +"/"+round(meal_data.TIRW1H) : "");
+    if (profile.use_sens_TDD) rT.reason += ", TDD:" + round(TDD, 2) + " " + (profile.sens_TDD_scale != 100 ? profile.sens_TDD_scale + "% " : "") + "(" + convert_bg(sens_TDD, profile) + ")";
+    rT.reason += (TIR_sens > 1 ? ", TIRH:" + round(meal_data.TIRW4H) + "/" + round(meal_data.TIRW3H) + "/" + round(meal_data.TIRW2H) + "/" + round(meal_data.TIRW1H) : "");
     //    rT.reason += (TIR_sens <1 ? ", TIRL:" + round(meal_data.TIRW4L) + "/" + round(meal_data.TIRW3L) + "/" + round(meal_data.TIRW2L) +"/"+round(meal_data.TIRW1L) : "");
-    rT.reason += ", TIRS: " + round(TIR_sens,2);
-    if (profile.enableSRTDD) rT.reason += ", SR_TDD: " + round(SR_TDD,2);
-    rT.reason += ", SR: " + (typeof autosens_data !== 'undefined' && autosens_data ? round(autosens_data.ratio,2) + "=": "") + sensitivityRatio;
+    rT.reason += ", TIRS: " + round(TIR_sens, 2);
+    if (profile.enableSRTDD) rT.reason += ", SR_TDD: " + round(SR_TDD, 2);
+    rT.reason += ", SR: " + (typeof autosens_data !== 'undefined' && autosens_data ? round(autosens_data.ratio, 2) + "=" : "") + sensitivityRatio;
     rT.reason += ", LRT: " + round(60 * minAgo);
     rT.reason += "; ";
     rT.reason += (typeof endebug !== 'undefined' ? endebug : "");
@@ -1500,7 +1504,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         // insulinReq is the additional insulin required to get minPredBG down to target_bg
         //console.error(minPredBG,eventualBG);
         //insulinReq = round( (Math.min(minPredBG,eventualBG) - target_bg) / insulinReq_sens, 3);
-        insulinReq = round( (insulinReq_bg_orig - target_bg) / sens_profile, 3);
+        insulinReq = round((insulinReq_bg_orig - target_bg) / sens_profile, 3);
 
         // keep the original insulinReq for reporting
         var insulinReqOrig = insulinReq;
@@ -1585,19 +1589,19 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 // if ENMaxSMB is more than AAPS safety maxbolus then consider the setting to be minutes
                 ENMaxSMB = (ENMaxSMB > profile.safety_maxbolus ? profile.current_basal * ENMaxSMB / 60 : ENMaxSMB);
                 // if ENMaxSMB is more than 0 use ENMaxSMB else use AAPS max minutes
-                ENMaxSMB = ( ENMaxSMB == 0 ? maxBolus : ENMaxSMB);
+                ENMaxSMB = (ENMaxSMB == 0 ? maxBolus : ENMaxSMB);
 
                 // EXPERIMENT: Restrict SMB when not ENW to original insulinReq, prepare to remove outside ENW SMB settings
                 ENMaxSMB = (!ENWindowOK ? Math.min(insulinReqOrig, ENMaxSMB) : ENMaxSMB);
 
                 // if ENMaxSMB is -1 use TBR
-                insulinReqPct = ( ENMaxSMB == -1 ? 0 : insulinReqPct );
-                ENMaxSMB = ( ENMaxSMB == -1 ? maxBolus : ENMaxSMB);
+                insulinReqPct = (ENMaxSMB == -1 ? 0 : insulinReqPct);
+                ENMaxSMB = (ENMaxSMB == -1 ? maxBolus : ENMaxSMB);
                 // TBR only TEST
-                insulinReqPct = ( sens_predType == "TBR" ? 0 : insulinReqPct );
+                insulinReqPct = (sens_predType == "TBR" ? 0 : insulinReqPct);
 
                 // if bg numbers resumed after sensor errors dont allow a large SMB
-                ENMaxSMB = ( minAgo < 1 && delta == 0 && glucose_status.short_avgdelta == 0 ? maxBolus : ENMaxSMB );
+                ENMaxSMB = (minAgo < 1 && delta == 0 && glucose_status.short_avgdelta == 0 ? maxBolus : ENMaxSMB);
 
 
                 // ============== DELTA & IOB BASED RESTRICTIONS ==============
@@ -1655,7 +1659,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 smbLowTempReq = round(basal * durationReq / 30, 2);
                 durationReq = 30;
             }
-            rT.reason += " insulinReq" + (insulinReq_bg_boost > 0  ? "+ " : " ") + insulinReq + (insulinReq != insulinReqOrig ? "(" + insulinReqOrig + ")" : "") + "@"+round(insulinReqPct*100,0)+"%";
+            rT.reason += " insulinReq" + (insulinReq_bg_boost > 0 ? "+ " : " ") + insulinReq + (insulinReq != insulinReqOrig ? "(" + insulinReqOrig + ")" : "") + "@" + round(insulinReqPct * 100, 0) + "%";
 
             if (microBolus >= maxBolus) {
                 rT.reason += "; maxBolus" + (maxBolus > maxBolusOrig ? "^ " : " ") + maxBolus;
@@ -1701,7 +1705,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         // SAFETY: if ENactive and an SMB given reduce the temp rate
         if (ENactive && rT.units > 0) {
             //rate = Math.max(basal + insulinReqOrig - rT.units,0);
-            rate = Math.max(basal + insulinReq - rT.units,0);
+            rate = Math.max(basal + insulinReq - rT.units, 0);
             rate = round_basal(rate, profile);
             rT.reason += " TBR reduced: " + round(rate, 3) + ", ";
         }
