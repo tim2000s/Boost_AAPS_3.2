@@ -8,6 +8,13 @@
         android:title="@string/openaps_smb_dynamic_isf"
         app:initialExpandedChildrenCount="0">
 
+        <info.nightscout.androidaps.plugins.aps.loop.LoopVariantPreference
+            android:title="@string/DynISF_variant"
+            android:defaultValue="default"
+            android:selectable="true"
+            app:pluginFolder="OpenAPSSMBDynamicISF"
+            />
+
         <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
             android:defaultValue="1"
             android:dialogMessage="@string/openapsma_maxbasal_summary"
@@ -39,13 +46,13 @@
             validate:floatminNumber="1"
             validate:testType="floatNumericRange" />
 
-        <EditTextPreference
-            android:defaultValue="60"
+        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+            android:defaultValue="65"
             android:inputType="numberDecimal"
             android:dialogMessage="@string/treatmentssafety_lgsThreshold_summary"
             android:key="@string/key_lgs_threshold"
             android:title="@string/treatmentssafety_lgsThreshold_title"
-            validate:floatmaxNumber="100"
+            validate:floatmaxNumber="120"
             validate:floatminNumber="65"
             validate:testType="bgRange" />
 

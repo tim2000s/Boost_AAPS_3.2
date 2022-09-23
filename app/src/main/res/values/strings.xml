@@ -556,6 +556,7 @@
     <string name="openapssmb">OpenAPS SMB</string>
     <string name="Boost">Boost</string>
     <string name="openaps_smb_dynamic_isf">Dynamic ISF</string>
+    <string name="DynISF_variant" formatted="false">Variant</string>
     <string name="key_DynISFAdjust" translatable="false">DynISFAdjust</string>
     <string name="DynISFAdjust_title" formatted="false">DynamicISF Adjustment Factor %</string>
     <string name="DynISFAdjust_summary" formatted="false">Adjustment factor for DynamicISF. Set more than 100% for more aggressive correction doses, and less than 100% for less aggressive corrections.</string>
@@ -1321,6 +1322,8 @@
     <string name="blocked_by_connectivity">Blocked by connectivity options</string>
     <string name="no_watch_connected">(No Watch Connected)</string>
     <string name="error_asking_for_permissions">Error asking for permissions</string>
+    <string name="key_adjust_sensitivity" translatable="false">dynisf_adjust_sensitivity</string>
+    <string name="dynisf_adjust_sensitivity">Adjust sensitivity and BG</string>
 
     <!-- Tsunami Data Smoothing -->
     <string name="key_use_data_smoothing" translatable="false">use_data_smoothing</string>
