@@ -318,14 +318,14 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     // If we have UAM enabled with IOB less than max enable eating now mode
     if (profile.enableUAM && ENmaxIOBOK) {
-        // If there are COB or ENTT enable eating now
-        if (COB || ENTTActive) ENactive = true;
-        // no EN with a TT other than normal target
-        if (profile.temptargetSet && !ENTTActive) ENactive = false;
-        // allow ENW overnight when EN is active and allowed in prefs
-        if (!ENtimeOK && ENactive && profile.allowENWovernight) ENtimeOK = true;
-        // enable eatingnow if no TT and within safe hours
+        // if time is OK EN is active
         if (ENtimeOK) ENactive = true;
+        // If there are COB or ENTT EN is active
+        if (COB || ENTTActive) ENactive = true;
+        // SAFETY: Disable EN with a TT other than normal target
+        if (profile.temptargetSet && !ENTTActive) ENactive = false;
+        // SAFETY: Disable EN overnight after EN hours and no override in prefs
+        if (!ENtimeOK && ENactive && !profile.allowENWovernight) ENactive = false;
     }
 
     //ENactive = false; //DEBUG
@@ -1239,15 +1239,22 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         //if (insulinReq_sens < sens_normalTarget && !firstMealScaling) eBGweight = (ENWindowOK ? eBGweight : eBGweight_orig);
 
         // exaggerate for first UAM bolus
-        minPredBG += insulinReq_bg_boost;
-        eventualBG += insulinReq_bg_boost;
+        if (insulinReq_bg_boost) {
+            //minPredBG += insulinReq_bg_boost;
+            //eventualBG += insulinReq_bg_boost;
+            // use current bg plus boost?
+            minPredBG = bg + insulinReq_bg_boost;
+            eventualBG = bg + insulinReq_bg_boost;
+            eBGweight = 1;
+            sens_predType = "UAM+";
+        }
 
         // calculate the prediction bg based on the weightings for minPredBG and eventualBG, if boosting use eventualBG
-        insulinReq_bg = (insulinReq_bg_boost ? eventualBG : (Math.max(minPredBG,40) * (1-eBGweight)) + (Math.max(eventualBG,40) * eBGweight));
+        insulinReq_bg = (Math.max(minPredBG, 40) * (1 - eBGweight)) + (Math.max(eventualBG, 40) * eBGweight);
         // use current bg for insulinReq_bg and ISF
-        insulinReq_bg = (sens_predType == "BG" && !insulinReq_bg_boost ? bg : insulinReq_bg);
+        insulinReq_bg = (sens_predType == "BG" ? bg : insulinReq_bg);
         //insulinReq_bg = (sens_predType == "BG" && !insulinReq_bg_boost ? (Math.max(minPredBG,40) * (1-eBGweight)) + (Math.max(bg,40) * eBGweight) : insulinReq_bg);
-        insulinReq_bg = (sens_predType == "TBR" && !insulinReq_bg_boost ? bg : insulinReq_bg);
+        insulinReq_bg = (sens_predType == "TBR" ? bg : insulinReq_bg);
         eBGweight = (sens_predType == "TBR" || sens_predType == "BG" ? 1 : eBGweight);
 
         // should the eBGw not be adjusted use current bg if not boosting
@@ -1622,6 +1629,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 // UAMBoost maxBolus is for predictions that are UAM with or without COB
                 ENMaxSMB = (sens_predType == "COB" ? profile.COB_maxBolus : profile.UAM_maxBolus);
 
+
                 // if ENWindowOK allow further increase max of SMB within the window
                 if (ENWindowOK) {
                     if (COB) {
@@ -1633,8 +1641,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 }
 
                 // ============== MAXBOLUS RESTRICTIONS ==============
-                // if ENMaxSMB is more than AAPS safety maxbolus then consider the setting to be minutes
-                ENMaxSMB = (ENMaxSMB > profile.safety_maxbolus ? profile.current_basal * ENMaxSMB / 60 : ENMaxSMB);
                 // if ENMaxSMB is more than 0 use ENMaxSMB else use AAPS max minutes
                 ENMaxSMB = (ENMaxSMB == 0 ? maxBolus : ENMaxSMB);
 
