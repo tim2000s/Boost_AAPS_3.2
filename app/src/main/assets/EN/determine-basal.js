@@ -539,7 +539,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             // adjust sens_normalTarget
             sens_normalTarget = sens_normalTarget / sensitivityRatio;
             // adjust basal
-        basal = profile.current_basal * sensitivityRatio;
+            basal = profile.current_basal * sensitivityRatio;
         }
         sensitivityRatio = round(sensitivityRatio, 2);
 
@@ -1573,7 +1573,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 insulinReqPct = (sens_predType == "UAM+" ? 1 : insulinReqPct);
 
                 // set EN SMB limit for COB or UAM
-                ENMaxSMB = (sens_predType == "COB" ? profile.EN_COB_maxBolus : profile.EN_UAM_maxBolus);
+                ENMaxSMB = (sens_predType == "COB" ? profile.COB_maxBolus : profile.UAM_maxBolus);
 
                 // if ENWindowOK allow further increase max of SMB within the window
                 if (ENWindowOK) {
