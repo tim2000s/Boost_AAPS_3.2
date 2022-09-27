@@ -199,12 +199,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var sensitivityRatio;
     var high_temptarget_raises_sensitivity = profile.exercise_mode || profile.high_temptarget_raises_sensitivity;
     var normalTarget = profile.normal_target_bg; // evaluate high/low temptarget against 100, not scheduled target (which might change)
-    if (profile.half_basal_exercise_target) {
-        var halfBasalTarget = profile.half_basal_exercise_target;
-    } else {
-        halfBasalTarget = 160; // when temptarget is 160 mg/dL, run 50% basal (120 = 75%; 140 = 60%)
-        // 80 mg/dL with low_temptarget_lowers_sensitivity would give 1.5x basal, but is limited to autosens_max (1.2x by default)
-    }
+    var halfBasalTarget = (profile.half_basal_exercise_target) ? profile.half_basal_exercise_target : 160;
+    // when temptarget is 160 mg/dL, run 50% basal (120 = 75%; 140 = 60%)
+    // 80 mg/dL with low_temptarget_lowers_sensitivity would give 1.5x basal, but is limited to autosens_max (1.2x by default)
     /*
     if ( high_temptarget_raises_sensitivity && profile.temptargetSet && target_bg > normalTarget
         || profile.low_temptarget_lowers_sensitivity && profile.temptargetSet && target_bg < normalTarget ) {
@@ -609,12 +606,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     sens_normalTarget *= sens_circadian_now;
     enlog += "sens_normalTarget with circadian variance: " + convert_bg(sens_normalTarget, profile) + "\n";
 
-
-
-    // sens_target_bg is used like a target, when the number is lower the ISF scaling is stronger
-    // only allow adjusted ISF target when eatingnow time is OK dont use at night
-    //var sens_target_bg = (ENactive ?  ins_val : target_bg);
-    var sens_target_bg = ins_val;
     var log_scaler = true;
 
     var getISFforBG = function (bg) {
@@ -1188,7 +1179,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     // minPredBG and eventualBG based dosing - insulinReq_bg
     // insulinReq_sens is calculated using a percentage of eventualBG (eBGweight) with the rest as minPredBG, to reduce the risk of overdosing.
     var insulinReq_bg_orig = Math.min(minPredBG,eventualBG),
-        insulinReq_bg = insulinReq_bg_orig,
+        insulinReq_bg = Math.max(insulinReq_bg_orig, 39),
         insulinReq_sens = getISFforBG(insulinReq_bg),
         sens_predType = "NA",
         eBGweight_orig = (minPredBG < eventualBG ? 0 : 1),
@@ -1269,7 +1260,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
         // insulinReq_sens determines the ISF used for final insulinReq calc
         //ins_val = (ENtimeOK ?  ins_val : ins_val * 1.25); // weaken overnight
-        insulinReq_sens = getISFforBG(insulinReq_bg);
+        insulinReq_sens = getISFforBG(Math.max(insulinReq_bg, 40));
 
         // use the strongest ISF when ENW active
         insulinReq_sens = (!firstMealWindow && !COB && ENWindowRunTime <= ENWindowDuration ? Math.min(insulinReq_sens, sens) : insulinReq_sens);
