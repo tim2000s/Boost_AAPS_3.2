@@ -102,7 +102,7 @@ open class DatabaseModule {
     }
 
     private fun addColumnIfNotExists(db: SupportSQLiteDatabase, table: String, columnToCheck: String, columnTypeDefinition: String) {
-        if(!columnExistsInTable(db, columnToCheck, columnTypeDefinition)) {
+        if(!columnExistsInTable(db, table, columnToCheck)) {
             db.execSQL("ALTER TABLE `$table` ADD COLUMN `$columnToCheck` $columnTypeDefinition")
         }
     }

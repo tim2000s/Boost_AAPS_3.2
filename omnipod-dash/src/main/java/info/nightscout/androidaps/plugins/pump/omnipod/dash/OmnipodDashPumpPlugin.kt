@@ -44,6 +44,7 @@ import info.nightscout.androidaps.plugins.pump.omnipod.dash.util.mapProfileToBas
 import info.nightscout.androidaps.queue.commands.Command
 import info.nightscout.androidaps.queue.commands.CustomCommand
 import info.nightscout.androidaps.utils.DateUtil
+import info.nightscout.androidaps.utils.DecimalFormatter.to0Decimal
 import info.nightscout.androidaps.utils.DecimalFormatter.to2Decimal
 import info.nightscout.androidaps.utils.FabricPrivacy
 import info.nightscout.androidaps.utils.Round
@@ -338,7 +339,6 @@ class OmnipodDashPumpPlugin @Inject constructor(
                     val sync = pumpSync.syncBolusWithPumpId(
                         timestamp = bolusHistoryEntry.createdAt,
                         amount = deliveredUnits,
-                        notes = notes,
                         pumpId = bolusHistoryEntry.pumpId(),
                         pumpType = PumpType.OMNIPOD_DASH,
                         pumpSerial = serialNumber(),
@@ -586,8 +586,7 @@ class OmnipodDashPumpPlugin @Inject constructor(
                     commandType = OmnipodCommandType.SET_BOLUS,
                     bolusRecord = BolusRecord(
                         requestedBolusAmount,
-                        BolusType.fromBolusInfoBolusType(detailedBolusInfo.bolusType),
-                        detailedBolusInfo.notes
+                        BolusType.fromBolusInfoBolusType(detailedBolusInfo.bolusType)
                     )
                 ),
                 activeCommandEntry = { historyId ->
@@ -601,7 +600,7 @@ class OmnipodDashPumpPlugin @Inject constructor(
                     bolusBeeps,
                     bolusBeeps
                 ).filter { podEvent -> podEvent.isCommandSent() }
-                    .map { pumpSyncBolusStart(requestedBolusAmount, detailedBolusInfo.bolusType, detailedBolusInfo.notes) }
+                    .map { pumpSyncBolusStart(requestedBolusAmount, detailedBolusInfo.bolusType) }
                     .ignoreElements(),
                 post = waitForBolusDeliveryToComplete(requestedBolusAmount, detailedBolusInfo.bolusType)
                     .map {
@@ -764,8 +763,7 @@ class OmnipodDashPumpPlugin @Inject constructor(
 
     private fun pumpSyncBolusStart(
         requestedBolusAmount: Double,
-        bolusType: DetailedBolusInfo.BolusType,
-        notes: String?
+        bolusType: DetailedBolusInfo.BolusType
     ): Boolean {
         require(requestedBolusAmount > 0) { "requestedBolusAmount has to be positive" }
 
@@ -780,7 +778,6 @@ class OmnipodDashPumpPlugin @Inject constructor(
         val ret = pumpSync.syncBolusWithPumpId(
             timestamp = historyEntry.createdAt,
             amount = requestedBolusAmount,
-            notes = notes,
             type = bolusType,
             pumpId = historyEntry.pumpId(),
             pumpType = PumpType.OMNIPOD_DASH,
@@ -1067,7 +1064,7 @@ class OmnipodDashPumpPlugin @Inject constructor(
         }
         ret += rh.gs(
             R.string.omnipod_common_short_status_reservoir,
-            podStateManager.pulsesRemaining?.let { reservoirLevel.toString() } ?: "50+"
+            podStateManager.pulsesRemaining?.let { to0Decimal(reservoirLevel) } ?: "50+"
         )
         return ret.trim()
     }
@@ -1432,16 +1429,14 @@ class OmnipodDashPumpPlugin @Inject constructor(
                     record as BolusRecord
 
                     podStateManager.createLastBolus(
-                        record.amount,
+                        record.amout,
                         command.historyId,
-                        record.bolusType.toBolusInfoBolusType(),
-                        record.notes
+                        record.bolusType.toBolusInfoBolusType()
                     )
                 } else {
                     pumpSync.syncBolusWithPumpId(
                         timestamp = historyEntry.createdAt,
                         amount = 0.0,
-                        notes = null,
                         pumpId = historyEntry.pumpId(),
                         pumpType = PumpType.OMNIPOD_DASH,
                         pumpSerial = serialNumber(),
@@ -1463,7 +1458,6 @@ class OmnipodDashPumpPlugin @Inject constructor(
                         val sync = pumpSync.syncBolusWithPumpId(
                             timestamp = bolusHistoryEntry.createdAt,
                             amount = deliveredUnits,
-                            notes = notes,
                             pumpId = bolusHistoryEntry.pumpId(),
                             pumpType = PumpType.OMNIPOD_DASH,
                             pumpSerial = serialNumber(),
