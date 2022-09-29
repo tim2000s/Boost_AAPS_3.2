@@ -1548,6 +1548,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         //console.error(iob_data.lastBolusTime);
         // minutes since last bolus
         var lastBolusAge = round((new Date(systemTime).getTime() - iob_data.lastBolusTime) / 60000, 1);
+        var microBolus = 0; //establish no SMB
         //console.error(lastBolusAge);
         //console.error(profile.temptargetSet, target_bg, rT.COB);
         // only allow microboluses with COB or low temp targets, or within DIA hours of a bolus
@@ -1684,7 +1685,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             if (microBolus >= maxBolus) {
                 rT.reason += "; maxBolus " + maxBolus;
             }
-            if (durationReq > 0 && insulinReqTBR == 0) {
+            if (durationReq > 0 && !insulinReqTBR) {
                 rT.reason += "; setting " + durationReq + "m low temp of " + smbLowTempReq + "U/h";
             }
             rT.reason += ". ";
@@ -1713,7 +1714,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             //rT.reason += ". ";
 
             // if no zero temp is required, don't return yet; allow later code to set a high temp
-            if (durationReq > 0 && insulinReqTBR == 0) {
+            if (durationReq > 0 && !insulinReqTBR) {
                 rT.rate = smbLowTempReq;
                 rT.duration = durationReq;
                 return rT;
