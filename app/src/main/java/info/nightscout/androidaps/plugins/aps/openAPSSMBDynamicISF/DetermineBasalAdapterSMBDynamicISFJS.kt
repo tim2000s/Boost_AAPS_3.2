@@ -102,6 +102,13 @@ class DetermineBasalAdapterSMBDynamicISFJS internal constructor(private val scri
             rhino.evaluateString(scope, "var module = {\"parent\":Boolean(1)};", "JavaScript", 0, null)
             rhino.evaluateString(scope, "var round_basal = function round_basal(basal, profile) { return basal; };", "JavaScript", 0, null)
             rhino.evaluateString(scope, "require = function() {return round_basal;};", "JavaScript", 0, null)
+            rhino.evaluateString(scope,
+"""
+var getIsfByProfile = function (bg, profile) {
+    var sens_BG = Math.log((bg / profile.insulinDivisor) + 1);
+    var scaler = Math.log((profile.normalTarget / profile.insulinDivisor) + 1) / sens_BG;
+    return profile.sensNormalTarget * (1 - (1 - scaler) * profile.dynISFvelocity);
+}""", "JavaScript", 0, null)
 
             //generate functions "determine_basal" and "setTempBasal"
             rhino.evaluateString(scope, readFile(LoopVariantPreference.getVariantFileName(sp, "OpenAPSSMBDynamicISF")), "JavaScript", 0, null)
@@ -233,9 +240,11 @@ class DetermineBasalAdapterSMBDynamicISFJS internal constructor(private val scri
         this.profile.put("carbsReqThreshold", sp.getInt(R.string.key_carbsReqThreshold, SMBDefaults.carbsReqThreshold))
         this.profile.put("current_basal", basalRate)
         this.profile.put("temptargetSet", tempTargetSet)
-        this.profile.put("autosens_max", SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_autosens_max, "1.2")))
-        this.profile.put("autosens_min", SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_autosens_min, "0.8")))
-        this.profile.put("openapsama_useautosens", sp.getBoolean(R.string.key_openapsama_useautosens, false))
+
+        val autosens_max = SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_autosens_max, "1.2"))
+        val autosens_min = SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_autosens_min, "0.7"))
+        this.profile.put("autosens_max", autosens_max)
+        this.profile.put("autosens_min", autosens_min)
         //set the min SMB amount to be the amount set by the pump.
         if (profileFunction.getUnits() == GlucoseUnit.MMOL) {
             this.profile.put("out_units", "mmol/L")
@@ -267,52 +276,59 @@ class DetermineBasalAdapterSMBDynamicISFJS internal constructor(private val scri
         this.mealData.put("lastBolusTime", mealData.lastBolusTime)
         this.mealData.put("lastCarbTime", mealData.lastCarbTime)
 
-        val tdd1D = tddCalculator.averageTDD(tddCalculator.calculate(1))?.totalAmount
-        val tdd7D = tddCalculator.averageTDD(tddCalculator.calculate(7))?.totalAmount
-        val tddLast24H = tddCalculator.calculateDaily(-24, 0).totalAmount
-        val tddLast4H = tddCalculator.calculateDaily(-4, 0).totalAmount
-        val tddLast8to4H = tddCalculator.calculateDaily(-8, -4).totalAmount
-
-        val tddWeightedFromLast8H = ((1.4 * tddLast4H) + (0.6 * tddLast8to4H)) * 3
-//        console.error("Rolling 8 hours weight average: " + tdd_last8_wt + "; ");
-//        console.error("1-day average TDD is: " + tdd1 + "; ");
-//        console.error("7-day average TDD is: " + tdd7 + "; ");
-
-        var tdd =
-            if (tdd1D != null && tdd7D != null) (tddWeightedFromLast8H * 0.33) + (tdd7D * 0.34) + (tdd1D * 0.33)
-            else tddWeightedFromLast8H
-//        console.log("TDD = " + TDD + " using average of 7-day, 1-day and weighted 8hr average");
-
-//        console.log("Insulin Peak = " + insulin.peak + "; ");
-
         val insulin = activePlugin.activeInsulin
         val insulinDivisor = when {
             insulin.peak > 65 -> 55 // lyumjev peak: 45
             insulin.peak > 50 -> 65 // ultra rapid peak: 55
             else              -> 75 // rapid peak: 75
         }
-//        console.log("For " + insulin.friendlyName + " (insulin peak: " + insulin.peak + ") insulin divisor is: " + ins_val + "; ");
+        val useTDD = sp.getBoolean(R.string.key_DynISFUseTDD, true)
+        val adjustSens = sp.getBoolean(R.string.key_adjust_sensitivity, false)
+        val dynISFvelocity = SafeParse.stringToDouble(sp.getString(R.string.key_DynISFVelocity, "100")) / 100.0
+        var sensNormalTarget = profile.getIsfMgdl()
+        var variableSensitivity = sensNormalTarget
 
-        val dynISFadjust = SafeParse.stringToDouble(sp.getString(R.string.key_DynISFAdjust, "100")) / 100.0
-        tdd *= dynISFadjust
+        autosensData.put("ratio", 1.0)
 
-        var variableSensitivity = 1800 / (tdd * (ln((glucoseStatus.glucose / insulinDivisor) + 1)))
+        if (useTDD || adjustSens) {
+
+            val tdd7D = tddCalculator.averageTDD(tddCalculator.calculate(7))?.totalAmount
+            val tddLast24H = tddCalculator.calculateDaily(-24, 0).totalAmount
+
+            if (useTDD) {
+                val tdd1D = tddCalculator.averageTDD(tddCalculator.calculate(1))?.totalAmount
+                val tddLast4H = tddCalculator.calculateDaily(-4, 0).totalAmount
+                val tddLast8to4H = tddCalculator.calculateDaily(-8, -4).totalAmount
+                val tddWeightedFromLast8H = ((1.4 * tddLast4H) + (0.6 * tddLast8to4H)) * 3
+                var tdd =
+                    if (tdd1D != null && tdd7D != null) (tddWeightedFromLast8H * 0.33) + (tdd7D * 0.34) + (tdd1D * 0.33)
+                    else tddWeightedFromLast8H
+
+                val dynISFadjust = SafeParse.stringToDouble(sp.getString(R.string.key_DynISFAdjust, "100")) / 100.0
+                tdd *= dynISFadjust
+
+                sensNormalTarget = 1800 / (tdd * (ln((profile.getTargetMgdl() / insulinDivisor) + 1)))
+                variableSensitivity = 1800 / (tdd * (ln((glucoseStatus.glucose / insulinDivisor) + 1)))
+            }
+
+            if (adjustSens && tdd7D != null)
+                autosensData.put("ratio", Math.max(Math.min(tddLast24H / tdd7D, autosens_max), autosens_min ))
+        }
+
+        if (dynISFvelocity != 1.0) {
+            val sbg = ln((glucoseStatus.glucose / insulinDivisor) + 1)
+            val scaler = ln((profile.getTargetMgdl() / insulinDivisor) + 1) / sbg
+            variableSensitivity = sensNormalTarget * (1 - (1 - scaler) * dynISFvelocity)
+        }
+
+        sensNormalTarget = Round.roundTo(sensNormalTarget, 0.1)
         variableSensitivity = Round.roundTo(variableSensitivity, 0.1)
 
-        if (dynISFadjust != 1.0) {
-//            console.log("TDD adjusted to " + TDD + " using adjustment factor of " + dynISFadjust + "; ");
-        }
-//        console.log("Current sensitivity for predictions is " + variable_sens + " based on current bg");
-
+        this.profile.put("normalTarget", 99)
+        this.profile.put("dynISFvelocity", dynISFvelocity)
+        this.profile.put("sensNormalTarget", sensNormalTarget)
         this.profile.put("variable_sens", variableSensitivity)
         this.profile.put("insulinDivisor", insulinDivisor)
-        this.profile.put("TDD", tdd)
-
-
-        if (sp.getBoolean(R.string.key_adjust_sensitivity, false) && tdd7D != null)
-            autosensData.put("ratio", tddLast24H / tdd7D)
-        else
-            autosensData.put("ratio", 1.0)
 
         this.microBolusAllowed = microBolusAllowed
         smbAlwaysAllowed = advancedFiltering
