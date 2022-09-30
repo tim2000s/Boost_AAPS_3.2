@@ -32,6 +32,7 @@ open class DatabaseModule {
                 migration20to21,
                 migration21to22,
                 migration22to23,
+                migration23to24
             )
             .addCallback(object : Callback() {
                 override fun onOpen(db: SupportSQLiteDatabase) {
@@ -39,7 +40,6 @@ open class DatabaseModule {
                     createCustomIndexes(db)
                 }
             })
-            .fallbackToDestructiveMigration()
             .fallbackToDestructiveMigrationOnDowngrade()
             .build()
 
@@ -92,8 +92,17 @@ open class DatabaseModule {
         }
     }
 
+    private val migration23to24 = object : Migration(23,24) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            addColumnIfNotExists(database,"carbs", "notes", "TEXT")
+            addColumnIfNotExists(database,"boluses", "notes", "TEXT")
+            addColumnIfNotExists(database,"glucoseValues", "smoothed", "REAL")
+            dropCustomIndexes(database)
+        }
+    }
+
     private fun addColumnIfNotExists(db: SupportSQLiteDatabase, table: String, columnToCheck: String, columnTypeDefinition: String) {
-        if(!columnExistsInTable(db, "glucoseValues", "smoothed")) {
+        if(!columnExistsInTable(db, columnToCheck, columnTypeDefinition)) {
             db.execSQL("ALTER TABLE `$table` ADD COLUMN `$columnToCheck` $columnTypeDefinition")
         }
     }

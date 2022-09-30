@@ -6,7 +6,7 @@ import androidx.room.TypeConverters
 import info.nightscout.androidaps.database.daos.*
 import info.nightscout.androidaps.database.entities.*
 
-const val DATABASE_VERSION = 23
+const val DATABASE_VERSION = 24
 
 @Database(version = DATABASE_VERSION,
     entities = [APSResult::class, Bolus::class, BolusCalculatorResult::class, Carbs::class,
