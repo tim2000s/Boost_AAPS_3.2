@@ -308,7 +308,7 @@
                 android:title="@string/openapsama_smb_delivery_ratio_bg_range"
                 validate:floatmaxNumber="100"
                 validate:floatminNumber="0"
-                validate:testType="floatNumericRange" />
+                validate:testType="bgRange" />
 
         </androidx.preference.PreferenceScreen>
 
