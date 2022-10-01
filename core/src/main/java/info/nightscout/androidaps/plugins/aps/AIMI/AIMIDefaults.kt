@@ -1,6 +1,6 @@
-package info.nightscout.androidaps.plugins.aps.fullUAM
+package info.nightscout.androidaps.plugins.aps.AIMI
 
-object UAMDefaults {
+object AIMIDefaults {
 
     // CALCULATED OR FROM PREFS
     // max_iob: 0 // if max_iob is not provided, will default to zero

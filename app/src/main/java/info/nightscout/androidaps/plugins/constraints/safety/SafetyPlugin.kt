@@ -8,7 +8,7 @@ import info.nightscout.androidaps.interfaces.Profile
 import info.nightscout.androidaps.interfaces.*
 import info.nightscout.shared.logging.AAPSLogger
 import info.nightscout.androidaps.plugins.aps.Boost.BoostPlugin
-import info.nightscout.androidaps.plugins.aps.fullUAM.FullUAMPlugin
+import info.nightscout.androidaps.plugins.aps.AIMI.AIMIPlugin
 import info.nightscout.androidaps.plugins.aps.openAPSAMA.OpenAPSAMAPlugin
 import info.nightscout.androidaps.plugins.aps.openAPSSMB.OpenAPSSMBPlugin
 import info.nightscout.androidaps.plugins.aps.openAPSSMBDynamicISF.OpenAPSSMBDynamicISFPlugin
@@ -41,7 +41,7 @@ class SafetyPlugin @Inject constructor(
     private val openAPSAMAPlugin: OpenAPSAMAPlugin,
     private val openAPSSMBPlugin: OpenAPSSMBPlugin,
     private val openAPSSMBDynamicISFPlugin: OpenAPSSMBDynamicISFPlugin,
-    private val fullUAMPlugin: FullUAMPlugin,
+    private val fullUAMPlugin: AIMIPlugin,
     private val BoostPlugin: BoostPlugin,
     private val ENPlugin: ENPlugin,
     private val sensitivityOref1Plugin: SensitivityOref1Plugin,
