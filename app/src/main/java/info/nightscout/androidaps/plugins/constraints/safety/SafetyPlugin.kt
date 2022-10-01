@@ -8,6 +8,7 @@ import info.nightscout.androidaps.interfaces.Profile
 import info.nightscout.androidaps.interfaces.*
 import info.nightscout.shared.logging.AAPSLogger
 import info.nightscout.androidaps.plugins.aps.Boost.BoostPlugin
+import info.nightscout.androidaps.plugins.aps.fullUAM.FullUAMPlugin
 import info.nightscout.androidaps.plugins.aps.openAPSAMA.OpenAPSAMAPlugin
 import info.nightscout.androidaps.plugins.aps.openAPSSMB.OpenAPSSMBPlugin
 import info.nightscout.androidaps.plugins.aps.openAPSSMBDynamicISF.OpenAPSSMBDynamicISFPlugin
@@ -40,6 +41,7 @@ class SafetyPlugin @Inject constructor(
     private val openAPSAMAPlugin: OpenAPSAMAPlugin,
     private val openAPSSMBPlugin: OpenAPSSMBPlugin,
     private val openAPSSMBDynamicISFPlugin: OpenAPSSMBDynamicISFPlugin,
+    private val fullUAMPlugin: FullUAMPlugin,
     private val BoostPlugin: BoostPlugin,
     private val ENPlugin: ENPlugin,
     private val sensitivityOref1Plugin: SensitivityOref1Plugin,
@@ -199,6 +201,7 @@ class SafetyPlugin @Inject constructor(
         val maxIobPref: Double = when {
             openAPSSMBPlugin.isEnabled(PluginType.APS)             -> sp.getDouble(R.string.key_openapssmb_max_iob, 3.0)
             openAPSSMBDynamicISFPlugin.isEnabled(PluginType.APS)   -> sp.getDouble(R.string.key_openapssmb_max_iob, 3.0)
+            fullUAMPlugin.isEnabled(PluginType.APS)                -> sp.getDouble(R.string.key_openapssmb_max_iob, 3.0)
             BoostPlugin.isEnabled(PluginType.APS)                  -> sp.getDouble(R.string.key_openapssmb_max_iob, 3.0)
             ENPlugin.isEnabled(PluginType.APS)                     -> sp.getDouble(R.string.key_openapssmb_max_iob, 1.5)
             else                                                   -> sp.getDouble(R.string.key_openapsma_max_iob, 1.5)
@@ -208,6 +211,7 @@ class SafetyPlugin @Inject constructor(
         if (openAPSSMBPlugin.isEnabled()) maxIob.setIfSmaller(aapsLogger, hardLimits.maxIobSMB(), String.format(rh.gs(R.string.limitingiob), hardLimits.maxIobSMB(), rh.gs(R.string.hardlimit)), this)
         if (BoostPlugin.isEnabled()) maxIob.setIfSmaller(aapsLogger, hardLimits.maxIobBoost(), String.format(rh.gs(R.string.limitingiob), hardLimits.maxIobBoost(), rh.gs(R.string.hardlimit)), this)
         if (openAPSSMBDynamicISFPlugin.isEnabled()) maxIob.setIfSmaller(aapsLogger, hardLimits.maxIobSMB(), rh.gs(R.string.limitingiob, hardLimits.maxIobSMB(), rh.gs(R.string.hardlimit)), this)
+        if (fullUAMPlugin.isEnabled()) maxIob.setIfSmaller(aapsLogger, hardLimits.maxIobAimi(), String.format(rh.gs(R.string.limitingiob), hardLimits.maxIobAimi(), rh.gs(R.string.hardlimit)), this)
         if (ENPlugin.isEnabled()) maxIob.setIfSmaller(aapsLogger, hardLimits.maxIobEN(), String.format(rh.gs(R.string.limitingiob), hardLimits.maxIobEN(), rh.gs(R.string.hardlimit)), this)
         if (apsMode == "lgs") maxIob.setIfSmaller(aapsLogger, HardLimits.MAX_IOB_LGS, String.format(rh.gs(R.string.limitingiob), HardLimits.MAX_IOB_LGS, rh.gs(R.string.lowglucosesuspend)), this)
         return maxIob

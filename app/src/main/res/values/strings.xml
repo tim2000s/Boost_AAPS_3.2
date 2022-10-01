@@ -83,6 +83,7 @@
     <string name="description_ns_client">Synchronizes your data with Nightscout</string>
     <string name="description_ama">State of the algorithm in 2017</string>
     <string name="description_smb">Most recent algorithm for advanced users</string>
+    <string name="description_fulluam">Automated Insulin Management Interface</string>
     <string name="description_Boost">Boost based accelerated bolusing</string>
     <string name="description_smb_dynamic_isf">Most recent algorithm for advanced users with dynamic/automatic ISF</string>
     <string name="description_overview">Displays the current state of your loop and buttons for most common actions</string>
@@ -369,6 +370,8 @@
     <string name="openapsama_smb_delivery_ratio_min_summary">Default value: 0.5 This is the lower end of a linearly increasing ratio rather than the fix value above.</string>
     <string name="openapsama_smb_delivery_ratio_max_summary">Default value: 0.5 This is the upper end of a linearly increasing ratio rather than the fix value above.</string>
     <string name="openapsama_smb_delivery_ratio_bg_range_summary">Default value: 0. The linearly increasing SMB delivery ratio is mapped to the glucose range [target_bg, target_bg+bg_range].\nAt target_bg the SMB ratio is smb_delivery_ratio_min, at target_bg+bg_range it is smb_delivery_ratio_max\nWith 0 the linearly increasing SMB ratio is disabled and the fixed smb_delivery_ratio is used.</string>
+    <string name="key_openapsama_smb_max_range_extension" translatable="false">openapsama_smb_max_range_extension</string>
+    <string name="openapsama_smb_max_range_extension_summary">Default value: 1 This is another key OpenAPS safety cap, and specifies by what factor you can exceed the regular 120 maxSMB/maxUAM minutes. Increase this experimental value slowly and with caution.</string>
     <string name="openapsama_autosens_max_summary">Default value: 1.2\nThis is a multiplier cap for autosens (and soon autotune) to set a 20%% max limit on how high the autosens ratio can be, which in turn determines how high autosens can adjust basals, how low it can adjust ISF, and how low it can set the BG target.</string>
     <string name="openapsama_autosens_min_summary">Default value: 0.7\nThe other side of the autosens safety limits, putting a cap on how low autosens can adjust basals, and how high it can adjust ISF and BG targets.</string>
     <string name="openapsama_autosens_adjusttargets">Autosens adjust targets, too</string>
@@ -554,6 +557,7 @@
     <string name="ns_localbroadcasts">Enable broadcasts to other apps (like xDrip+). Do not enable if you have more than one instance of AAPS or NSClient installed!</string>
     <string name="ns_localbroadcasts_title">Enable local Broadcasts.</string>
     <string name="openapssmb">OpenAPS SMB</string>
+    <string name="fulluam">AIMI</string>
     <string name="Boost">Boost</string>
     <string name="openaps_smb_dynamic_isf">Dynamic ISF</string>
     <string name="DynISF_variant" formatted="false">Variant</string>
@@ -883,7 +887,7 @@
     <string name="sensitivity_raises_target_title">Sensitivity raises target</string>
     <string name="sensitivity_raises_target_summary">When sensitivity is detected, raise the target glucose</string>
     <string name="key_keep_screen_on" translatable="false">keep_screen_on</string>
-    <string name="careportal_removestartedevents">Clean AndroidAPS started</string>
+    <string name="careportal_removestartedevents">Remove AAPS started entries</string>
     <string name="show_invalidated">Show invalidated</string>
     <string name="hide_invalidated">Hide invalidated</string>
     <string name="remove_items">Remove items</string>
@@ -1205,12 +1209,59 @@
     <string name="a11_correction_percentage">correct outcome with %</string>
     <string name="a11_correction_units">correct outcome with units</string>
     <string name="not_available_full">Not available</string>
+    <string name="key_fulluam_settings" translatable="false">fulluam_settings</string>
+    <string name="key_fulluam_max_iob" translatable="false">fulluam_max_iob</string>
+    <string name="fulluam_maxiob_title">Maximum total IOB AIMI can\'t go over [U]</string>
+    <string name="fulluam_maxiob_summary">This value is called Max IOB in AIMI context\nAIMI will not add more insulin if current IOB is greater than this value</string>
+
+    <string name="iTime">iTime</string>
+    <string name="iTimeSettings">iTime</string>
+    <string name="key_iTime" translatable="false">iTime</string>
+    <string name="iTime_title">iTime</string>
+    <string name="iTime_summary">iTime is the duration in minutes of the meal who authorize larger SMB. This variable was created to let child/teenager adapt this value</string>
+    <string name="key_UAM_InsulinReq" translatable="false">UAM_InsulinReq</string>
+    <string name="UAM_InsulinReq_title">AIMI iTime SMB Power %</string>
+    <string name="UAM_InsulinReq_summary">percentage of the AIMI response during the iTime duration</string>
     <string name="key_Boost_InsulinReq" translatable="false">Boost_InsulinReq</string>
     <string name="key_boost_variant" translatable="false">boost_variant</string>
     <string name="Boost_InsulinReq_title">Boost Insulin required %</string>
     <string name="Boost_InsulinReq_summary">percentage of the algos determined insulin to give</string>
     <string name="Boost_Variant_title">Boost variant</string>
     <string name="disable_Libre_smb_restrictions">Filtering active for every sensor, Go SMB!</string>
+    <string name="key_iTime_MaxBolus_minutes" translatable="false">iTime_MaxBolus_minutes</string>
+    <string name="iTime_MaxBolus_minutes_title">iTime_MaxBolus_minutes</string>
+    <string name="iTime_MaxBolus_minutes_summary">iTime give a duration of the meal who allow larger smb and maxbolus. this variable give the higher maxbolus (basal * iTime_MaxBolus_minutes / 60)</string>
+    <string name="key_iTime_Bolus" translatable="false">iTime_Bolus</string>
+    <string name="iTime_Bolus_title">iTime_Bolus</string>
+    <string name="iTime_Bolus_summary">Automated Bolus at 28 minutes if delta > 2 if iTime Start with a manual bolus and 15 minutes if delta > 2 and iTime start with more than 30 carbs</string>
+    <string name="key_iTime_Starting_Bolus" translatable="false">iTime_Starting_Bolus</string>
+    <string name="key_iTime_B30_upperBG" translatable="false">iTime_b30_upperBG</string>
+    <string name="key_iTime_B30_upperdelta" translatable="false">iTime_b30_upperdelta</string>
+    <string name="key_iTime_B30_duration" translatable="false">iTime_b30_duration</string>
+    <string name="iTime_Starting_Bolus_title">iTime_Starting_Bolus</string>
+    <string name="iTime_Starting_Bolus_summary">Value of the manual Bolus who will start iTime, like > iTime_Starting_Bolus</string>
+    <string name="openapsama_smb_max_range_extension">SMB/UAM max range extension</string>
+
+    <!-- AIMI -->
+    <string name="key_use_AimiUAM" translatable="false">key_use_AimiUAM</string>
+    <string name="key_use_disable_b30_BFL" translatable="false">key_use_disable_b30_BFL</string>
+    <string name="key_use_AimiPower" translatable="false">key_use_AimiPower</string>
+    <string name="key_use_AimiUAM_ISF" translatable="false">key_use_AimiUAM_ISF</string>
+    <string name="key_use_LuymjevU200" translatable="false">key_use_LuymjevU200</string>
+    <string name="key_use_LuymjevU100" translatable="false">key_use_LuymjevU100</string>
+    <string name="key_use_Fiasp" translatable="false">key_use_Fiasp</string>
+    <string name="key_use_Ipen" translatable="false">key_use_Ipen</string>
+    <string name="key_use_Novorapid" translatable="false">key_use_Novorapid</string>
+    <string name="key_use_AIMI_COB" translatable="false">key_use_AIMI_COB</string>
+    <string name="key_use_AIMI_CAP" translatable="false">key_use_AIMI_CAP</string>
+    <string name="key_use_AIMI_SlowInsulin" translatable="false">key_use_AIMI_SlowInsulin</string>
+    <string name="key_use_AIMI_PBolus" translatable="false">key_use_AIMI_PBolus</string>
+    <string name="key_use_AIMI_BreakFastLight" translatable="false">key_use_AIMI_BreakfastLight</string>
+    <string name="key_AIMI_BreakFastLight_timeend">key_AIMI_BreakFastLight_timeend</string>
+    <string name="key_AIMI_BreakFastLight_timestart">key_AIMI_BreakFastLight_timestart</string>
+
+    <!-- / AIMI -->
+
     <string name="a11y_high">high</string>
     <string name="a11y_inrange">in range</string>
     <string name="a11y_low">low</string>

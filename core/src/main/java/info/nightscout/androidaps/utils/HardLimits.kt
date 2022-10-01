@@ -43,12 +43,16 @@ class HardLimits @Inject constructor(
         val VERY_HARD_LIMIT_MIN_BG = doubleArrayOf(80.0, 180.0)
         val VERY_HARD_LIMIT_MAX_BG = doubleArrayOf(90.0, 200.0)
         val VERY_HARD_LIMIT_TARGET_BG = doubleArrayOf(80.0, 200.0)
+        val VERY_HARD_LIMIT_MIN_BG_AIMI = doubleArrayOf(65.0, 180.0)
+        val VERY_HARD_LIMIT_MAX_BG_AIMI = doubleArrayOf(80.0, 200.0)
+        val VERY_HARD_LIMIT_TARGET_BG_AIMI = doubleArrayOf(65.0, 200.0)
 
         // Very Hard Limits Ranges for Temp Targets
         val VERY_HARD_LIMIT_TEMP_MIN_BG = intArrayOf(72, 180)
         val VERY_HARD_LIMIT_TEMP_MAX_BG = intArrayOf(72, 270)
         val VERY_HARD_LIMIT_TEMP_TARGET_BG = intArrayOf(72, 200)
         val MIN_DIA = doubleArrayOf(5.0, 5.0, 5.0, 5.0, 5.0)
+        val MIN_DIA_AIMI = doubleArrayOf(2.5, 2.5, 2.5, 2.5, 2.5)
         val MAX_DIA = doubleArrayOf(9.0, 9.0, 9.0, 9.0, 10.0)
         val MIN_IC = doubleArrayOf(2.0, 2.0, 2.0, 2.0, 0.3)
         val MAX_IC = doubleArrayOf(100.0, 100.0, 100.0, 100.0, 100.0)
@@ -58,6 +62,7 @@ class HardLimits @Inject constructor(
         val MAX_IOB_SMB = doubleArrayOf(7.0, 13.0, 22.0, 30.0, 70.0)
         val MAX_IOB_BOOST = doubleArrayOf(3.0, 7.0, 15.0, 30.0, 40.0)
         val MAX_IOB_EN = doubleArrayOf(3.0, 7.0, 12.0, 25.0, 40.0)
+        val MAX_IOB_AIMI = doubleArrayOf(3.0, 13.0, 22.0, 30.0, 40.0)
         val MAX_BASAL = doubleArrayOf(2.0, 5.0, 10.0, 12.0, 25.0)
 
         //LGS Hard limits
@@ -72,7 +77,7 @@ class HardLimits @Inject constructor(
         rh.gs(R.string.key_adult)          -> ADULT
         rh.gs(R.string.key_resistantadult) -> RESISTANT_ADULT
         rh.gs(R.string.key_pregnant)       -> PREGNANT
-        else                                           -> ADULT
+        else                               -> ADULT
     }
 
     fun maxBolus(): Double = MAX_BOLUS[loadAge()]
@@ -80,8 +85,10 @@ class HardLimits @Inject constructor(
     fun maxIobSMB(): Double = MAX_IOB_SMB[loadAge()]
     fun maxIobBoost(): Double = MAX_IOB_BOOST[loadAge()]
     fun maxIobEN(): Double = MAX_IOB_EN[loadAge()]
+    fun maxIobAimi(): Double = MAX_IOB_AIMI[loadAge()]
     fun maxBasal(): Double = MAX_BASAL[loadAge()]
     fun minDia(): Double = MIN_DIA[loadAge()]
+    fun minDiaAimi(): Double = MIN_DIA_AIMI[loadAge()]
     fun maxDia(): Double = MAX_DIA[loadAge()]
     fun minIC(): Double = MIN_IC[loadAge()]
     fun maxIC(): Double = MAX_IC[loadAge()]

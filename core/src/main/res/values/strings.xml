@@ -76,6 +76,10 @@
     <string name="key_autotune_last_run" translatable="false">key_autotune_last_run</string>
     <string name="key_Boost_settings" translatable="false">Boost_settings</string>
     <string name="key_Boost_max_iob" translatable="false">Boost_max_iob</string>
+    <string name="key_fulluam_settings" translatable="false">fulluam_settings</string>
+    <string name="key_fulluam_max_iob" translatable="false">fulluam_max_iob</string>
+    <string name="fulluam_maxiob_title">Maximum total IOB AIMI can\'t go over [U]</string>
+    <string name="fulluam_maxiob_summary">This value is called Max IOB in AIMI context\nAIMI will not add more insulin if current IOB is greater than this value</string>
 
     <!--    General-->
     <string name="refresh">Refresh</string>
@@ -310,9 +314,10 @@
     <string name="waitingforpumpresult">Waiting for result</string>
     <string name="smb_shortname">SMB</string>
     <string name="Boost_shortname">Boost</string>
+    <string name="fulluam_shortname">AIMI</string>
 
     <!--    CarbsReq-->
-    <string name="carbsreq">%1$d g Additional Carbs Required Within %2$d Minutes</string>
+    <string name="carbsreq">%1$d g additional carbs required within %2$d minutes</string>
 
     <!--    TDDStatsActivity-->
     <string name="stats">Stats</string>
@@ -325,7 +330,7 @@
     <string name="amount_days"># Days</string>
     <string name="weight">Weight</string>
     <string name="warning_Message">Possibly inaccurate if using boluses for priming/filling!</string>
-    <string name="olddata_Message">Old Data Please Press "RELOAD"</string>
+    <string name="olddata_Message">Old data, please press "RELOAD"</string>
     <string name="tbb">Total Base Basal</string>
     <string name="tbb2">TBB * 2</string>
 
