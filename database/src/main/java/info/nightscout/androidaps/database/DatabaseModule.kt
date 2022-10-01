@@ -32,7 +32,7 @@ open class DatabaseModule {
                 migration20to21,
                 migration21to22,
                 migration22to23,
-                migration23to24
+                migration24to23
             )
             .addCallback(object : Callback() {
                 override fun onOpen(db: SupportSQLiteDatabase) {
@@ -40,6 +40,7 @@ open class DatabaseModule {
                     createCustomIndexes(db)
                 }
             })
+            .fallbackToDestructiveMigration()
             .fallbackToDestructiveMigrationOnDowngrade()
             .build()
 
@@ -91,12 +92,8 @@ open class DatabaseModule {
             dropCustomIndexes(database)
         }
     }
-
-    private val migration23to24 = object : Migration(23,24) {
+    private val migration24to23 = object : Migration(24,23) {
         override fun migrate(database: SupportSQLiteDatabase) {
-            addColumnIfNotExists(database,"carbs", "notes", "TEXT")
-            addColumnIfNotExists(database,"boluses", "notes", "TEXT")
-            addColumnIfNotExists(database,"glucoseValues", "smoothed", "REAL")
             dropCustomIndexes(database)
         }
     }
