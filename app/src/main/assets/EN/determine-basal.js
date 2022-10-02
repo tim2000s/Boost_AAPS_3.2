@@ -1180,6 +1180,15 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     if (ENactive || ENSleepMode || TIR_sens > 1) {
 
         // UAM predictions, no COB or GhostCOB
+        if (sens_predType == "UAM+") {
+            // increase minPredBG only when a prebolus is OK
+            minPredBG = (UAMPreBolus ? Math.max(bg,eventualBG) + insulinReq_bg_boost : minPredBG);
+            // use the largest starting bg for eBG and trust it
+            eventualBG = Math.max(bg,eventualBG) + insulinReq_bg_boost;
+            eBGweight = 1;
+        }
+
+        // UAM predictions, no COB or GhostCOB
         if (sens_predType == "UAM" && (!COB || ignoreCOB)) {
             // positive or negative delta with acceleration and default
             eBGweight = (DeltaPctS > 1.0 || eventualBG > bg ? 0.50 : 0.25);
