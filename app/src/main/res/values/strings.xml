@@ -1413,6 +1413,8 @@
     <string name="key_eatingnow_uam_maxbolus">key_eatingnow_uam_maxbolus</string>
     <string name="key_eatingnow_uambgboost">key_eatingnow_uambgboost</string>
     <string name="key_eatingnow_uambgboost_maxbolus">key_eatingnow_uambgboost_maxbolus</string>
+    <string name="key_use_uamplus_noenw">key_use_uamplus_noenw</string>
+<!--    <string name="key_eatingnow_isfboost_maxbolus">key_eatingnow_isfboost_maxbolus</string>-->
     <string name="key_use_dynamicISF">key_use_dynamicISF</string>
     <string name="key_eatingnow_isfbgscaler">key_eatingnow_isfbgscaler</string>
     <string name="key_eatingnow_isfbgscaler_velocity">key_eatingnow_isfbgscaler_velocity</string>
@@ -1429,5 +1431,6 @@
     <string name="key_eatingnow_showbutton" translatable="false">key_eatingnow_showbutton</string>
     <string name="en_eatingnow_showbutton">Eating Now temp target</string>
     <string name="en_resistance_per_hour" translatable="false">en_resistance_per_hour</string>
-    <string name="en_variant_title">EN variant</string>
+    <string name="key_en_variant" translatable="false">en_variant</string>
+    <string name="en_variant_title">EN Variant</string>
 </resources>

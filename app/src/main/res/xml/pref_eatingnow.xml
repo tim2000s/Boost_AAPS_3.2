@@ -6,6 +6,14 @@
     <PreferenceCategory
         android:title="Eating Now Preferences"
         app:initialExpandedChildrenCount="0">
+
+        <info.nightscout.androidaps.plugins.aps.loop.LoopVariantPreference
+            android:title="@string/en_variant_title"
+            android:defaultValue="default"
+            android:selectable="true"
+            app:pluginFolder="EN"
+            />
+
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -220,16 +228,9 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="Eating Now General"
+        android:title="Eating Now: General"
         android:summary="General settings for Eating Now"
         app:initialExpandedChildrenCount="0">
-
-        <info.nightscout.androidaps.plugins.aps.loop.LoopVariantPreference
-            android:title="@string/en_variant_title"
-            android:defaultValue="default"
-            android:selectable="true"
-            app:pluginFolder="EN"
-            />
 
         <Preference android:summary="Eating Now operates within the Start and End time specified.\nThe Eating Now Window becomes active when there is a manual bolus or active carb entry after the Start Time setting.\nWhen the Eating Now Window expires this is considered to be the period when not eating and different SMB sizes may be configured.">
         </Preference>
@@ -244,43 +245,43 @@
                 validate:minNumber="0"
                 validate:testType="numericRange" />
 
-        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
-            android:defaultValue="17"
-            android:dialogMessage="Enter Eating Now end time in 24h e.g. 17 is 5PM. Finish time of the next day is fully supported."
-            android:inputType="number"
-            android:key="@string/key_eatingnow_timeend"
-            android:title="End Time"
-            validate:maxNumber="23"
-            validate:minNumber="0"
-            validate:testType="numericRange" />
+            <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+                android:defaultValue="17"
+                android:dialogMessage="Enter Eating Now end time in 24h e.g. 17 is 5PM. Finish time of the next day is fully supported."
+                android:inputType="number"
+                android:key="@string/key_eatingnow_timeend"
+                android:title="End Time"
+                validate:maxNumber="23"
+                validate:minNumber="0"
+                validate:testType="numericRange" />
+
+            <SwitchPreference
+                android:defaultValue="false"
+                android:key="key_enautostart"
+                android:title="Enable EN after EN Start Time"
+                android:summary="Allow EN to become active automatically after EN start time without COB or manual bolus entry." />
+
+            <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+                android:defaultValue="0"
+                android:inputType="numberDecimal"
+                android:title="Overnight SMB Restriction"
+                android:key="@string/key_eatingnow_smbbgoffset"
+                android:dialogMessage="There will be no SMB when below this BG offset at night unless COB or a TT lower or equal to normalTarget\ne.g. if normalTarget is 5.5 (99) and this setting is 1.5 (27) there will be no SMB below 7.0 (126)"
+                validate:floatmaxNumber="270.0"
+                validate:floatminNumber="0"
+                validate:testType="floatNumericRange" />
 
         <SwitchPreference
-            android:defaultValue="false"
-            android:key="key_enautostart"
-            android:title="Enable EN after EN Start Time"
-            android:summary="Allow EN to become active automatically after EN start time without COB or manual bolus entry." />
+                android:defaultValue="false"
+                android:key="key_use_enw_overnight"
+                android:title="Allow ENW Overnight"
+                android:summary="ENW will be active after EN End Time with COB or EN-TT." />
 
-        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
-            android:defaultValue="0"
-            android:inputType="numberDecimal"
-            android:title="Overnight SMB Restriction"
-            android:key="@string/key_eatingnow_smbbgoffset"
-            android:dialogMessage="There will be no SMB when below this BG offset at night unless COB or a TT lower or equal to normalTarget\ne.g. if normalTarget is 5.5 (99) and this setting is 1.5 (27) there will be no SMB below 7.0 (126)"
-            validate:floatmaxNumber="270.0"
-            validate:floatminNumber="0"
-            validate:testType="floatNumericRange" />
-
-        <SwitchPreference
-            android:defaultValue="false"
-            android:key="key_use_enw_overnight"
-            android:title="Allow ENW Overnight"
-            android:summary="ENW will be active after EN End Time with COB or EN-TT." />
-
-        <SwitchPreference
-            android:defaultValue="false"
-            android:key="key_use_ghostcob"
-            android:title="Use GhostCOB"
-            android:summary="Ignore COB after EN Window and rely on UAM predictions.\nWhen disabled COB predictions will be as normal." />
+            <SwitchPreference
+                android:defaultValue="false"
+                android:key="key_use_ghostcob"
+                android:title="Use GhostCOB"
+                android:summary="Ignore COB after EN Window and rely on UAM predictions.\nWhen disabled COB predictions will be as normal." />
 
         <SwitchPreference
             android:defaultValue="true"
@@ -290,7 +291,7 @@
         </PreferenceCategory>
 
         <PreferenceCategory
-            android:title="Within EN Window"
+            android:title="Eating Now: ENW"
             android:summary="Settings for within the EN Window."
             app:initialExpandedChildrenCount="0">
 
@@ -386,7 +387,7 @@
                 android:defaultValue="0"
                 android:inputType="numberDecimal"
                 android:key="@string/key_eatingnow_uamboost_maxbolus"
-                android:title="ENW UAM maxBolus"
+                android:title="UAM maxBolus"
                 android:dialogMessage="UAM maxBolus for all BGL rises without COB within the EN Window.\nIf this value is larger than maxBolus it will be considered to be minutes of basal.\n0 will use existing AAPS maxBolus limit and -1 will only disable SMB and use TBR only."
                 validate:floatmaxNumber="200"
                 validate:floatminNumber="-1"
@@ -395,28 +396,8 @@
             <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
                 android:defaultValue="0"
                 android:inputType="numberDecimal"
-                android:title="UAM+ BG Boost"
-                android:key="@string/key_eatingnow_uambgboost"
-                android:dialogMessage="Initial UAM BG boost for start of EN-TT. eventualBG will be increased from current BG using this amount."
-                validate:floatmaxNumber="125"
-                validate:floatminNumber="0"
-                validate:testType="floatNumericRange" />
-
-            <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
-                android:defaultValue="0"
-                android:inputType="numberDecimal"
-                android:key="@string/key_eatingnow_uambgboost_maxbolus"
-                android:title="UAM+ maxBolus"
-                android:dialogMessage="UAM+ maxBolus for initial UAM BG rise within the EN Window.\nIf this value is larger than maxBolus it will be considered to be minutes of basal.\n0 will use existing AAPS maxBolus limit."
-                validate:floatmaxNumber="200"
-                validate:floatminNumber="0"
-                validate:testType="floatNumericRange"/>
-
-            <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
-                android:defaultValue="0"
-                android:inputType="numberDecimal"
                 android:key="@string/key_eatingnow_cobboost_maxbolus"
-                android:title="ENW COB maxBolus"
+                android:title="COB maxBolus"
                 android:dialogMessage="COB maxBolus for BGL rises within the EN Window.\nIf this value is larger than maxBolus it will be considered to be minutes of basal.\n0 will use existing AAPS maxBolus limit and -1 will only disable SMB and use TBR only."
                 validate:floatmaxNumber="200"
                 validate:floatminNumber="-1"
@@ -425,35 +406,70 @@
         </PreferenceCategory>
 
         <PreferenceCategory
-            android:title="Outside EN Window"
-            android:summary="Settings for outside of the EN Window."
+            android:title="Eating Now: UAM+"
+            android:summary="Settings related to UAM+"
             app:initialExpandedChildrenCount="0">
 
-            <Preference android:summary="When the EN Window ends COB and UAM maxBolus may also be defined."></Preference>
+            <Preference android:summary="UAM+ is similar to the Boost plugin. UAM+ PreBolus can boost the BG to trigger an initial bolus for UAM. UAM+ can also be used outside the ENW to provide larger UAM boluses."></Preference>
 
             <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
                 android:defaultValue="0"
                 android:inputType="numberDecimal"
-                android:key="@string/key_eatingnow_uam_maxbolus"
-                android:title="UAM maxBolus"
-                android:dialogMessage="UAM maxBolus for all BGL rises without COB outside of the EN Window.\nIf this value is larger than maxBolus it will be considered to be minutes of basal.\n0 will use existing maxBolus limit and -1 will only disable SMB and use TBR only."
-                validate:floatmaxNumber="200"
-                validate:floatminNumber="-1"
-                validate:testType="floatNumericRange"/>
+                android:title="UAM+ PreBolus Boost"
+                android:key="@string/key_eatingnow_uambgboost"
+                android:dialogMessage="Initial UAM PreBolus Boost for start of EN-TT.\neventualBG will be increased from current BG or eventualBG using this amount.\n0 will leave this option disabled."
+                validate:floatmaxNumber="125"
+                validate:floatminNumber="0"
+                validate:testType="floatNumericRange" />
 
             <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
                 android:defaultValue="0"
                 android:inputType="numberDecimal"
-                android:key="@string/key_eatingnow_cob_maxbolus"
-                android:title="COB maxBolus"
-                android:dialogMessage="COB maxBolus for all BGL rises with COB outside of the EN Window.\nIf this value is larger than maxBolus it will be considered to be minutes of basal.\n0 will use existing maxBolus limit and -1 will only disable SMB and use TBR only."
+                android:key="@string/key_eatingnow_uambgboost_maxbolus"
+                android:title="UAM+ PreBolus maxBolus"
+                android:dialogMessage="UAM+ PreBolus maxBolus for initial UAM BG rise within the EN-TT Window.\nIf this value is larger than maxBolus it will be considered to be minutes of basal.\n0 will use existing EN UAM maxBolus limit."
                 validate:floatmaxNumber="200"
-                validate:floatminNumber="-1"
+                validate:floatminNumber="0"
                 validate:testType="floatNumericRange"/>
+
+            <SwitchPreference
+                android:defaultValue="false"
+                android:key="key_use_uamplus_noenw"
+                android:title="Enable UAM+ outside ENW"
+                android:summary="Allow UAM+ to provide an EN UAM maxBolus when not within ENW.\nSimilar to Boost plugin this will activate with sufficient delta and acceleration." />
+
         </PreferenceCategory>
 
+    <PreferenceCategory
+        android:title="Outside EN Window"
+        android:summary="Settings for outside of the EN Window."
+        app:initialExpandedChildrenCount="0">
+
+        <Preference android:summary="When the EN Window ends COB and UAM maxBolus may also be defined."></Preference>
+
+        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+            android:defaultValue="0"
+            android:inputType="numberDecimal"
+            android:key="@string/key_eatingnow_uam_maxbolus"
+            android:title="UAM maxBolus"
+            android:dialogMessage="UAM maxBolus for all BGL rises without COB outside of the EN Window.\nIf this value is larger than maxBolus it will be considered to be minutes of basal.\n0 will use existing maxBolus limit and -1 will only disable SMB and use TBR only."
+            validate:floatmaxNumber="200"
+            validate:floatminNumber="-1"
+            validate:testType="floatNumericRange"/>
+
+        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+            android:defaultValue="0"
+            android:inputType="numberDecimal"
+            android:key="@string/key_eatingnow_cob_maxbolus"
+            android:title="COB maxBolus"
+            android:dialogMessage="COB maxBolus for all BGL rises with COB outside of the EN Window.\nIf this value is larger than maxBolus it will be considered to be minutes of basal.\n0 will use existing maxBolus limit and -1 will only disable SMB and use TBR only."
+            validate:floatmaxNumber="200"
+            validate:floatminNumber="-1"
+            validate:testType="floatNumericRange"/>
+    </PreferenceCategory>
+
         <PreferenceCategory
-            android:title="Eating Now ISF"
+            android:title="Eating Now: ISF"
             android:summary="ISF related settings."
             app:initialExpandedChildrenCount="0">
 
@@ -536,8 +552,8 @@
         </PreferenceCategory>
 
         <PreferenceCategory
-            android:title="Eating Now EXPERIMENTAL"
-            android:summary="New features that are being tested. DO NOT USE."
+            android:title="Eating Now: Experimental Variant"
+            android:summary="New features that are being tested within Experimental Variant. DO NOT USE."
             app:initialExpandedChildrenCount="0">
 
             <SwitchPreference
