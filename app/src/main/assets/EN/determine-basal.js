@@ -459,7 +459,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         console.log("  1d avg: " + round(tdd1, 2));
 
         // SR_TDD ********************************
-        var SR_TDD = (profile.temptargetSet && !ENTTActive && profile.percent != 100 ?  1 : meal_data.TDDLastCannula / tdd7);
+        var SR_TDD = meal_data.TDDLastCannula / tdd7;
 
         // ISF based on TDD
         var sens_TDD = 1800 / (TDD * (Math.log((normalTarget / ins_val) + 1)));
@@ -529,24 +529,17 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             // apply autosens limits
             SR_TDD = Math.min(SR_TDD, profile.autosens_max);
             SR_TDD = Math.max(SR_TDD, profile.autosens_min);
-            sensitivityRatio = SR_TDD;
+            sensitivityRatio = (profile.temptargetSet && !ENTTActive || profile.percent != 100 ?  1 : SR_TDD);
             // adjust basal
-            basal = profile.current_basal * SR_TDD;
-            // adjust sens_normalTarget
-            var SR_TDD_wt = 1.0;
-            var SR_TDD_ISF = (SR_TDD > 1 ? SR_TDD * SR_TDD_wt : SR_TDD / SR_TDD_wt);
-            // when resistant and below target, or sensitive and above target dont adjust ISF
-            if (SR_TDD > 1 & bg < target_bg || SR_TDD < 1 & bg > target_bg) SR_TDD_ISF = 1;
-            // dont allow resistance to be sensitive or sensitivity to resistant
-            SR_TDD_ISF = Math.max(SR_TDD_ISF,1);
-            // adjust ISF using SR_TDD_ISF
-            sens_normalTarget = sens_normalTarget / SR_TDD_ISF;
+            basal = profile.current_basal * sensitivityRatio;
+            // adjust sens_normalTarget below with TIR_sens
+            // sens_normalTarget = sens_normalTarget / sensitivityRatio;
         } else {
             // apply autosens limits
             sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
             sensitivityRatio = Math.max(sensitivityRatio, profile.autosens_min);
-            // adjust sens_normalTarget
-            sens_normalTarget = sens_normalTarget / sensitivityRatio;
+            // adjust sens_normalTarget below with TIR_sens
+            // sens_normalTarget = sens_normalTarget / sensitivityRatio;
             // adjust basal
             basal = profile.current_basal * sensitivityRatio;
         }
@@ -1628,8 +1621,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 // if bg numbers resumed after sensor errors dont allow a large SMB
                 ENMaxSMB = (minAgo < 1 && delta == 0 && glucose_status.short_avgdelta == 0 ? maxBolus : ENMaxSMB);
 
-                // if loop ran again without a new bg dont allow a large SMB, use insulinReqOrig, allow 90 seconds
-                ENMaxSMB = (minAgo > 1.5 && !ENTTActive ? Math.max(insulinReqOrig, 0) : ENMaxSMB);
+                // if loop ran again without a new bg dont allow a large SMB, use maxBolus, allow 90 seconds
+                // ENMaxSMB = (minAgo > 1.5 && !ENTTActive ? maxBolus : ENMaxSMB);
 
                 // ============== DELTA & IOB BASED RESTRICTIONS ==============
                 // if the delta is less than 4 and insulinReq_sens is stronger restrict larger SMB

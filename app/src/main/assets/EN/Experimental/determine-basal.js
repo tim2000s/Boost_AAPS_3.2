@@ -379,10 +379,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var tt1Time = (typeof meal_data.firstENTempTargetTime !== 'undefined' ? ((new Date(systemTime).getTime() - meal_data.firstENTempTargetTime) / 60000) : 9999); // first EN TT after EN start
     var ttTime = (typeof meal_data.activeENTempTargetStartTime !== 'undefined' ? ((new Date(systemTime).getTime() - meal_data.activeENTempTargetStartTime) / 60000) : 9999); // active EN TT
 
-    // EXPERIMENT FOR UAM+
-    //meal_data.mealCOB = (ENTTActive && lastBolusAge >= ttTime && minAgo < 1 && !meal_data.mealCOB ? 50 : meal_data.mealCOB);
-    var COB = meal_data.mealCOB;
-
     // ENWTriggerOK if there is enough IOB to trigger the EN window or we had a recent SMB
     //var ENWIOBThreshU = profile.current_basal * profile.ENWIOBTrigger/60, ENWTriggerOK = (ENactive && ENWIOBThreshU > 0 && iob_data.iob > ENWIOBThreshU);
     var ENWindowOK = false, ENWindowRunTime = 0, ENWIOBThreshU = profile.ENWIOBTrigger, ENWTriggerOK = (ENactive && ENWIOBThreshU > 0 && (iob_data.iob > ENWIOBThreshU));
@@ -428,6 +424,25 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     enlog += "ENWindowRunTime: " + ENWindowRunTime + ", ENWindowDuration: " + ENWindowDuration + "\n";
     enlog += "ENTTActive: " + ENTTActive + "\n";
 
+    // UAM+ uses COB defined from prefs as prebolus within 30 minutes
+    var UAMPreBolus = (ENTTActive && ttTime < lastBolusAge && !meal_data.mealCOB && minAgo < 1 && ENWindowRunTime < 30);
+    if (UAMPreBolus) {
+        enlog += "\n* UAM COB PreBolus";
+        // get the starting COB from prefs
+        var UAM_COB = (firstMealWindow ? profile.UAM_COB_Bkfst : profile.UAM_COB);
+        enlog += "UAM_COB from preferences: " + UAM_COB + "\n";
+        // current IOB would cover how many carbs
+        var COB_IOB = Math.max(iob_data.iob, 0) * carb_ratio;
+        enlog += "COB_IOB to remove: " + COB_IOB + "\n";
+        // remove the COB already covered by IOB restrict to 0
+        UAM_COB = Math.max(UAM_COB - COB_IOB, 0);
+        enlog += "UAM_COB now: " + UAM_COB + "\n";
+        // bring the remaining COB into the loop
+        meal_data.mealCOB = round(UAM_COB,1);
+    }
+
+    var COB = meal_data.mealCOB;
+
     // If GhostCOB is enabled we will use COB when ENWindowOK but outside this window UAM will be used
     if (ignoreCOB && ENWindowOK && meal_data.mealCOB > 0) ignoreCOB = false;
 
@@ -456,7 +471,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         console.log("TDD = " + TDD + " using rolling 8h Total extrapolation + TDD7 (60/40); ");
 
         // SR_TDD ********************************
-        var SR_TDD = (profile.temptargetSet && !ENTTActive && profile.percent != 100 ?  1 : meal_data.TDDLastCannula / tdd7);
+        var SR_TDD = meal_data.TDDLastCannula / tdd7;
 
         console.error("                                 ");
         //console.error("7-day average TDD is: " +tdd7+ "; ");
@@ -533,24 +548,17 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             // apply autosens limits
             SR_TDD = Math.min(SR_TDD, profile.autosens_max);
             SR_TDD = Math.max(SR_TDD, profile.autosens_min);
-            sensitivityRatio = SR_TDD;
+            sensitivityRatio = (profile.temptargetSet && !ENTTActive || profile.percent != 100 ?  1 : SR_TDD);
             // adjust basal
-            basal = profile.current_basal * SR_TDD;
-            // adjust sens_normalTarget
-            var SR_TDD_wt = 1.0;
-            var SR_TDD_ISF = (SR_TDD > 1 ? SR_TDD * SR_TDD_wt : SR_TDD / SR_TDD_wt);
-            // when resistant and below target, or sensitive and above target dont adjust ISF
-            if (SR_TDD > 1 & bg < target_bg || SR_TDD < 1 & bg > target_bg) SR_TDD_ISF = 1;
-            // dont allow resistance to be sensitive or sensitivity to resistant
-            SR_TDD_ISF = Math.max(SR_TDD_ISF,1);
-            // adjust ISF using SR_TDD_ISF
-            sens_normalTarget = sens_normalTarget / SR_TDD_ISF;
+            basal = profile.current_basal * sensitivityRatio;
+            // adjust sens_normalTarget below with TIR_sens
+            // sens_normalTarget = sens_normalTarget / sensitivityRatio;
         } else {
             // apply autosens limits
             sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
             sensitivityRatio = Math.max(sensitivityRatio, profile.autosens_min);
-            // adjust sens_normalTarget
-            sens_normalTarget = sens_normalTarget / sensitivityRatio;
+            // adjust sens_normalTarget below with TIR_sens
+            // sens_normalTarget = sens_normalTarget / sensitivityRatio;
             // adjust basal
             basal = profile.current_basal * sensitivityRatio;
         }
@@ -1174,7 +1182,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var insulinReq_sens = sens_normalTarget;
 
     // EN TT active and no bolus yet with UAM increase insulinReq_bg to provide initial bolus
-    var UAMPreBolus = (ENTTActive && ttTime < lastBolusAge && !COB && minAgo < 1);
+    UAMPreBolus = (ENTTActive && ttTime < lastBolusAge && !COB && minAgo < 1);
     var insulinReq_bg_boost = (UAMPreBolus ? profile.UAMbgBoost : 0);
 
     // categorize the eventualBG prediction type for more accurate weighting
@@ -1628,8 +1636,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 // if bg numbers resumed after sensor errors dont allow a large SMB
                 ENMaxSMB = (minAgo < 1 && delta == 0 && glucose_status.short_avgdelta == 0 ? maxBolus : ENMaxSMB);
 
-                // if loop ran again without a new bg dont allow a large SMB, use insulinReqOrig, allow 90 seconds
-                ENMaxSMB = (minAgo > 1.5 && !ENTTActive ? Math.max(insulinReqOrig, 0) : ENMaxSMB);
+                // if loop ran again without a new bg dont allow a large SMB, use maxBolus, allow 90 seconds
+                // ENMaxSMB = (minAgo > 1.5 && !ENTTActive ? maxBolus : ENMaxSMB);
 
                 // ============== DELTA & IOB BASED RESTRICTIONS ==============
                 // if the delta is less than 4 and insulinReq_sens is stronger restrict larger SMB
