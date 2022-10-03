@@ -459,7 +459,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         console.log("  1d avg: " + round(tdd1, 2));
 
         // SR_TDD ********************************
-        var SR_TDD = (!profile.temptargetSet && profile.percent == 100 ?  meal_data.TDDLastCannula / tdd7 : 1);
+        var SR_TDD = (profile.temptargetSet && !ENTTActive && profile.percent != 100 ?  1 : meal_data.TDDLastCannula / tdd7);
 
         // ISF based on TDD
         var sens_TDD = 1800 / (TDD * (Math.log((normalTarget / ins_val) + 1)));
@@ -1171,7 +1171,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var insulinReq_sens = sens_normalTarget;
 
     // EN TT active and no bolus yet with UAM increase insulinReq_bg to provide initial bolus
-    var UAMPreBolus = (ENTTActive && ttTime < lastBolusAge && !COB);
+    var UAMPreBolus = (ENTTActive && ttTime < lastBolusAge && !COB && minAgo < 1);
     var insulinReq_bg_boost = (UAMPreBolus ? profile.UAMbgBoost : 0);
 
     // categorize the eventualBG prediction type for more accurate weighting
