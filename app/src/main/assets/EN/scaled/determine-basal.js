@@ -466,11 +466,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         console.log("  1d avg: " + round(tdd1, 2));
 
         // SR_TDD ********************************
-        //var lastCannAge = (new Date(systemTime).getTime() - meal_data.lastCannulaTime) / 60000;
-        // tdd_lastCannula = (lastCannAge > 1440 ? meal_data.TDDLastCannula / (lastCannAge / 1440) : tdd1);
-        //tdd_lastCannula = (lastCannAge > 1440 ? meal_data.TDDLastCannula / (lastCannAge / 1440) : tdd8_exp);
-        //var SR_TDD = tdd8_exp / tdd7;
-        var SR_TDD = (!profile.temptargetSet && profile.percent == 100 ?  meal_data.TDDLastCannula / tdd7 : 1);
+        var SR_TDD = (profile.temptargetSet && !ENTTActive && profile.percent != 100 ?  1 : meal_data.TDDLastCannula / tdd7);
 
         if (profile.use_sens_TDD) {
             // ISF based on TDD
@@ -567,11 +563,16 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             // adjust basal
         basal = profile.current_basal * sensitivityRatio;
         }
-        sensitivityRatio = round(sensitivityRatio,2);
 
         // apply TIRS to ISF, TIRS will be 1 if not enabled, limit to autosens_max
         TIR_sens = Math.min(TIR_sens, profile.autosens_max);
-        sens_normalTarget = sens_normalTarget / TIR_sens;
+
+        sensitivityRatio = sensitivityRatio * TIR_sens;
+        // apply final autosens limits
+        sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
+        sensitivityRatio = Math.max(sensitivityRatio, profile.autosens_min);
+        sensitivityRatio = round(sensitivityRatio, 2);
+        sens_normalTarget = sens_normalTarget / sensitivityRatio;
 
         basal = round_basal(basal, profile);
         if (basal !== profile_current_basal) {
@@ -1197,8 +1198,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         eBGweight_orig = (minPredBG < eventualBG ? 0 : 1),
         eBGweight = eBGweight_orig;
 
-    // EN TT active and no bolus yet with UAM increase insulinReq_bg to provide initial insulinReq to 50% peak minutes of delta, max 90, only run on loop iteration
-    var UAMPreBolus = (ENTTActive && lastBolusAge >= ttTime && minAgo < 1 && !COB);
+    // EN TT active and no bolus yet with UAM increase insulinReq_bg to provide initial bolus
+    var UAMPreBolus = (ENTTActive && ttTime < lastBolusAge && !COB && minAgo < 1);
     var insulinReq_bg_boost = (UAMPreBolus ? profile.UAMbgBoost : 0);
 
     // categorize the eventualBG prediction type for more accurate weighting
@@ -1206,7 +1207,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     if (lastCOBpredBG > 0 && eventualBG == lastCOBpredBG) sens_predType = "COB"; // if COB prediction is present eventualBG aligns
     if (UAMPreBolus) sens_predType = "UAM+"; // force UAM+ when appropriate
     // UAM+ predtype when sufficient delta and acceleration
-    if (ENtimeOK && delta >= 5 && glucose_status.short_avgdelta >= 3 && DeltaPctS > 1 && DeltaPctL > 2 && !COB) sens_predType = "UAM+";
+    if (profile.EN_UAMPlus_NoENW && ENtimeOK && delta >= 5 && glucose_status.short_avgdelta >= 3 && DeltaPctS > 1 && DeltaPctL > 2 && !COB) sens_predType = "UAM+";
 
     // evaluate prediction type and weighting - Only use during day or when its night and TBR only
     if ((ENactive || ENSleepMode || TIR_sens > 1) && profile.use_ebgw) {
@@ -1289,7 +1290,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
 
     // main EN status
-    rT.reason += ", EN: ";
+    rT.reason += ", EN-" + profile.variant.substring(0,3) + ":";
     if (!ENSleepMode) rT.reason += (ENactive ? "On" : "Off");
     rT.reason += (ENSleepMode ? "Sleep" : "");
     rT.reason += (ENSleepMode ? " (SMB bg>" + convert_bg(SMBbgOffset, profile) + ")" : "");
@@ -1389,7 +1390,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     console.error("zeroTempEffect: ", zeroTempEffect)
     console.error("carbsReq: ", carbsReq);
     console.log("=======================");
-    console.log("Eating Now");
+    console.log("Eating Now Scaled");
     console.log("=======================");
     console.log(enlog);
     console.log("=======================");
@@ -1562,8 +1563,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
         // EXPERIMENT DEBUG ONLY - insulinReqTBR is the delta of full insulinReq up to eventualBG
         var insulinReqTBR = Math.max((ENactive ? ((eventualBG - target_bg) / insulinReq_sens) - insulinReq : 0),0);
-        var endebug = "DEBUG: "+insulinReqTBR+";";
-         insulinReqTBR = 0;
+        insulinReqTBR = (sens_predType == "TBR" || sens_predType == "TBR+" ? Math.max((((eventualBG - target_bg) / insulinReq_sens) - insulinReq),0) : 0);
+        //insulinReqTBR = 0;
 
         // if that would put us over max_iob, then reduce accordingly
         if (insulinReq > max_iob - iob_data.iob) {
@@ -1624,14 +1625,14 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 insulinReqPct = (ENWindowOK ? ENinsulinReqPct : Math.max(insulinReqOrig/insulinReq,0) );
                 insulinReqPct = Math.min(insulinReqPct,ENinsulinReqPct);
 
-                // UAM+ gets 100% insulinReqPct, overrides outside ENW
-                insulinReqPct = (sens_predType == "UAM+" ? 1 : insulinReqPct);
+                // UAM+ allows normal ENinsulinReqPct
+                insulinReqPct = (sens_predType == "UAM+" ? ENinsulinReqPct : insulinReqPct);
+
+                // UAM+ PreBolus gets 100% insulinReqPct, overrides outside ENW
+                insulinReqPct = (sens_predType == "UAM+" && UAMPreBolus ? 1 : insulinReqPct);
 
                 // set EN SMB limit for COB or UAM
-                // ISFBooost maxBolus is COB outside of COB Window
-                // UAMBoost maxBolus is for predictions that are UAM with or without COB
-                ENMaxSMB = (sens_predType == "COB" ? profile.COB_maxBolus : profile.UAM_maxBolus);
-
+                ENMaxSMB = (sens_predType == "COB" ? profile.EN_COB_maxBolus : profile.EN_UAM_maxBolus);
 
                 // if ENWindowOK allow further increase max of SMB within the window
                 if (ENWindowOK) {
