@@ -923,6 +923,8 @@
     <string name="sendlogfiles">Send today\'s log files to developers along with this time. Unexpected situation.</string>
     <string name="loop_openmode_min_change">Minimal request change [%]</string>
     <string name="loop_openmode_min_change_summary" formatted="false">Open Loop will popup new change request only if change is bigger than this value in %. Default value is 20%</string>
+    <string name="loop_swap_smbtbr_order">Swap SMB and TBR commands order</string>
+    <string name="loop_swap_smbtbr_order_summary">On some systems TBR can be very slow and delay or even prevent SMB from being submitted. This change makes SMB command go first, but can result in potential dangerous situation in case of TBR fail or pump connection break.</string>
     <string name="key_short_tabtitles" translatable="false">short_tabtitles</string>
     <string name="profile_total">== ∑  %1$s U</string>
     <string name="key_dexcom_lognssensorchange" translatable="false">dexcom_lognssensorchange</string>

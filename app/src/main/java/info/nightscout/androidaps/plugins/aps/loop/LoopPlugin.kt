@@ -9,6 +9,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
 import androidx.core.app.NotificationCompat
+import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SwitchPreference
 import com.microsoft.appcenter.analytics.Analytics
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.BuildConfig
@@ -70,6 +72,7 @@ class LoopPlugin @Inject constructor(
     injector: HasAndroidInjector,
     aapsLogger: AAPSLogger,
     private val aapsSchedulers: AapsSchedulers,
+    private var buildHelper: BuildHelper,
     private val rxBus: RxBus,
     private val sp: SP,
     config: Config,
@@ -377,37 +380,76 @@ class LoopPlugin @Inject constructor(
                         if (resultAfterConstraints.bolusRequested()) lastRun.smbSetByPump = waiting
                         rxBus.send(EventLoopUpdateGui())
                         fabricPrivacy.logCustom("APSRequest")
-                        applySMBRequest(resultAfterConstraints, object : Callback() {
-                            override fun run() {
-                                // Callback is only called if a bolus was actually requested
-                                if (result.enacted || result.success) {
-                                    lastRun.smbSetByPump = result
-                                    lastRun.lastSMBRequest = lastRun.lastAPSRun
-                                    lastRun.lastSMBEnact = dateUtil.now()
-                                    applyTBRRequest(resultAfterConstraints, profile, object : Callback() {
-                                        override fun run() {
-                                            if (result.enacted || result.success) {
-                                                lastRun.tbrSetByPump = result
-                                                lastRun.lastTBRRequest = lastRun.lastAPSRun
-                                                lastRun.lastTBREnact = dateUtil.now()
-                                                rxBus.send(EventLoopUpdateGui())
+                        val swapCommands = sp.getBoolean(R.string.key_loop_swap_smbtbr_order, false)
+                        if (swapCommands) {
+                            applySMBRequest(resultAfterConstraints, object : Callback() {
+                                override fun run() {
+                                    // Callback is only called if a bolus was actually requested
+                                    if (result.enacted || result.success) {
+                                        lastRun.smbSetByPump = result
+                                        lastRun.lastSMBRequest = lastRun.lastAPSRun
+                                        lastRun.lastSMBEnact = dateUtil.now()
+                                        applyTBRRequest(resultAfterConstraints, profile, object : Callback() {
+                                            override fun run() {
+                                                if (result.enacted || result.success) {
+                                                    lastRun.tbrSetByPump = result
+                                                    lastRun.lastTBRRequest = lastRun.lastAPSRun
+                                                    lastRun.lastTBREnact = dateUtil.now()
+                                                    rxBus.send(EventLoopUpdateGui())
 
-                                            } else {
-                                                lastRun.tbrSetByPump = result
-                                                lastRun.lastTBRRequest = lastRun.lastAPSRun
+                                                } else {
+                                                    lastRun.tbrSetByPump = result
+                                                    lastRun.lastTBRRequest = lastRun.lastAPSRun
+                                                }
+                                                rxBus.send(EventLoopUpdateGui())
                                             }
-                                            rxBus.send(EventLoopUpdateGui())
-                                        }
-                                    })
-                                } else {
-                                    Thread {
-                                        SystemClock.sleep(1000)
-                                        invoke("tempBasalFallback", allowNotification, true)
-                                    }.start()
+                                        })
+                                    } else {
+                                        Thread {
+                                            SystemClock.sleep(1000)
+                                            invoke("tempBasalFallback", allowNotification, true)
+                                        }.start()
+                                    }
+                                    rxBus.send(EventLoopUpdateGui())
                                 }
-                                rxBus.send(EventLoopUpdateGui())
-                            }
-                        })
+                            })
+                        } else {
+                            // TBR request must be applied first to prevent situation where
+                            // SMB was executed and zero TBR afterwards failed
+                            applyTBRRequest(resultAfterConstraints, profile, object : Callback() {
+                                override fun run() {
+                                    if (result.enacted || result.success) {
+                                        lastRun.tbrSetByPump = result
+                                        lastRun.lastTBRRequest = lastRun.lastAPSRun
+                                        lastRun.lastTBREnact = dateUtil.now()
+                                        // deliverAt is used to prevent executing too old SMB request (older than 1 min)
+                                        // executing TBR may take some time thus give more time to SMB
+                                        resultAfterConstraints.deliverAt = lastRun.lastTBREnact
+                                        rxBus.send(EventLoopUpdateGui())
+                                        applySMBRequest(resultAfterConstraints, object : Callback() {
+                                            override fun run() {
+                                                // Callback is only called if a bolus was actually requested
+                                                if (result.enacted || result.success) {
+                                                    lastRun.smbSetByPump = result
+                                                    lastRun.lastSMBRequest = lastRun.lastAPSRun
+                                                    lastRun.lastSMBEnact = dateUtil.now()
+                                                } else {
+                                                    Thread {
+                                                        SystemClock.sleep(1000)
+                                                        invoke("tempBasalFallback", allowNotification, true)
+                                                    }.start()
+                                                }
+                                                rxBus.send(EventLoopUpdateGui())
+                                            }
+                                        })
+                                    } else {
+                                        lastRun.tbrSetByPump = result
+                                        lastRun.lastTBRRequest = lastRun.lastAPSRun
+                                    }
+                                    rxBus.send(EventLoopUpdateGui())
+                                }
+                            })
+                        }
                     } else {
                         lastRun.tbrSetByPump = null
                         lastRun.smbSetByPump = null
@@ -707,6 +749,11 @@ class LoopPlugin @Inject constructor(
                 }
             }
         })
+    }
+
+    override fun preprocessPreferences(preferenceFragment: PreferenceFragmentCompat) {
+        super.preprocessPreferences(preferenceFragment)
+        preferenceFragment.findPreference<SwitchPreference>(rh.gs(R.string.key_loop_swap_smbtbr_order))?.isVisible = buildHelper.isEngineeringMode()
     }
 
     companion object {

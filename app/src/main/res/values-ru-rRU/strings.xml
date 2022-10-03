@@ -706,6 +706,8 @@
     <string name="sendlogfiles">Отправьте файлы сегодняшнего лога разработчикам наряду с этим. Непредвиденная ситуация.</string>
     <string name="loop_openmode_min_change">Минимальный запрос на изменения [%]</string>
     <string name="loop_openmode_min_change_summary" formatted="false">Алгоритм ИПЖ выдаст всплывающее окно с запросом на новые изменения, только если изменение больше, чем это значение в %. Значение по умолчанию — 20%</string>
+    <string name="loop_swap_smbtbr_order">Поменять порядок SMB и ВБС (ОПАСНО!) </string>
+    <string name="loop_swap_smbtbr_order_summary">На некоторых системах установка ВБС занимает очень много времени и может задерживать или даже отменять SMB. Эта настройка меняет порядок команд- сначала выполняется SMB, потом применяется ВБС. Потенциально может привести к опасной ситуации, если ВБС не отменилась или потеряна связь с помпой.</string>
     <string name="profile_total">== ∑  %1$s ед</string>
     <string name="dexcom_lognssensorchange_title">Внести замену сенсора в лог NS</string>
     <string name="dexcom_lognssensorchange_summary">Автоматически создать событие \"Замена сенсора\" в NS при запуске сенсора</string>

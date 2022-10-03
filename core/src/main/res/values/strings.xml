@@ -5,6 +5,7 @@
     <string name="key_language" translatable="false">language</string>
     <string name="key_units" translatable="false">units</string>
     <string name="key_loop_openmode_min_change" translatable="false">loop_openmode_min_change</string>
+    <string name="key_loop_swap_smbtbr_order" translatable="false">loop_swap_smbtbr_order</string>
     <string name="key_absorption_maxtime" translatable="false">absorption_maxtime</string>
     <string name="key_openapsama_min_5m_carbimpact" translatable="false">openapsama_min_5m_carbimpact</string>
     <string name="key_absorption_cutoff" translatable="false">absorption_cutoff</string>
