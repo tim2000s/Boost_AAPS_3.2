@@ -48,5 +48,7 @@ class LoopVariantPreference(context: Context, attrs: AttributeSet?)
                 else    -> "$pluginFolder/$variant/determine-basal.js"
             }
         }
+
+        fun getVariant(sp: SP, pluginFolder: String) : String = sp.getString("key_${pluginFolder}_variant", DEFAULT)
     }
 }

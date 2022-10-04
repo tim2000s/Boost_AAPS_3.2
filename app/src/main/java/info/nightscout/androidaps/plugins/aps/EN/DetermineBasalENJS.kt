@@ -104,6 +104,7 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
             rhino.evaluateString(scope, "require = function() {return round_basal;};", "JavaScript", 0, null)
 
             //generate functions "determine_basal" and "setTempBasal"
+            this.profile.put("variant", LoopVariantPreference.getVariant(sp, "EN"));
             rhino.evaluateString(scope, readFile(LoopVariantPreference.getVariantFileName(sp, "EN")), "JavaScript", 0, null)
             rhino.evaluateString(scope, readFile("EN/basal-set-temp.js"), "setTempBasal.js", 0, null)
             val determineBasalObj = scope["determine_basal", scope]
