@@ -435,8 +435,28 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     enlog += "ENWindowRunTime: " + ENWindowRunTime+", ENWindowDuration: " + ENWindowDuration+"\n";
     enlog += "ENTTActive: " + ENTTActive+"\n";
 
+    // UAM+ uses COB defined from prefs as prebolus within 30 minutes
+    var UAMPreBolus = (ENactive && ENTTActive && !meal_data.mealCOB && ENWindowRunTime < 30);
+    if (UAMPreBolus) {
+        enlog += "\n* UAM COB PreBolus\n";
+        // get the starting COB from prefs
+        var UAM_carbs = (firstMealWindow ? profile.UAM_COB_Bkfst : profile.UAM_COB);
+        enlog += "UAM_carbs from preferences: " + UAM_carbs + "\n";
+        // current IOB would cover how many carbs, first 15m COB stay constant
+        var COB_IOB = (ENWindowRunTime < 15 ? 0 : Math.max(iob_data.iob, 0) * carb_ratio);
+        enlog += "COB_IOB to remove: " + COB_IOB + "\n";
+        // remove the COB already covered by IOB restrict to 0
+        var UAM_mealCOB = Math.max(UAM_carbs - COB_IOB, 0);
+        enlog += "UAM_mealCOB now: " + UAM_mealCOB + "\n";
+        // bring the remaining COB into the loop
+        meal_data.carbs = round(UAM_carbs,1);
+        meal_data.mealCOB = round(UAM_mealCOB,1);
+    }
+
+    var COB = meal_data.mealCOB;
+
     // If GhostCOB is enabled we will use COB when ENWindowOK but outside this window UAM will be used
-    if (ignoreCOB && ENWindowOK && meal_data.mealCOB > 0) ignoreCOB = false;
+    if (ignoreCOB && ENWindowOK && COB > 0) ignoreCOB = false;
 
     // ins_val used as the divisor for ISF scaling
     var insulinType = profile.insulinType, ins_val = 90, ins_peak = 75;
@@ -1189,7 +1209,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         eBGweight = eBGweight_orig;
 
     // EN TT active and no bolus yet with UAM increase insulinReq_bg to provide initial bolus
-    var UAMPreBolus = (ENTTActive && ttTime < lastBolusAge && !COB && minAgo < 1);
+    UAMPreBolus = (ENTTActive && ttTime < lastBolusAge && !COB && minAgo < 1);
     var insulinReq_bg_boost = (UAMPreBolus ? profile.UAMbgBoost : 0);
 
     // categorize the eventualBG prediction type for more accurate weighting
@@ -1197,10 +1217,15 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     if (lastCOBpredBG > 0 && eventualBG == lastCOBpredBG) sens_predType = "COB"; // if COB prediction is present eventualBG aligns
     if (UAMPreBolus) sens_predType = "UAM+"; // force UAM+ when appropriate
     // UAM+ predtype when sufficient delta and acceleration
-    if (profile.EN_UAMPlus_NoENW && ENtimeOK && delta >= 5 && glucose_status.short_avgdelta >= 3 && DeltaPctS > 1 && DeltaPctL > 2 && !COB) sens_predType = "UAM+";
+    if (profile.EN_UAMPlus_NoENW && ENtimeOK && delta >= 5 && glucose_status.short_avgdelta >= 3 && DeltaPctS > 1 && DeltaPctL > 1.5 && !COB) sens_predType = "UAM+";
+    // UAM+ predtype when predicted high
+    if (profile.EN_UAMPlus_NoENW && ENtimeOK && delta >= 5 && glucose_status.short_avgdelta >= 3 && !COB && eventualBG > ISFbgMax ) sens_predType = "UAM+";
 
     // evaluate prediction type and weighting - Only use during day or when its night and TBR only
     if ((ENactive || ENSleepMode || TIR_sens > 1) && profile.use_ebgw) {
+
+        // when a TT starts some treatments will be processed before it starts causing issues later
+        if (ENWindowRunTime < 1) sens_predType == "TBR";
 
         // UAM predictions, no COB or GhostCOB
         if (sens_predType == "UAM+") {
@@ -1244,8 +1269,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
         // override and use current bg for insulinReq_bg with TBR and BG predType
         insulinReq_bg = (sens_predType == "BG" ? bg : insulinReq_bg);
-        insulinReq_bg = (sens_predType == "TBR" || sens_predType == "TBR+" ? Math.max(bg,insulinReq_bg,eventualBG) : insulinReq_bg);
-        eBGweight = (sens_predType == "TBR" || sens_predType == "TBR+" || sens_predType == "BG"  ? 1 : eBGweight);
+        insulinReq_bg = (sens_predType == "TBR" ? Math.max(bg,insulinReq_bg,eventualBG) : insulinReq_bg);
+        eBGweight = (sens_predType == "TBR" || sens_predType == "BG"  ? 1 : eBGweight);
 
         // insulinReq_sens determines the ISF used for final insulinReq calc
         //ins_val = (ENtimeOK ?  ins_val : ins_val * 1.25); // weaken overnight
@@ -1380,7 +1405,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     console.error("zeroTempEffect: ", zeroTempEffect)
     console.error("carbsReq: ", carbsReq);
     console.log("=======================");
-    console.log("Eating Now");
+    console.log("Eating Now non-scaled");
     console.log("=======================");
     console.log(enlog);
     console.log("=======================");
@@ -1552,8 +1577,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         insulinReq = (insulinReq_bg - target_bg) / insulinReq_sens;
 
         // EXPERIMENT DEBUG ONLY - insulinReqTBR is the delta of full insulinReq up to eventualBG
-        var insulinReqTBR = Math.max((ENactive ? ((eventualBG - target_bg) / insulinReq_sens) - insulinReq : 0),0);
-        insulinReqTBR = (sens_predType == "TBR" || sens_predType == "TBR+" ? Math.max((((eventualBG - target_bg) / insulinReq_sens) - insulinReq),0) : 0);
+        var insulinReqTBR = (sens_predType == "UAM+" ? Math.max((((eventualBG - target_bg) / insulinReq_sens) - insulinReq),0) : 0);
+        insulinReqTBR = (sens_predType == "TBR" ? Math.max((((eventualBG - target_bg) / insulinReq_sens) - insulinReq),0) : 0);
         //insulinReqTBR = 0;
 
         // if that would put us over max_iob, then reduce accordingly
@@ -1616,7 +1641,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 insulinReqPct = Math.min(insulinReqPct,ENinsulinReqPct);
 
                 // UAM+ allows normal ENinsulinReqPct
-                insulinReqPct = (sens_predType == "UAM+" ? ENinsulinReqPct : insulinReqPct);
+                insulinReqPct = (sens_predType == "UAM+" ? 1 : insulinReqPct);
 
                 // UAM+ PreBolus gets 100% insulinReqPct, overrides outside ENW
                 insulinReqPct = (sens_predType == "UAM+" && UAMPreBolus ? 1 : insulinReqPct);
