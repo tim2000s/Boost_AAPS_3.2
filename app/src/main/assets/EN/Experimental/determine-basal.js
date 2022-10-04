@@ -1183,17 +1183,19 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var insulinReq_sens = sens_normalTarget;
 
     // EN TT active and no bolus yet with UAM increase insulinReq_bg to provide initial bolus
-    UAMPreBolus = (ENTTActive && ttTime < lastBolusAge && !COB && minAgo < 1);
+    if (!UAM_mealCOB) UAMPreBolus = (ENTTActive && ttTime < lastBolusAge && !COB && minAgo < 1);
     var insulinReq_bg_boost = (UAMPreBolus ? profile.UAMbgBoost : 0);
 
     // categorize the eventualBG prediction type for more accurate weighting
     if (lastUAMpredBG > 0 && eventualBG >= lastUAMpredBG) sens_predType = "UAM"; // UAM or any prediction > UAM is the default
     if (lastCOBpredBG > 0 && eventualBG == lastCOBpredBG) sens_predType = "COB"; // if COB prediction is present eventualBG aligns
     if (UAMPreBolus) sens_predType = "UAM+"; // force UAM+ when appropriate
-    // UAM+ predtype when sufficient delta and acceleration
-    if (profile.EN_UAMPlus_NoENW && ENtimeOK && delta >= 5 && glucose_status.short_avgdelta >= 3 && DeltaPctS > 1 && DeltaPctL > 1.5 && !COB) sens_predType = "UAM+";
-    // UAM+ predtype when predicted high
-    if (profile.EN_UAMPlus_NoENW && ENtimeOK && delta >= 5 && glucose_status.short_avgdelta >= 3 && !COB && eventualBG > ISFbgMax ) sens_predType = "UAM+";
+
+    // UAM+ predtype when sufficient delta and no COB
+    if ((profile.EN_UAMPlus_NoENW || ENWindowOK) && ENtimeOK && delta >= 5 && glucose_status.short_avgdelta >= 3 && !COB) {
+        if (DeltaPctS > 1 && DeltaPctL > 1.5) sens_predType = "UAM+"; // with acceleration
+        if (eventualBG > ISFbgMax) sens_predType = "UAM+";    // when predicted high
+    }
 
     // evaluate prediction type and weighting - Only use during day or when its night and TBR only
     if (ENactive || ENSleepMode || TIR_sens > 1) {
@@ -1542,8 +1544,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         insulinReq = (insulinReq_bg - target_bg) / insulinReq_sens;
 
         // EXPERIMENT DEBUG ONLY - insulinReqTBR is the delta of full insulinReq up to eventualBG
-        var insulinReqTBR = (sens_predType == "UAM+" ? Math.max((((eventualBG - target_bg) / insulinReq_sens) - insulinReq),0) : 0);
-        insulinReqTBR = (sens_predType == "TBR" ? Math.max((((eventualBG - target_bg) / insulinReq_sens) - insulinReq),0) : 0);
+        var insulinReqTBR = 0;
+        if (sens_predType == "UAM+")  insulinReqTBR = Math.max((((eventualBG - target_bg) / insulinReq_sens) - insulinReq),0);
+        if (sens_predType == "TBR")  insulinReqTBR = Math.max((((eventualBG - target_bg) / insulinReq_sens) - insulinReq),0);
         //insulinReqTBR = 0;
 
         // if that would put us over max_iob, then reduce accordingly
@@ -1607,8 +1610,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 insulinReqPct = (ENWindowOK ? ENinsulinReqPct : Math.max(insulinReqOrig/insulinReq,0) );
                 insulinReqPct = Math.min(insulinReqPct,ENinsulinReqPct);
 
-                // UAM+ allows normal ENinsulinReqPct
-                insulinReqPct = (sens_predType == "UAM+" ? 1 : insulinReqPct);
+                // UAM+ allows extra insulinReqPct
+                insulinReqPct = (sens_predType == "UAM+" ? 0.85 : insulinReqPct);
 
                 // UAM+ PreBolus gets 100% insulinReqPct, overrides outside ENW
                 insulinReqPct = (sens_predType == "UAM+" && UAMPreBolus ? 1 : insulinReqPct);
