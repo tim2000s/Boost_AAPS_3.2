@@ -425,14 +425,15 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     enlog += "ENTTActive: " + ENTTActive + "\n";
 
     // UAM+ uses COB defined from prefs as prebolus within 30 minutes
-    var UAMPreBolus = (ENactive && ENTTActive && !meal_data.mealCOB && ENWindowRunTime < 30);
-    if (UAMPreBolus) {
+    //var UAMPreBolus = (ENactive && ENTTActive && !meal_data.mealCOB && ENWindowRunTime < 30);
+    var UAMCOBPreBolus = (ENactive && ENTTActive && !meal_data.mealCOB);
+    if (UAMCOBPreBolus) {
         enlog += "\n* UAM COB PreBolus\n";
         // get the starting COB from prefs
         var UAM_carbs = (firstMealWindow ? profile.UAM_COB_Bkfst : profile.UAM_COB);
         enlog += "UAM_carbs from preferences: " + UAM_carbs + "\n";
         // current IOB would cover how many carbs, first 15m COB stay constant
-        var COB_IOB = (ENWindowRunTime < 15 ? 0 : Math.max(iob_data.iob, 0) * carb_ratio);
+        var COB_IOB = (ENWindowRunTime < 30 ? 0 : Math.max(iob_data.iob, 0) * carb_ratio);
         enlog += "COB_IOB to remove: " + COB_IOB + "\n";
         // remove the COB already covered by IOB restrict to 0
         var UAM_mealCOB = Math.max(UAM_carbs - COB_IOB, 0);
@@ -1180,13 +1181,13 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var insulinReq_sens = sens_normalTarget;
 
     // EN TT active and no bolus yet with UAM increase insulinReq_bg to provide initial bolus
-    if (!UAM_mealCOB) UAMPreBolus = (ENTTActive && ttTime < lastBolusAge && !COB && minAgo < 1);
-    var insulinReq_bg_boost = (UAMPreBolus ? profile.UAMbgBoost : 0);
+    var UAMBGPreBolus = (!UAMCOBPreBolus && ENTTActive && ttTime < lastBolusAge && !COB && minAgo < 1);
+    var insulinReq_bg_boost = (UAMBGPreBolus ? profile.UAMbgBoost : 0);
 
     // categorize the eventualBG prediction type for more accurate weighting
     if (lastUAMpredBG > 0 && eventualBG >= lastUAMpredBG) sens_predType = "UAM"; // UAM or any prediction > UAM is the default
     if (lastCOBpredBG > 0 && eventualBG == lastCOBpredBG) sens_predType = "COB"; // if COB prediction is present eventualBG aligns
-    if (UAMPreBolus) sens_predType = "UAM+"; // force UAM+ when appropriate
+    if (UAMBGPreBolus) sens_predType = "UAM+"; // force UAM+ when appropriate
 
     // UAM+ predtype when sufficient delta and no COB
     if ((profile.EN_UAMPlus_NoENW || ENWindowOK) && ENtimeOK && delta >= 5 && glucose_status.short_avgdelta >= 3 && !COB) {
@@ -1203,7 +1204,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         // UAM predictions, no COB or GhostCOB
         if (sens_predType == "UAM+") {
             // increase minPredBG only when a prebolus is OK
-            minPredBG = (UAMPreBolus ? Math.max(bg,eventualBG) + insulinReq_bg_boost : minPredBG);
+            minPredBG = (UAMBGPreBolus ? Math.max(bg,eventualBG) + insulinReq_bg_boost : minPredBG);
             // use the largest starting bg for eBG and trust it
             eventualBG = Math.max(bg,eventualBG) + insulinReq_bg_boost;
             eBGweight = 1;
@@ -1294,7 +1295,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     //rT.reason += (sens_predType !="NA" ? ", eBGw: " + sens_predType + " " +  round(eBGweight*100) + "% ("+convert_bg(insulinReq_bg,profile)+")" : "");
     if (profile.use_sens_TDD) rT.reason += ", TDD:" + round(TDD, 2) + " " + (profile.sens_TDD_scale != 100 ? profile.sens_TDD_scale + "% " : "") + "(" + convert_bg(sens_TDD, profile) + ")";
     rT.reason += (TIR_sens > 1 ? ", TIRH:" + round(meal_data.TIRW4H) + "/" + round(meal_data.TIRW3H) + "/" + round(meal_data.TIRW2H) + "/" + round(meal_data.TIRW1H) : "");
-    //    rT.reason += (TIR_sens <1 ? ", TIRL:" + round(meal_data.TIRW4L) + "/" + round(meal_data.TIRW3L) + "/" + round(meal_data.TIRW2L) +"/"+round(meal_data.TIRW1L) : "");UAM+ improvements
+    //    rT.reason += (TIR_sens <1 ? ", TIRL:" + round(meal_data.TIRW4L) + "/" + round(meal_data.TIRW3L) + "/" + round(meal_data.TIRW2L) +"/"+round(meal_data.TIRW1L) : "");
     rT.reason += ", TIRS: " + round(TIR_sens, 2);
     if (profile.enableSRTDD) rT.reason += ", SR_TDD: " + round(SR_TDD, 2);
     rT.reason += ", SR: " + (typeof autosens_data !== 'undefined' && autosens_data ? round(autosens_data.ratio, 2) + "=" : "") + sensitivityRatio;
@@ -1614,19 +1615,19 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 insulinReqPct = (sens_predType == "UAM+" ? 0.85 : insulinReqPct);
 
                 // UAM+ PreBolus gets 100% insulinReqPct, overrides outside ENW
-                insulinReqPct = (sens_predType == "UAM+" && UAMPreBolus ? 1 : insulinReqPct);
+                insulinReqPct = (sens_predType == "UAM+" && UAMBGPreBolus ? 1 : insulinReqPct);
 
                 // set EN SMB limit for COB or UAM
                 ENMaxSMB = (sens_predType == "COB" ? profile.EN_COB_maxBolus : profile.EN_UAM_maxBolus);
 
                 // if ENWindowOK allow further increase max of SMB within the window
                 if (ENWindowOK) {
-                    if (COB) {
+                    if (COB && !UAMCOBPreBolus) {
                         ENMaxSMB = (firstMealWindow ? profile.EN_COB_maxBolus_breakfast : profile.EN_COB_maxBolus);
                         //ENReason += ", Recent COB " + (profile.temptargetSet && target_bg == normalTarget ? " + TT" : "") + " ENW-SMB";
                     } else {
                         ENMaxSMB = (firstMealWindow ? profile.EN_UAM_maxBolus_breakfast : profile.EN_UAM_maxBolus);
-                        if (sens_predType == "UAM+" && UAMPreBolus) ENMaxSMB = (!profile.EN_UAMbgBoost_maxBolus ? ENMaxSMB : profile.EN_UAMbgBoost_maxBolus);
+                        if ((sens_predType == "UAM+" && UAMBGPreBolus) || UAMBGPreBolus) ENMaxSMB = (!profile.EN_UAMbgBoost_maxBolus ? ENMaxSMB : profile.EN_UAMbgBoost_maxBolus);
                     }
                 }
 
