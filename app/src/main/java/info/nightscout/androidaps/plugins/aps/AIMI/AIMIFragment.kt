@@ -62,7 +62,7 @@ class AIMIFragment : DaggerFragment(), MenuProvider {
             setColorSchemeColors(rh.gac(context, R.attr.colorPrimaryDark), rh.gac(context, R.attr.colorPrimary), rh.gac(context, R.attr.colorSecondary))
             setOnRefreshListener {
                 binding.lastrun.text = rh.gs(R.string.executing)
-                Thread { activePlugin.activeAPS.invoke("OpenAPSSMB swipe refresh", false) }.start()
+                Thread { activePlugin.activeAPS.invoke("AIMI swipe refresh", false) }.start()
             }
         }
     }
@@ -76,7 +76,7 @@ class AIMIFragment : DaggerFragment(), MenuProvider {
         when (item.itemId) {
             ID_MENU_RUN -> {
                 binding.lastrun.text = rh.gs(R.string.executing)
-                Thread { activePlugin.activeAPS.invoke("OpenAPSSMB menu", false) }.start()
+                Thread { activePlugin.activeAPS.invoke("AIMI menu", false) }.start()
                 true
             }
 

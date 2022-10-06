@@ -25,6 +25,7 @@ import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatus
 import info.nightscout.androidaps.utils.DateUtil
 import info.nightscout.shared.SafeParse
 import info.nightscout.androidaps.interfaces.ResourceHelper
+import info.nightscout.androidaps.plugins.aps.loop.LoopVariantPreference
 import info.nightscout.androidaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
 import info.nightscout.shared.sharedPreferences.SP
 import info.nightscout.androidaps.utils.stats.TddCalculator
@@ -114,7 +115,7 @@ class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader:
             rhino.evaluateString(scope, "require = function() {return round_basal;};", "JavaScript", 0, null)
 
             //generate functions "determine_basal" and "setTempBasal"
-            rhino.evaluateString(scope, readFile("AIMI/determine-basal.js"), "JavaScript", 0, null)
+            rhino.evaluateString(scope, readFile(LoopVariantPreference.getVariantFileName(sp, AIMIDefaults.folderName)), "JavaScript", 0, null)
             rhino.evaluateString(scope, readFile("AIMI/basal-set-temp.js"), "setTempBasal.js", 0, null)
             val determineBasalObj = scope["determine_basal", scope]
             val setTempBasalFunctionsObj = scope["tempBasalFunctions", scope]
@@ -265,10 +266,10 @@ class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader:
         this.profile.put("smb_max_range_extension", SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_smb_max_range_extension, "1.2")))
         this.profile.put("enable_AIMI_UAM", sp.getBoolean(R.string.key_use_AimiUAM, false))
         this.profile.put("enable_AIMI_Power", sp.getBoolean(R.string.key_use_AimiPower, false))
-        this.profile.put("enable_AIMI_UAM_U200", sp.getBoolean(R.string.key_use_LuymjevU200, false))
-        this.profile.put("enable_AIMI_UAM_U100", sp.getBoolean(R.string.key_use_LuymjevU100, false))
-        this.profile.put("enable_AIMI_UAM_Fiasp", sp.getBoolean(R.string.key_use_Fiasp, false))
-        this.profile.put("enable_AIMI_UAM_Novorapid", sp.getBoolean(R.string.key_use_Novorapid, false))
+        //this.profile.put("enable_AIMI_UAM_U200", sp.getBoolean(R.string.key_use_LuymjevU200, false))
+        //this.profile.put("enable_AIMI_UAM_U100", sp.getBoolean(R.string.key_use_LuymjevU100, false))
+        //this.profile.put("enable_AIMI_UAM_Fiasp", sp.getBoolean(R.string.key_use_Fiasp, false))
+        //this.profile.put("enable_AIMI_UAM_Novorapid", sp.getBoolean(R.string.key_use_Novorapid, false))
         this.profile.put("key_use_AimiUAM_ISF", sp.getBoolean(R.string.key_use_AimiUAM_ISF, false))
         this.profile.put("key_use_AIMI_BreakFastLight", sp.getBoolean(R.string.key_use_AIMI_BreakFastLight, false))
         this.profile.put("key_use_disable_b30_BFL", sp.getBoolean(R.string.key_use_disable_b30_BFL, false))

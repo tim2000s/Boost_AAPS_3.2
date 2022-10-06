@@ -1,7 +1,9 @@
 package info.nightscout.androidaps.plugins.aps.AIMI
 
+@Suppress("SpellCheckingInspection")
 object AIMIDefaults {
 
+    const val folderName = "AIMI"
     // CALCULATED OR FROM PREFS
     // max_iob: 0 // if max_iob is not provided, will default to zero
     // max_daily_safety_multiplier:3
@@ -9,26 +11,26 @@ object AIMIDefaults {
     // autosens_max:1.2
     // autosens_min:0.7
     // USED IN AUTOSENS
-    const val rewind_resets_autosens = true // reset autosensitivity to neutral for awhile after each pump rewind
+    // const val rewind_resets_autosens = true // reset autosensitivity to neutral for awhile after each pump rewind
 
     // USED IN TARGETS
     // by default the higher end of the target range is used only for avoiding bolus wizard overcorrections
     // use wide_bg_target_range: true to force neutral temps over a wider range of eventualBGs
-    const val wide_bg_target_range = false // by default use only the low end of the pump's BG target range as OpenAPS target
+    // const val wide_bg_target_range = false // by default use only the low end of the pump's BG target range as OpenAPS target
 
     // USED IN AUTOTUNE
-    const val autotune_isf_adjustmentFraction =
-        1.0 // keep autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF.  1.0 allows full adjustment, 0 is no adjustment from pump ISF.
-    const val remainingCarbsFraction = 1.0 // fraction of carbs we'll assume will absorb over 4h if we don't yet see carb absorption
+     const val autotune_isf_adjustmentFraction = 1.0 // keep autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF.  1.0 allows full adjustment, 0 is no adjustment from pump ISF.
+     const val remainingCarbsFraction = 1.0 // fraction of carbs we'll assume will absorb over 4h if we don't yet see carb absorption
 
     // USED IN DETERMINE_BASAL
-    const val low_temptarget_lowers_sensitivity = true // lower sensitivity for temptargets <= 99.
-    const val high_temptarget_raises_sensitivity = true // raise sensitivity for temptargets >= 111.  synonym for exercise_mode
-    const val sensitivity_raises_target = false // raise BG target when autosens detects sensitivity
+     const val low_temptarget_lowers_sensitivity = false // lower sensitivity for temptargets <= 99.
+    const val high_temptarget_raises_sensitivity = false // raise sensitivity for temptargets >= 111.  synonym for exercise_mode
+
+    const val sensitivity_raises_target = true // raise BG target when autosens detects sensitivity
     const val resistance_lowers_target = false // lower BG target when autosens detects resistance
-    const val adv_target_adjustments = true // lower target automatically when BG and eventualBG are high
-    const val exercise_mode =
-        true // when true, > 105 mg/dL high temp target adjusts sensitivityRatio for exercise_mode. This majorly changes the behavior of high temp targets from before. synonmym for high_temptarget_raises_sensitivity
+    const val adv_target_adjustments = false // lower target automatically when BG and eventualBG are high
+    const val exercise_mode = true // when true, > 105 mg/dL high temp target adjusts sensitivityRatio for exercise_mode. This majorly changes the behavior of high temp targets from before. synonym
+    // for high_temptarget_raises_sensitivity
     const val half_basal_exercise_target = 160 // when temptarget is 160 mg/dL *and* exercise_mode=true, run 50% basal at this level (120 = 75%; 140 = 60%)
 
     // create maxCOB and default it to 120 because that's the most a typical body can absorb over 4 hours.
@@ -37,7 +39,7 @@ object AIMIDefaults {
     const val maxCOB = 120
 
     //public final static boolean skip_neutral_temps = true; // ***** default false in oref1 ***** if true, don't set neutral temps
-    // unsuspend_if_no_temp:false // if true, pump will un-suspend after a zero temp finishes
+    // un-suspend_if_no_temp:false // if true, pump will un-suspend after a zero temp finishes
     // bolussnooze_dia_divisor:2 // bolus snooze decays after 1/2 of DIA
     const val min_5m_carbimpact = 8.0 // mg/dL per 5m (8 mg/dL/5m corresponds to 24g/hr at a CSF of 4 mg/dL/g (x/5*60/4))
     const val remainingCarbsCap = 90 // max carbs we'll assume will absorb over 4h if we don't yet see carb absorption
@@ -66,5 +68,5 @@ object AIMIDefaults {
     const val carbsReqThreshold = 1 // grams of carbsReq to trigger a pushover
 
     // offline_hotspot:false // enabled an offline-only local wifi hotspot if no Internet available
-    const val bolus_increment = 0.1 // minimum bolus that can be delivered as an SMB
+    // const val bolus_increment = 0.1 // minimum bolus that can be delivered as an SMB
 }

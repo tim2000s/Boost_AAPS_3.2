@@ -298,7 +298,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
        ************************ */
        console.error("--------------");
        console.error("\n");
-       console.error( " AIMI version 22 Beta b");
+       console.error( " AIMI-Variant version 22 Beta b");
        console.error("\n");
        console.error("--------------");
     var TDD = profile.TDD;
@@ -327,10 +327,10 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     enlog += "\nautoAIMIsmb : "+autoAIMIsmb+", ";
 
     //var AIMI_COB = profile.key_use_AIMI_COB;
-    //var AIMI_UAM_U200 = profile.enable_AIMI_UAM_U200;
-    //var AIMI_UAM_U100 = profile.enable_AIMI_UAM_U100;
-    //var AIMI_UAM_Fiasp = profile.enable_AIMI_UAM_Fiasp;
-    //var AIMI_UAM_Novorapid = profile.enable_AIMI_UAM_Novorapid;
+    /*var AIMI_UAM_U200 = profile.enable_AIMI_UAM_U200;
+    var AIMI_UAM_U100 = profile.enable_AIMI_UAM_U100;
+    var AIMI_UAM_Fiasp = profile.enable_AIMI_UAM_Fiasp;
+    var AIMI_UAM_Novorapid = profile.enable_AIMI_UAM_Novorapid;*/
     var iTime_Start_Bolus = profile.iTime_Start_Bolus;
     var iTimeProfile = profile.iTime;
     var LastManualBolus = meal_data.lastBolusNormalUnits;
@@ -971,7 +971,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 UAMduration = round((UAMpredBGs.length+1)*5/60,1);
             }
             //UAMpredBG = iTime < iTimeProfile ? IOBpredBGs[IOBpredBGs.length-1] + predBGI + Math.min(0, predDev) + predUCI : UAMpredBGs[UAMpredBGs.length-1] + predBGI + Math.min(0, predDev) + predUCI;
-            UAMpredBG = iTime < 100 ? UAMpredBGs[UAMpredBGs.length-1] + (round(( -iobTick.activity * (1800 / ( TDD * (Math.log(( Math.max(UAMpredBGs[UAMpredBGs.length-1],39) / insulinDivisor ) + 1 ) ) )) * 5 ),2)) + Math.min(0, predDev) + predUCI : IOBpredBGs[IOBpredBGs.length-1] + (round(( -iobTick.activity * (1800 / ( TDD * (Math.log((Math.max( IOBpredBGs[IOBpredBGs.length-1],39) / insulinDivisor ) + 1 ) ) )) * 5 ),2));
+            UAMpredBG = iTime > 100 && bg < 170 ? IOBpredBGs[IOBpredBGs.length-1] + (round(( -iobTick.activity * (1800 / ( TDD * (Math.log((Math.max( IOBpredBGs[IOBpredBGs.length-1],39) / insulinDivisor ) + 1 ) ) )) * 5 ),2)) : UAMpredBGs[UAMpredBGs.length-1] + (round(( -iobTick.activity * (1800 / ( TDD * (Math.log(( Math.max(UAMpredBGs[UAMpredBGs.length-1],39) / insulinDivisor ) + 1 ) ) )) * 5 ),2)) + Math.min(0, predDev) + predUCI;
             //console.error(predBGI, predCI, predUCI);
             // truncate all BG predictions at 4 hours
 
@@ -1132,7 +1132,7 @@ if (AIMI_UAM && AIMI_BreakFastLight && now >= AIMI_BL_StartTime && now <= AIMI_B
 }
                 console.error("\n");
                 console.log("--------------");
-                console.log(" AAPS-3.1.0.3-dev-b-AIMI V22b 06/10/2022 ");
+                console.log(" AAPS-3.1.0.3-dev-b-AIMI V22b 06/10/2022 Experimental ");
                 console.log("--------------");
                 if ( meal_data.TDDAIMI3 ){
                 console.error("TriggerPredSMB_future_sens_45 : ",TriggerPredSMB_future_sens_45," aimi_bg : ",aimi_bg," aimi_delta : ",aimi_delta);
@@ -1298,7 +1298,7 @@ if (AIMI_UAM && AIMI_BreakFastLight && now >= AIMI_BL_StartTime && now <= AIMI_B
         rT.reason += ", Dia : "+aimiDIA+" minutes ; ";
         rT.reason += " aimismb : "+aimismb+" ; ";
 
-    rT.reason += "\nDEVb-AIMI-V22b-06/10/22 ";
+    rT.reason += "\nDEVa-AIMI-V22a-variant-06/10/22 ";
     rT.reason += "; ";
 
     // use naive_eventualBG if above 40, but switch to minGuardBG if both eventualBGs hit floor of 39
@@ -1710,7 +1710,7 @@ if (AIMI_UAM && AIMI_BreakFastLight && now >= AIMI_BL_StartTime && now <= AIMI_B
        }else{
             if (TrigPredAIMI < 100){
                 microBolus = 0;
-                rT.reason += ", No SMB because TrigPredAIMI < 100, ";
+                rT.reason += ", No SMB beacause TrigPredAIMI < 100, ";
             }else if(meal_data.lastBolusSMBUnits === AIMI_UAM_CAP){
                     if(TimeSMB < 20){
                     microBolus = 0;
