@@ -828,8 +828,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     // use autosens-adjusted sens to counteract autosens meal insulin dosing adjustments so that
     // autotuned CR is still in effect even when basals and ISF are being adjusted by TT or autosens
     // this avoids overdosing insulin for large meals when low temp targets are active
-    csf = sens_currentBG / carb_ratio;
-    console.error("profile.sens: ", round(profile.sens, 2), "sens: ", round(sens, 2), "CSF: ", round(csf, 2));
+    csf = sens / profile.carb_ratio;
+    console.error("profile.sens:", profile.sens, "sens:", sens, "CSF:", csf);
 
     var maxCarbAbsorptionRate = 30; // g/h; maximum rate to assume carbs will absorb if no CI observed
     // limit Carb Impact to maxCarbAbsorptionRate * csf in mg/dL per 5m
@@ -1606,7 +1606,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 if (ENWindowOK) insulinReqPct = ENWinsulinReqPct;
                 // SAFETY: Restrict insulinReq when not ENW to lower dynamic insulinReq
                 if (!ENWindowOK) {
-                    insulinReqPct = insulinReqOrig/insulinReq;
+                    insulinReqPct = Math.max(insulinReqOrig/insulinReq,maxBolusOrig/insulinReq); // minimum SMB is maxBolusOrig
                     insulinReqPct = Math.max(insulinReqPct,0); // minimum 0% when original insulinReq is much lower
                     insulinReqPct = Math.min(insulinReqPct,1); // maximum 100% when original insulinReq is much higher
                 }
