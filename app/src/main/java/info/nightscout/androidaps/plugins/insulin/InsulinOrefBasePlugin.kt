@@ -1,5 +1,7 @@
 package info.nightscout.androidaps.plugins.insulin
 
+import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SwitchPreference
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.R
 import info.nightscout.androidaps.data.Iob
@@ -12,6 +14,7 @@ import info.nightscout.androidaps.plugins.general.overview.notifications.Notific
 import info.nightscout.androidaps.utils.HardLimits
 import info.nightscout.androidaps.utils.T
 import info.nightscout.shared.logging.AAPSLogger
+import info.nightscout.shared.sharedPreferences.SP
 import javax.inject.Inject
 import kotlin.math.exp
 import kotlin.math.pow
@@ -45,6 +48,8 @@ abstract class InsulinOrefBasePlugin(
 ), Insulin {
 
     @Inject lateinit var activePlugin: ActivePlugin
+    @Inject lateinit var sp: SP
+    @Inject lateinit var buildHelper: BuildHelper
 
     private var lastWarned: Long = 0
     override val dia
@@ -129,7 +134,12 @@ abstract class InsulinOrefBasePlugin(
             } else {
                 // MP: If the Lyumjev pharmacodynamic models are not used (IDs 105 & 205), use the traditional PK-based insulin model instead;
                 val peak = peak
-                val td = dia * 60 //getDIA() always >= MIN_DIA
+                val td =
+                    if (sp.getBoolean(R.string.key_iob_use_aimi, false)) {
+                        val now = System.currentTimeMillis() / (1000 * 60 * 60)
+                        val circadianSensitivity = (0.00000379*Math.pow(now.toDouble(),5.0))-(0.00016422*Math.pow(now.toDouble(),4.0))+(0.00128081*Math.pow(now.toDouble(),3.0))+(0.02533782*Math.pow(now.toDouble(),2.0))-(0.33275556*now)+1.38581503
+                        dia * 30.0 * circadianSensitivity
+                    } else dia * 60
                 val tp = peak.toDouble()
                 // force the IOB to 0 if over DIA hours have passed
                 if (t < td) {
@@ -146,6 +156,11 @@ abstract class InsulinOrefBasePlugin(
 
     override val insulinConfiguration: InsulinConfiguration
         get() = InsulinConfiguration(friendlyName, (dia * 1000.0 * 3600.0).toLong(), T.mins(peak.toLong()).msecs())
+
+    override fun preprocessPreferences(preferenceFragment: PreferenceFragmentCompat) {
+        super.preprocessPreferences(preferenceFragment)
+        preferenceFragment.findPreference<SwitchPreference>(rh.gs(R.string.iob_use_aimi))?.isVisible = buildHelper.isEngineeringMode()
+    }
 
     override val comment
         get(): String {

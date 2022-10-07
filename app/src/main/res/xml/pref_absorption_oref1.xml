@@ -35,6 +35,11 @@
             validate:minNumber="4"
             validate:testType="numericRange" />
 
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="@string/key_iob_use_aimi"
+            android:title="@string/iob_use_aimi" />
+
         <androidx.preference.PreferenceScreen
             android:key="absorption_oref1_advanced"
             android:title="@string/advancedsettings_title">

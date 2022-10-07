@@ -22,7 +22,6 @@ import javax.inject.Singleton
 @Singleton
 class InsulinOrefFreePeakPlugin @Inject constructor(
     injector: HasAndroidInjector,
-    private val sp: SP,
     rh: ResourceHelper,
     profileFunction: ProfileFunction,
     rxBus: RxBus,

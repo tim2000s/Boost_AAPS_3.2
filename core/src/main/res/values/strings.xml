@@ -30,6 +30,7 @@
     <string name="key_wear_control" translatable="false">wearcontrol</string>
     <string name="key_units_mgdl" translatable="false">units_mgdl</string>
     <string name="key_show_notes_entry_dialogs" translatable="false">show_notes_entry_dialogs</string>
+    <string name="key_iob_use_aimi" translatable="false">iob_use_aimi</string>
     <string name="key_openapsama_autosens_max" translatable="false">autosens_max</string>
     <string name="key_openapsama_autosens_min" translatable="false">autosens_min</string>
     <string name="key_treatmentssafety_maxcarbs" translatable="false">treatmentssafety_maxcarbs</string>
