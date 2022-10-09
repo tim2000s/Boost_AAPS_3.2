@@ -272,8 +272,8 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
 
 
         // Outside of the EN Window ********************************************************************************
-//        this.profile.put("COB_maxBolus", sp.getDouble(R.string.key_eatingnow_cob_maxbolus, 0.0))
-//        this.profile.put("UAM_maxBolus", sp.getDouble(R.string.key_eatingnow_uam_maxbolus, 0.0))
+        // this.profile.put("COB_maxBolus", sp.getDouble(R.string.key_eatingnow_isfboost_maxbolus, 0.0))
+        // this.profile.put("UAM_maxBolus", sp.getDouble(R.string.key_eatingnow_uam_maxbolus, 0.0))
 
         this.profile.put("SMBbgOffset", Profile.toMgdl(sp.getDouble(R.string.key_eatingnow_smbbgoffset, 0.0),profileFunction.getUnits()))
         this.profile.put("ISFbgscaler", sp.getDouble(R.string.key_eatingnow_isfbgscaler, 0.0))
@@ -368,7 +368,7 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
 
 
         // storing TDD values in prefs, terrible but hopefully effective
-        if (enableSensTDD || enableSRTDD) { // only do TDD if we have to
+        // if (enableSensTDD || enableSRTDD) { // only do TDD if we have to
 
             // check when TDD last updated
             val TDDLastUpdate =  sp.getLong("TDDLastUpdate",0)
@@ -412,8 +412,12 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
             }
 
             // calculate the rest of the TDD data
+            // val TDDLast24h = tddCalculator.calculateDaily(-24, 0).totalAmount
+            // this.mealData.put("TDDLast24h", TDDLast24h)
+
             var TDDAvg1d = tddCalculator.averageTDD(tddCalculator.calculate(1))?.totalAmount
-            if (TDDAvg1d == 0.0 || TDDAvg1d == null) TDDAvg1d = ((basalRate * 12)*100)/21
+            if (TDDAvg1d == null || TDDAvg1d < basalRate) TDDAvg1d =  tddCalculator.calculateDaily(-24, 0).totalAmount
+            if (TDDAvg1d < basalRate) TDDAvg1d = ((basalRate * 12)*100)/21
             this.mealData.put("TDDAvg1d", TDDAvg1d)
 
             val TDDLast4h = tddCalculator.calculateDaily(-4, 0).totalAmount
@@ -434,8 +438,19 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
             val TDDLastCannula = if (lastCannAgeMins > 1440) tddCalculator.calculate(lastCannulaTime, now).totalAmount / (lastCannAgeMins/1440) else TDDAvg1d
             this.mealData.put("TDDLastCannula", TDDLastCannula)
 
+            this.mealData.put("TDDAvg7d", sp.getDouble("TDDAvg7d", ((basalRate * 12)*100)/21))
+
+            var TDDAvgtoCannula = sp.getDouble("TDDAvgtoCannula", 0.0)
+            if (lastCannAgeMins <= 5 || TDDAvgtoCannula == 0.0) {
+                val daysPrior = 3
+                var TDDAvgtoCannula = tddCalculator.calculate(lastCannulaTime - 86400000 * daysPrior, lastCannulaTime).totalAmount / daysPrior
+                sp.putDouble("TDDAvgtoCannula", TDDAvgtoCannula)
+            }
+            this.mealData.put("TDDAvgtoCannula", TDDAvgtoCannula)
+
             this.mealData.put("TDDLastUpdate", sp.getLong("TDDLastUpdate", 0))
-        }
+
+        // }
 
         // TIR Windows - 4 hours prior to current time // 4.0 - 10.0
         val resistancePerHr = sp.getDouble(R.string.en_resistance_per_hour, 0.0)

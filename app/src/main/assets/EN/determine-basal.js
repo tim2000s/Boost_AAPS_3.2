@@ -420,9 +420,14 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var carb_ratio = (firstMealScaling ? round(profile.carb_ratio_midnight / (profile.BreakfastPct / 100), 1) : profile.carb_ratio);
     sens = (firstMealScaling ? round(profile.sens_midnight / (profile.BreakfastPct / 100), 1) : sens);
 
-    enlog += "ENTime: " + ENTime + ", firstMealWindow: " + firstMealWindow + ", firstMealScaling: " + firstMealScaling + ", b1Time:" + b1Time + ", c1Time:" + c1Time + ", tt1Time:" + tt1Time + ", bTime:" + bTime + ", cTime:" + cTime + ", ttTime:" + ttTime + ", ENWindowOK:" + ENWindowOK + "\n";
-    enlog += "ENWindowRunTime: " + ENWindowRunTime + ", ENWindowDuration: " + ENWindowDuration + "\n";
-    enlog += "ENTTActive: " + ENTTActive + "\n";
+    enlog += "ENTime: " + ENTime + "\n";
+    enlog += "------ ENWindow ------" + "\n";
+    enlog += "ENWindowOK:" + ENWindowOK + ", ENWindowRunTime:" + ENWindowRunTime + ", ENWindowDuration:" + ENWindowDuration + "\n";
+    enlog += "ENWIOBThreshU:" + ENWIOBThreshU + ", IOB:" + iob_data.iob + "\n";
+    enlog += "ENTTActive:" + ENTTActive + ", tt1Time:" + tt1Time + ", ttTime:" + ttTime + "\n";
+    enlog += "b1Time:" + b1Time + ", c1Time:" + c1Time + ", bTime:" + bTime + ", cTime:" + cTime + "\n";
+    enlog += "firstMealWindow:" + firstMealWindow + ", firstMealScaling:" + firstMealScaling + "\n";
+    enlog += "-----------------------" + "\n";
 
     // UAM+ uses COB defined from prefs as prebolus within 30 minutes
     //var UAMPreBolus = (ENactive && ENTTActive && !meal_data.mealCOB && ENWindowRunTime < 30);
@@ -544,12 +549,12 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             sens_normalTarget = sens_normalTarget;
             sensitivityRatio = 1;
         } else if (profile.enableSRTDD && SR_TDD !=1) {
-            // apply autosens limits
-            SR_TDD = Math.min(SR_TDD, profile.autosens_max);
-            SR_TDD = Math.max(SR_TDD, profile.autosens_min);
+            // dont apply autosens limits to show SR_TDD full potential
+            //SR_TDD = Math.min(SR_TDD, profile.autosens_max);
+            //SR_TDD = Math.max(SR_TDD, profile.autosens_min);
             sensitivityRatio = (profile.temptargetSet && !ENTTActive || profile.percent != 100 ?  1 : SR_TDD);
-            // adjust basal
-            basal = profile.current_basal * sensitivityRatio;
+            // adjust basal later
+            // basal = profile.current_basal * sensitivityRatio;
             // adjust sens_normalTarget below with TIR_sens
             // sens_normalTarget = sens_normalTarget / sensitivityRatio;
         } else {
@@ -558,19 +563,24 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             sensitivityRatio = Math.max(sensitivityRatio, profile.autosens_min);
             // adjust sens_normalTarget below with TIR_sens
             // sens_normalTarget = sens_normalTarget / sensitivityRatio;
-            // adjust basal
-            basal = profile.current_basal * sensitivityRatio;
+            // adjust basal later
+            //basal = profile.current_basal * sensitivityRatio;
         }
 
         // apply TIRS to ISF, TIRS will be 1 if not enabled, limit to autosens_max
-        TIR_sens = Math.min(TIR_sens, profile.autosens_max);
-
+        //TIR_sens = Math.min(TIR_sens, profile.autosens_max);
         sensitivityRatio = sensitivityRatio * TIR_sens;
+
         // apply final autosens limits
         sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
         sensitivityRatio = Math.max(sensitivityRatio, profile.autosens_min);
         sensitivityRatio = round(sensitivityRatio, 2);
+
+        // adjust ISF
         sens_normalTarget = sens_normalTarget / sensitivityRatio;
+
+        // adjust basal
+        basal = profile.current_basal * sensitivityRatio;
 
         basal = round_basal(basal, profile);
         if (basal !== profile_current_basal) {
@@ -1376,7 +1386,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     console.error("zeroTempEffect: ", zeroTempEffect)
     console.error("carbsReq: ", carbsReq);
     console.log("=======================");
-    console.log("Eating Now Default Variant");
+    console.log("Eating Now default Variant");
     console.log("=======================");
     console.log(enlog);
     console.log("=======================");
