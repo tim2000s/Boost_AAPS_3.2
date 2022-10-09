@@ -26,7 +26,7 @@ import org.json.JSONArray
 import org.json.JSONException
 import javax.inject.Inject
 
-class AIMIFragment : DaggerFragment(), MenuProvider {
+class AIMIFragment : DaggerFragment() {
 
     private var disposable: CompositeDisposable = CompositeDisposable()
 
@@ -52,7 +52,7 @@ class AIMIFragment : DaggerFragment(), MenuProvider {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
         OpenapsamaFragmentBinding.inflate(inflater, container, false).also {
             _binding = it
-            requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.RESUMED)
+            setHasOptionsMenu(true)
         }.root
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -66,20 +66,23 @@ class AIMIFragment : DaggerFragment(), MenuProvider {
             }
         }
     }
-    override fun onCreateMenu(menu: Menu, inflater: MenuInflater) {
 
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        if (isResumed) {
+            menu.removeItem(ID_MENU_RUN)
             menu.add(Menu.FIRST, ID_MENU_RUN, 0, rh.gs(R.string.openapsma_run)).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
             menu.setGroupDividerEnabled(true)
+        }
     }
 
-    override fun onMenuItemSelected(item: MenuItem): Boolean =
+    override fun onOptionsItemSelected(item: MenuItem): Boolean =
         when (item.itemId) {
             ID_MENU_RUN -> {
                 binding.lastrun.text = rh.gs(R.string.executing)
                 Thread { activePlugin.activeAPS.invoke("AIMI menu", false) }.start()
                 true
             }
-
             else        -> false
         }
 
@@ -136,7 +139,7 @@ class AIMIFragment : DaggerFragment(), MenuProvider {
 
             binding.profile.text = jsonFormatter.format(determineBasalAdapterUAMJS.profileParam)
             binding.mealdata.text = jsonFormatter.format(determineBasalAdapterUAMJS.mealDataParam)
-            binding.scriptdebugdata.text = determineBasalAdapterUAMJS.scriptDebug.replace("\\s+".toRegex(), " ")
+            binding.scriptdebugdata.text = determineBasalAdapterUAMJS.scriptDebug
             fullUAMPlugin.lastAPSResult?.inputConstraints?.let {
                 binding.constraints.text = it.getReasons(aapsLogger)
             }
