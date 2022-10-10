@@ -246,21 +246,11 @@ class Widget : AppWidgetProvider() {
         }
 
         // Show variable sensitivity
-        var variableSens = 0.0
-        if (config.NSCLIENT) {
-            var suggested = nsDeviceStatus.getAPSResult(injector).json
-            if (suggested?.has("variable_sens") == true)
-                variableSens = suggested.getDouble("variable_sens");
-        }
-        else {
-            val request = loop.lastRun?.request
-            if (request is DetermineBasalResultSMB)
-                variableSens = request.variableSens ?: 0.0
-        }
-
-        if (variableSens > 0) {
+        val request = loop.lastRun?.request
+        if (request is DetermineBasalResultSMB) {
             val isfMgdl = profileFunction.getProfile()?.getIsfMgdl()
-            if (variableSens != isfMgdl && isfMgdl != null) {
+            val variableSens = request.variableSens
+            if (variableSens != isfMgdl && variableSens != null && isfMgdl != null) {
                 views.setTextViewText(
                     R.id.variable_sensitivity,
                     String.format(

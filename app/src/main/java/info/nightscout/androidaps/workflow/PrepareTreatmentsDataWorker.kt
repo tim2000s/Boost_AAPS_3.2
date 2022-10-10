@@ -140,8 +140,7 @@ class PrepareTreatmentsDataWorker(
         overviewData.bgReadingsArray.let { bgReadingsArray ->
             for (reading in bgReadingsArray) {
                 if (reading.timestamp > date) continue
-                return Profile.fromMgdlToUnits(reading.rawOrSmoothed(sp), profileFunction
-                    .getUnits())
+                return Profile.fromMgdlToUnits(reading.rawOrSmoothed(sp), profileFunction.getUnits())
             }
             return if (bgReadingsArray.isNotEmpty()) Profile.fromMgdlToUnits(bgReadingsArray[0].rawOrSmoothed(sp), profileFunction.getUnits())
             else Profile.fromMgdlToUnits(100.0, profileFunction.getUnits())

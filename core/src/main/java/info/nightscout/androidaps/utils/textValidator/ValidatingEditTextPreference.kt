@@ -74,8 +74,9 @@ class ValidatingEditTextPreference(ctx: Context, attrs: AttributeSet, defStyleAt
     }
 
     override fun persistString(value: String?): Boolean =
-        if (validatorParameters.testType == EditTextValidator.TEST_BG_RANGE)
-            super.persistString(Profile.toMgdl(SafeParse.stringToDouble(value, 0.0), profileFunction.getUnits()).toString())
-        else
-            super.persistString(value)
+        when (validatorParameters.testType) {
+            EditTextValidator.TEST_BG_RANGE            -> super.persistString(Profile.toMgdl(SafeParse.stringToDouble(value, 0.0), profileFunction.getUnits()).toString())
+            EditTextValidator.TEST_FLOAT_NUMERIC_RANGE -> super.persistString(SafeParse.stringToDouble(value, 0.0).toString())
+            else                                       -> super.persistString(value)
+        }
 }

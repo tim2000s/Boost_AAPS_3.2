@@ -544,6 +544,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         sens_normalTarget = sens_normalTarget / sensitivityRatio; // CHECK THIS  LINE
         //sens =  sens / sensitivityRatio ; // CHECK THIS  LINE
         sens_normalTarget = round(sens_normalTarget, 1);
+
+        if (profile.use_sens_TDD) {
+            sens_TDD = sens_TDD / sensitivityRatio;
+            sens_TDD = round(sens_TDD, 1);
+        }
         enlog += "sens_normalTarget now " + sens_normalTarget + "due to temp target; ";
     } else {
         sensitivityRatio = 1;

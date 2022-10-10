@@ -3,7 +3,6 @@ package info.nightscout.androidaps.plugins.iob.iobCobCalculator
 import androidx.collection.LongSparseArray
 import androidx.collection.size
 import info.nightscout.androidaps.annotations.OpenForTesting
-import info.nightscout.androidaps.core.BuildConfig
 import info.nightscout.androidaps.core.R
 import info.nightscout.androidaps.data.InMemoryGlucoseValue
 import info.nightscout.androidaps.database.AppRepository
@@ -17,12 +16,11 @@ import info.nightscout.androidaps.plugins.iob.iobCobCalculator.events.EventBucke
 import info.nightscout.androidaps.utils.DateUtil
 import info.nightscout.androidaps.utils.T
 import info.nightscout.shared.sharedPreferences.SP
-import javax.inject.Inject
 import kotlin.math.abs
 import kotlin.math.roundToLong
 
 @OpenForTesting
-class AutosensDataStore @Inject constructor(val sp: SP) {
+class AutosensDataStore (val sp: SP) {
 
     private val dataLock = Any()
     var lastUsed5minCalculation: Boolean? = null // true if used 5min bucketed data

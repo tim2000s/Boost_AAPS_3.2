@@ -7,10 +7,10 @@ import android.app.PendingIntent
 import android.app.TaskStackBuilder
 import android.content.Context
 import android.content.Intent
+import android.os.Handler
+import android.os.HandlerThread
 import android.os.SystemClock
 import androidx.core.app.NotificationCompat
-import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.SwitchPreference
 import com.microsoft.appcenter.analytics.Analytics
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.BuildConfig
@@ -36,8 +36,21 @@ import info.nightscout.androidaps.extensions.buildDeviceStatus
 import info.nightscout.androidaps.extensions.convertedToAbsolute
 import info.nightscout.androidaps.extensions.convertedToPercent
 import info.nightscout.androidaps.extensions.plannedRemainingMinutes
-import info.nightscout.androidaps.interfaces.*
+import info.nightscout.androidaps.interfaces.ActivePlugin
+import info.nightscout.androidaps.interfaces.CommandQueue
+import info.nightscout.androidaps.interfaces.Config
+import info.nightscout.androidaps.interfaces.Constraint
+import info.nightscout.androidaps.interfaces.IobCobCalculator
+import info.nightscout.androidaps.interfaces.Loop
 import info.nightscout.androidaps.interfaces.Loop.LastRun
+import info.nightscout.androidaps.interfaces.PluginBase
+import info.nightscout.androidaps.interfaces.PluginDescription
+import info.nightscout.androidaps.interfaces.PluginType
+import info.nightscout.androidaps.interfaces.Profile
+import info.nightscout.androidaps.interfaces.ProfileFunction
+import info.nightscout.androidaps.interfaces.PumpDescription
+import info.nightscout.androidaps.interfaces.PumpSync
+import info.nightscout.androidaps.interfaces.ResourceHelper
 import info.nightscout.androidaps.logging.UserEntryLogger
 import info.nightscout.androidaps.plugins.aps.loop.events.EventLoopSetLastRunGui
 import info.nightscout.androidaps.plugins.aps.loop.events.EventLoopUpdateGui
@@ -72,7 +85,6 @@ class LoopPlugin @Inject constructor(
     injector: HasAndroidInjector,
     aapsLogger: AAPSLogger,
     private val aapsSchedulers: AapsSchedulers,
-    private var buildHelper: BuildHelper,
     private val rxBus: RxBus,
     private val sp: SP,
     config: Config,
@@ -108,6 +120,9 @@ class LoopPlugin @Inject constructor(
     private var carbsSuggestionsSuspendedUntil: Long = 0
     private var prevCarbsreq = 0
     override var lastRun: LastRun? = null
+    override var closedLoopEnabled: Constraint<Boolean>? = null
+
+    private var handler = Handler(HandlerThread(this::class.simpleName + "Handler").also { it.start() }.looper)
 
     override fun onStart() {
         createNotificationChannel()
@@ -130,6 +145,7 @@ class LoopPlugin @Inject constructor(
 
     override fun onStop() {
         disposable.clear()
+        handler.removeCallbacksAndMessages(null)
         super.onStop()
     }
 
@@ -305,8 +321,8 @@ class LoopPlugin @Inject constructor(
                     rxBus.send(EventLoopSetLastRunGui(rh.gs(R.string.pumpsuspended)))
                     return
                 }
-                val closedLoopEnabled = constraintChecker.isClosedLoopAllowed()
-                if (closedLoopEnabled.value()) {
+                closedLoopEnabled = constraintChecker.isClosedLoopAllowed()
+                if (closedLoopEnabled?.value() == true) {
                     if (allowNotification) {
                         if (resultAfterConstraints.isCarbsRequired
                             && resultAfterConstraints.carbsReq >= sp.getInt(
@@ -749,11 +765,6 @@ class LoopPlugin @Inject constructor(
                 }
             }
         })
-    }
-
-    override fun preprocessPreferences(preferenceFragment: PreferenceFragmentCompat) {
-        super.preprocessPreferences(preferenceFragment)
-        preferenceFragment.findPreference<SwitchPreference>(rh.gs(R.string.key_loop_swap_smbtbr_order))?.isVisible = buildHelper.isEngineeringMode()
     }
 
     companion object {

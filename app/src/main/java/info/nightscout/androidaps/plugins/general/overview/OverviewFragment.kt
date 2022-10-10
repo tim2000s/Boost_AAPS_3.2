@@ -31,18 +31,38 @@ import info.nightscout.androidaps.Constants
 import info.nightscout.androidaps.R
 import info.nightscout.androidaps.data.ProfileSealed
 import info.nightscout.androidaps.database.AppRepository
-import info.nightscout.androidaps.database.entities.TemporaryTarget
 import info.nightscout.androidaps.database.entities.UserEntry.Action
 import info.nightscout.androidaps.database.entities.UserEntry.Sources
 import info.nightscout.androidaps.database.interfaces.end
 import info.nightscout.androidaps.databinding.OverviewFragmentBinding
 import info.nightscout.androidaps.dialogs.*
-import info.nightscout.androidaps.events.*
+import info.nightscout.androidaps.events.EventAcceptOpenLoopChange
+import info.nightscout.androidaps.events.EventEffectiveProfileSwitchChanged
+import info.nightscout.androidaps.events.EventExtendedBolusChange
+import info.nightscout.androidaps.events.EventMobileToWear
+import info.nightscout.androidaps.events.EventNewBG
+import info.nightscout.androidaps.events.EventPreferenceChange
+import info.nightscout.androidaps.events.EventPumpStatusChanged
+import info.nightscout.androidaps.events.EventRefreshOverview
+import info.nightscout.androidaps.events.EventScale
+import info.nightscout.androidaps.events.EventTempBasalChange
+import info.nightscout.androidaps.events.EventTempTargetChange
 import info.nightscout.androidaps.extensions.directionToIcon
 import info.nightscout.androidaps.extensions.runOnUiThread
 import info.nightscout.androidaps.extensions.toVisibility
 import info.nightscout.androidaps.extensions.valueToUnitsString
-import info.nightscout.androidaps.interfaces.*
+import info.nightscout.androidaps.interfaces.ActivePlugin
+import info.nightscout.androidaps.interfaces.BuildHelper
+import info.nightscout.androidaps.interfaces.CommandQueue
+import info.nightscout.androidaps.interfaces.Config
+import info.nightscout.androidaps.interfaces.Constraint
+import info.nightscout.androidaps.interfaces.GlucoseUnit
+import info.nightscout.androidaps.interfaces.IobCobCalculator
+import info.nightscout.androidaps.interfaces.Loop
+import info.nightscout.androidaps.interfaces.PluginBase
+import info.nightscout.androidaps.interfaces.Profile
+import info.nightscout.androidaps.interfaces.ProfileFunction
+import info.nightscout.androidaps.interfaces.ResourceHelper
 import info.nightscout.androidaps.logging.UserEntryLogger
 import info.nightscout.androidaps.plugins.aps.loop.events.EventNewOpenLoopNotification
 import info.nightscout.androidaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
@@ -68,10 +88,10 @@ import info.nightscout.androidaps.skins.SkinProvider
 import info.nightscout.androidaps.utils.DateUtil
 import info.nightscout.androidaps.utils.DefaultValueHelper
 import info.nightscout.androidaps.utils.FabricPrivacy
+import info.nightscout.androidaps.utils.JsonHelper
 import info.nightscout.androidaps.utils.ToastUtils
 import info.nightscout.androidaps.utils.TrendCalculator
 import info.nightscout.androidaps.utils.alertDialogs.OKDialog
-import info.nightscout.androidaps.interfaces.BuildHelper
 import info.nightscout.androidaps.utils.protection.ProtectionCheck
 import info.nightscout.androidaps.utils.rx.AapsSchedulers
 import info.nightscout.androidaps.utils.ui.SingleClickButton
@@ -82,7 +102,7 @@ import info.nightscout.shared.sharedPreferences.SP
 import info.nightscout.shared.weardata.EventData
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
-import java.util.*
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.abs
@@ -348,23 +368,28 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     activity,
                     ProtectionCheck.Protection.BOLUS,
                     UIRunnable { if (isAdded) TreatmentDialog().show(childFragmentManager, "Overview") })
+
                 R.id.wizard_button       -> protectionCheck.queryProtection(
                     activity,
                     ProtectionCheck.Protection.BOLUS,
                     UIRunnable { if (isAdded) WizardDialog().show(childFragmentManager, "Overview") })
+
                 R.id.insulin_button      -> protectionCheck.queryProtection(
                     activity,
                     ProtectionCheck.Protection.BOLUS,
                     UIRunnable { if (isAdded) InsulinDialog().show(childFragmentManager, "Overview") })
+
                 R.id.quick_wizard_button -> protectionCheck.queryProtection(activity, ProtectionCheck.Protection.BOLUS, UIRunnable { if (isAdded) onClickQuickWizard() })
                 R.id.carbs_button        -> protectionCheck.queryProtection(
                     activity,
                     ProtectionCheck.Protection.BOLUS,
                     UIRunnable { if (isAdded) CarbsDialog().show(childFragmentManager, "Overview") })
+
                 R.id.en_button        -> protectionCheck.queryProtection(
                     activity,
                     ProtectionCheck.Protection.BOLUS,
                     UIRunnable { ENTempTargetDialog().show(childFragmentManager, "Overview") })
+
                 R.id.temp_target         -> protectionCheck.queryProtection(
                     activity,
                     ProtectionCheck.Protection.BOLUS,
@@ -386,7 +411,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                         dexcomMediator.findDexcomPackageName()?.let {
                             openCgmApp(it)
                         }
-                            ?: ToastUtils.showToastInUiThread(activity, rh.gs(R.string.dexcom_app_not_installed))
+                            ?: ToastUtils.infoToast(activity, rh.gs(R.string.dexcom_app_not_installed))
                     }
                 }
 
@@ -402,9 +427,9 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                                         .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                                 )
                             }
-                                ?: ToastUtils.showToastInUiThread(activity, rh.gs(R.string.dexcom_app_not_installed))
+                                ?: ToastUtils.infoToast(activity, rh.gs(R.string.dexcom_app_not_installed))
                         } catch (e: ActivityNotFoundException) {
-                            ToastUtils.showToastInUiThread(activity, rh.gs(R.string.g5appnotdetected))
+                            ToastUtils.infoToast(activity, rh.gs(R.string.g5appnotdetected))
                         }
                     }
                 }
@@ -423,7 +448,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                                                                       uel.log(Action.ACCEPTS_TEMP_BASAL, Sources.Overview)
                                                                       (context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager?)?.cancel(Constants.notificationID)
                                                                       rxBus.send(EventMobileToWear(EventData.CancelNotification(dateUtil.now())))
-                                                                      Thread { loop.acceptChangeRequest() }.start()
+                                                                      handler.post { loop.acceptChangeRequest() }
                                                                       binding.buttonsLayout.acceptTempButton.visibility = View.GONE
                                                                   })
                                 })
@@ -611,7 +636,6 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
     private fun processAps() {
         val pump = activePlugin.activePump
-        val profile = profileFunction.getProfile()
 
         // aps mode
         val closedLoopEnabled = constraintChecker.isClosedLoopAllowed()
@@ -1093,32 +1117,22 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             binding.infoLayout.sensitivity.visibility = View.GONE
         }
 
-        var variableSens = 0.0
-        try {
-            if (config.NSCLIENT) {
-                val suggested = nsDeviceStatus.getAPSResult(injector).json
-                if (suggested?.has("variable_sens") == true)
-                    variableSens = suggested.getDouble("variable_sens");
-            }
-            else {
-                val request = loop.lastRun?.request
-                if (request is DetermineBasalResultSMB)
-                    variableSens = request.variableSens ?: 0.0
-            }
-        }
-        catch (e: Exception) { }
+        val profile = profileFunction.getProfile()
+        val request = loop.lastRun?.request
+        val isfMgdl = profile?.getIsfMgdl()
+        val variableSens =
+            if (config.APS && request is DetermineBasalResultSMB) request.variableSens ?: 0.0
+            else if (config.NSCLIENT) JsonHelper.safeGetDouble(nsDeviceStatus.getAPSResult(injector).json, "variable_sens")
+            else 0.0
 
-        if (variableSens > 0) {
-            val isfMgdl = profileFunction.getProfile()?.getIsfMgdl()
-            if (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null) {
-                binding.infoLayout.variableSensitivity.text =
-                    String.format(
-                        Locale.getDefault(), "%1$.1f→%2$.1f",
-                        Profile.toUnits(isfMgdl, isfMgdl * Constants.MGDL_TO_MMOLL, profileFunction.getUnits()),
-                        Profile.toUnits(variableSens, variableSens * Constants.MGDL_TO_MMOLL, profileFunction.getUnits())
-                    )
-                binding.infoLayout.variableSensitivity.visibility = View.VISIBLE
-            } else binding.infoLayout.variableSensitivity.visibility = View.GONE
+        if (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null) {
+            binding.infoLayout.variableSensitivity.text =
+                String.format(
+                    Locale.getDefault(), "%1$.1f→%2$.1f",
+                    Profile.toUnits(isfMgdl, isfMgdl * Constants.MGDL_TO_MMOLL, profileFunction.getUnits()),
+                    Profile.toUnits(variableSens, variableSens * Constants.MGDL_TO_MMOLL, profileFunction.getUnits())
+                )
+            binding.infoLayout.variableSensitivity.visibility = View.VISIBLE
         } else binding.infoLayout.variableSensitivity.visibility = View.GONE
     }
 

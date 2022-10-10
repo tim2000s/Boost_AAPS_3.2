@@ -5,7 +5,7 @@
 
     <PreferenceCategory
         android:key="@string/key_openapssmb_settings"
-        android:title="@string/openaps_smb_dynamic_isf"
+        android:title="@string/openapssmb"
         app:initialExpandedChildrenCount="0">
 
         <info.nightscout.androidaps.plugins.aps.loop.LoopVariantPreference
