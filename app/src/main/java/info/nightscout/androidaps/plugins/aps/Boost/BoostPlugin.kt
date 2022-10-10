@@ -22,6 +22,7 @@ import info.nightscout.androidaps.utils.HardLimits
 import info.nightscout.androidaps.utils.Profiler
 import info.nightscout.androidaps.utils.Round
 import info.nightscout.androidaps.interfaces.ResourceHelper
+import info.nightscout.androidaps.plugins.aps.OpenAPSFragment
 import info.nightscout.androidaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
 import info.nightscout.shared.logging.AAPSLogger
 import info.nightscout.shared.logging.LTag
@@ -50,15 +51,15 @@ class BoostPlugin @Inject constructor(
     private val buildHelper: BuildHelper
 ) : PluginBase(
     PluginDescription()
-    .mainType(PluginType.APS)
-    .fragmentClass(BoostFragment::class.java.name)
-    .pluginIcon(R.drawable.ic_generic_icon)
-    .pluginName(R.string.Boost)
-    .shortName(R.string.Boost_shortname)
-    .preferencesId(R.xml.pref_boost)
-    .description(R.string.description_Boost)
-    .setDefault(false)
-    .showInList(buildHelper.isEngineeringMode()),
+        .mainType(PluginType.APS)
+        .fragmentClass(OpenAPSFragment::class.java.name)
+        .pluginIcon(R.drawable.ic_generic_icon)
+        .pluginName(R.string.Boost)
+        .shortName(R.string.Boost_shortname)
+        .preferencesId(R.xml.pref_boost)
+        .description(R.string.description_Boost)
+        .setDefault(false)
+        .showInList(buildHelper.isEngineeringMode()),
     aapsLogger, rh, injector
 ), APS, Constraints {
 

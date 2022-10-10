@@ -24,6 +24,7 @@ import info.nightscout.androidaps.utils.HardLimits
 import info.nightscout.androidaps.utils.Profiler
 import info.nightscout.androidaps.utils.Round
 import info.nightscout.androidaps.interfaces.ResourceHelper
+import info.nightscout.androidaps.plugins.aps.OpenAPSFragment
 import info.nightscout.androidaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
 import info.nightscout.shared.sharedPreferences.SP
 import javax.inject.Inject
@@ -49,13 +50,13 @@ class AIMIPlugin @Inject constructor(
     private val glucoseStatusProvider: GlucoseStatusProvider
 )  : PluginBase(
     PluginDescription()
-    .mainType(PluginType.APS)
-    .fragmentClass(AIMIFragment::class.java.name)
-    .pluginIcon(R.drawable.ic_generic_icon)
-    .pluginName(R.string.fulluam)
-    .shortName(R.string.fulluam_shortname)
-    .preferencesId(R.xml.pref_fulluam)
-    .description(R.string.description_fulluam),
+        .mainType(PluginType.APS)
+        .fragmentClass(OpenAPSFragment::class.java.name)
+        .pluginIcon(R.drawable.ic_generic_icon)
+        .pluginName(R.string.fulluam)
+        .shortName(R.string.fulluam_shortname)
+        .preferencesId(R.xml.pref_fulluam)
+        .description(R.string.description_fulluam),
     aapsLogger, resourceHelper, injector
 ), APS, Constraints {
 

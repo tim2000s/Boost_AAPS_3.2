@@ -22,6 +22,7 @@ import info.nightscout.androidaps.utils.HardLimits
 import info.nightscout.androidaps.utils.Profiler
 import info.nightscout.androidaps.utils.Round
 import info.nightscout.androidaps.interfaces.ResourceHelper
+import info.nightscout.androidaps.plugins.aps.OpenAPSFragment
 import info.nightscout.androidaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
 import info.nightscout.shared.logging.AAPSLogger
 import info.nightscout.shared.logging.LTag
@@ -50,7 +51,7 @@ class ENPlugin @Inject constructor(
 ) : PluginBase(
     PluginDescription()
         .mainType(PluginType.APS)
-        .fragmentClass(ENFragment::class.java.name)
+        .fragmentClass(OpenAPSFragment::class.java.name)
         .pluginIcon(R.drawable.ic_generic_icon)
         .pluginName(R.string.EN)
         .shortName(R.string.EN_shortname)

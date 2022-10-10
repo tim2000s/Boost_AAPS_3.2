@@ -50,9 +50,6 @@ import info.nightscout.androidaps.plugins.profile.local.LocalProfileFragment
 import info.nightscout.androidaps.plugins.pump.virtual.VirtualPumpFragment
 import info.nightscout.androidaps.plugins.source.BGSourceFragment
 import info.nightscout.androidaps.dialogs.*
-import info.nightscout.androidaps.plugins.aps.Boost.BoostFragment
-import info.nightscout.androidaps.plugins.aps.AIMI.AIMIFragment
-import info.nightscout.androidaps.plugins.aps.EN.ENFragment
 import info.nightscout.androidaps.utils.protection.PasswordCheck
 
 @Module
@@ -73,9 +70,6 @@ abstract class FragmentsModule {
     @ContributesAndroidInjector abstract fun contributesLocalProfileFragment(): LocalProfileFragment
     @ContributesAndroidInjector abstract fun contributesObjectivesFragment(): ObjectivesFragment
     @ContributesAndroidInjector abstract fun contributesOpenAPSFragment(): OpenAPSFragment
-    @ContributesAndroidInjector abstract fun contributesBoostFragment(): BoostFragment
-    @ContributesAndroidInjector abstract fun contributesENFragment(): ENFragment
-    @ContributesAndroidInjector abstract fun contributesFullUAMFragment(): AIMIFragment
     @ContributesAndroidInjector abstract fun contributesOverviewFragment(): OverviewFragment
     @ContributesAndroidInjector abstract fun contributesLoopFragment(): LoopFragment
     @ContributesAndroidInjector abstract fun contributesMaintenanceFragment(): MaintenanceFragment
