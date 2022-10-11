@@ -252,7 +252,7 @@ class LoopPlugin @Inject constructor(
                 Analytics.isEnabled().thenAccept {
                     if(it) {
                         val properties: MutableMap<String, String> = HashMap()
-                        properties["APSPlugin"] = usedAPS.name
+                        properties["APSPlugin"] = usedAPS::javaClass.name
                         Analytics.trackEvent("Loop", properties)
                     }
                 }
