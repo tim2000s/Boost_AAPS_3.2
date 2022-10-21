@@ -1126,7 +1126,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             else if (config.NSCLIENT) JsonHelper.safeGetDouble(nsDeviceStatus.getAPSResult(injector).json, "variable_sens")
             else 0.0
 
-        if (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null) {
+        if (variableSens != 0.0 && isfMgdl != null) {
             binding.infoLayout.variableSensitivity.text =
                 String.format(
                     Locale.getDefault(), "%1$.1f→%2$.1f",
