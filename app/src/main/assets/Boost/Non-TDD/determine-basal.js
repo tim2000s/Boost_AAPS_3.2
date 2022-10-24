@@ -813,7 +813,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             // for IOBpredBGs, predicted deviation impact drops linearly from current deviation down to zero
             // over 60 minutes (data points every 5m)
             var predDev = ci * (1 - Math.min(1, IOBpredBGs.length / (60 / 5)));
-            IOBpredBG = IOBpredBGs[IOBpredBGs.length - 1] + predBGI + predDev;
+            //IOBpredBG = IOBpredBGs[IOBpredBGs.length - 1] + predBGI + predDev;
             IOBpredBG = IOBpredBGs[IOBpredBGs.length - 1] + (round((-iobTick.activity * getISFforBG(Math.max(IOBpredBGs[IOBpredBGs.length - 1], 39)) * 5), 2)) + predDev;
             // calculate predBGs with long zero temp without deviations
             var ZTpredBG = ZTpredBGs[ZTpredBGs.length - 1] + (round((-iobTick.iobWithZeroTemp.activity * getISFforBG(Math.max(ZTpredBGs[ZTpredBGs.length - 1], 39)) * 5), 2));
@@ -861,9 +861,10 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
             // set minPredBGs starting when currently-dosed insulin activity will peak
             // look ahead 60m (regardless of insulin type) so as to be less aggressive on slower insulins
-            var insulinPeakTime = 60;
-            // add 30m to allow for insulin delivery (SMBs or temps)
-            insulinPeakTime = 90;
+
+            //var insulinPeakTime = 60;
+            // change look ahead to use actual peak time from config and add 30m to allow for insulin delivery (SMBs or temps)
+            insulinPeakTime = insulinPeak + 30;
             var insulinPeak5m = (insulinPeakTime / 60) * 12;
             //console.error(insulinPeakTime, insulinPeak5m, profile.insulinPeakTime, profile.curve);
 
@@ -1537,7 +1538,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                      rT.reason += "100% of insulinRequired "+insulinReq;
                   }*/
             //If no other criteria are met, and delta is positive, scale microbolus size up to 1.0x insulin required from bg > 108 to bg = 180.
-            else if (bg > 108 && bg < 181 && glucose_status.delta > 3 && delta_accl > 0 && eventualBG > target_bg && iob_data.iob < boostMaxIOB && now1 >= boost_start && now1 < boost_end && profile.enableBoostPercentScale === true) {
+           else if (bg > 108 && bg < 181 && glucose_status.delta > 3 && delta_accl > 0 && eventualBG > target_bg && iob_data.iob < boostMaxIOB && now1 >= boost_start && now1 < boost_end && profile.enableBoostPercentScale === true) {
                 if (insulinReq > boostMaxIOB - iob_data.iob) {
                     insulinReq = boostMaxIOB - iob_data.iob;
                 }
