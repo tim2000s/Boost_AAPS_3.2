@@ -579,6 +579,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         //SR_TDD = Math.max(SR_TDD, profile.autosens_min);
         // Use SR_TDD when no TT, profile switch
         sensitivityRatio = (profile.temptargetSet && !ENTTActive || profile.percent != 100 ?  1 : SR_TDD);
+        // when SR_TDD shows sensitivity but TIR is resistant reset sensitivityRatio to 100%
+        sensitivityRatio = (TIR_sens > 1 && sensitivityRatio < 1 ?  1 : sensitivityRatio);
         // adjust basal later
         // basal = profile.current_basal * sensitivityRatio;
         // adjust sens_normalTarget below with TIR_sens
@@ -1238,8 +1240,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     if (lastCOBpredBG > 0 && eventualBG == lastCOBpredBG) sens_predType = "COB"; // if COB prediction is present eventualBG aligns
     if (UAMBGPreBolus || UAMCOBPreBolus) sens_predType = "UAM+"; // force UAM+ when appropriate
 
-    // UAM+ predtype when sufficient delta and no COB
-    if ((profile.EN_UAMPlus_NoENW || ENWindowOK) && ENtimeOK && delta >= 5 && glucose_status.short_avgdelta >= 3 && !COB) {
+    // UAM+ predtype when sufficient delta and not a COB prediction
+    //if ((profile.EN_UAMPlus_NoENW || ENWindowOK) && ENtimeOK && delta >= 5 && glucose_status.short_avgdelta >= 3 && !COB) {
+    if ((profile.EN_UAMPlus_NoENW || ENWindowOK) && ENtimeOK && delta >= 5 && glucose_status.short_avgdelta >= 3 && sens_predType != "COB") {
         if (DeltaPctS > 1 && DeltaPctL > 1.5) sens_predType = "UAM+"; // with acceleration
         if (eventualBG > ISFbgMax && bg < ISFbgMax) sens_predType = "UAM+";    // when predicted high and bg is lower
     }
@@ -1268,8 +1271,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             // SAFETY: UAM+ fast delta with higher bg lowers eBGw
             eBGweight = (bg > ISFbgMax && delta >= 15 ? 0.30 : eBGweight);
             AllowZT = false; // disable ZT for UAM+
-            // when no ENW and UAM+ at normalTarget + 1mmol enable ENW
-            if (!ENWindowOK && ENactive && bg > normalTarget + 18) ENWindowOK = true;
+
+            // when no ENW and UAM+ enable ENW when bg is higher or bg is rising fast
+            if (!ENWindowOK && ENactive) ENWindowOK = (bg > normalTarget + 18 || bg < ISFbgMax && delta >=15);
         }
 
         // UAM predictions, no COB or GhostCOB
