@@ -94,7 +94,7 @@ class GraphData(
         maxY = maxOf(maxY, overviewData.maxTreatmentsValue)
         addSeries(overviewData.treatmentsSeries)
         overviewData.treatmentsSeries.setOnDataPointTapListener { _, dataPoint ->
-            if (dataPoint is BolusDataPoint) ToastUtils.infoToast(context, dataPoint.label)
+            if (dataPoint is BolusDataPoint) ToastUtils.graphicalToast(context, dataPoint.label, info.nightscout.androidaps.core.R.drawable.ic_bolus, true)
         }
     }
 
