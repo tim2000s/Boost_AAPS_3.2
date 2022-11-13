@@ -298,7 +298,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
        ************************ */
        console.error("--------------");
        console.error("\n");
-       console.error( " AIMI version 22 Beta b");
+       console.error( " AIMI version 22 Beta c");
        console.error("\n");
        console.error("--------------");
     var TDD = profile.TDD;
@@ -309,7 +309,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var last2HourTIRAbove = profile.last2HourTIRAbove;
     var tddlastHaverage = profile.tddlastHaverage;
     var aimisensitivity = profile.aimisensitivity;
-    var AIMI_UAM = profile.enable_AIMI_UAM;
+    var AIMI_UAM = profile.temptargetSet && target_bg >= 140 ? false : profile.enable_AIMI_UAM;
     var countSMB = meal_data.countSMB;
     var lastbolusAge = round(( new Date(systemTime).getTime() - meal_data.lastBolusNormalTime ) / 60000,1);
     var enlog = "";
@@ -1132,7 +1132,7 @@ if (AIMI_UAM && AIMI_BreakFastLight && now >= AIMI_BL_StartTime && now <= AIMI_B
 }
                 console.error("\n");
                 console.log("--------------");
-                console.log(" AAPS-3.1.0.3-dev-b-AIMI V22b 06/10/2022 ");
+                console.log(" AAPS-3.1.0.3-dev-c-AIMI V22b 12/11/2022 ");
                 console.log("--------------");
                 if ( meal_data.TDDAIMI3 ){
                 console.error("TriggerPredSMB_future_sens_45 : ",TriggerPredSMB_future_sens_45," aimi_bg : ",aimi_bg," aimi_delta : ",aimi_delta);
@@ -1298,7 +1298,7 @@ if (AIMI_UAM && AIMI_BreakFastLight && now >= AIMI_BL_StartTime && now <= AIMI_B
         rT.reason += ", Dia : "+aimiDIA+" minutes ; ";
         rT.reason += " aimismb : "+aimismb+" ; ";
 
-    rT.reason += "\nDEVb-AIMI-V22b-06/10/22 ";
+    rT.reason += "\nDEVc-AIMI-V22b-12/11/22 ";
     rT.reason += "; ";
 
     // use naive_eventualBG if above 40, but switch to minGuardBG if both eventualBGs hit floor of 39
@@ -1590,17 +1590,9 @@ if (AIMI_UAM && AIMI_BreakFastLight && now >= AIMI_BL_StartTime && now <= AIMI_B
             //var insulinReqPCT = profile.UAM_InsulinReq/100;
             //var InsulinTDD = (TDD * 0.6) / 24;
             var maxBolusTT = maxBolus;
-            var AIMI_UAM_CAP = profile.key_use_AIMI_CAP;
-            /*if (iTime < iTimeProfile && aimismb === true){
-            maxBolusTT = AIMI_UAM_CAP;
-            maxBolus = AIMI_UAM_CAP;
-            }*/
+            var AIMI_UAM_CAP = (profile.key_use_AIMI_CAP/100) * profile.current_basal;
+            rT.reason += ", Max Smb Size = "+AIMI_UAM_CAP;
             var roundSMBTo = 1 / profile.bolus_increment;
-
-            //var mealM = meal_data.AIMI_lastCarbUnit / 3;
-            //var mealIns = mealM / profile.carb_ratio;
-            //var mealIns = mealM / eRatio ;
-            //var carbslimitsmb = meal_data.AIMI_lastCarbUnit / profile.carb_ratio;
 
             var limitIOB = Math.min((0.90*max_iob),((aimi_bg * 1.618) / sens));
             console.log("####limitIOB : "+limitIOB+"\n")
@@ -1627,9 +1619,10 @@ if (AIMI_UAM && AIMI_BreakFastLight && now >= AIMI_BL_StartTime && now <= AIMI_B
             var  microBolus = round(((profile.current_basal*5/60)*30)*smbRatio,2);
             UAMAIMIReason += ", run b30SMB && HypoPredBG > 90, ";
 
-            }else*/ if (iTime > 20 && iTime < 25  && aimi_delta > 0 && !AIMI_BreakFastLight && aimismb === true){//#MT AIMI
+            }else*/ if (iTime > 20 && iTime < 26  && aimi_delta > 0 && !AIMI_BreakFastLight && aimismb === true && !profile.temptargetSet){//#MT AIMI
                 var microBolus = LastManualBolus / 1.618;
                 microBolus = (microBolus === AIMI_lastBolusSMBUnits ? 0  : microBolus);
+                microBolus = Math.min(AIMI_UAM_CAP,microBolus);
                 UAMAIMIReason += "First SMB after Prebolus("+LastManualBolus+" U) : "+microBolus+" U; ";
 
             }else if (iTime < iTimeProfile && AIMI_UAM && AIMI_BreakFastLight && now >= AIMI_BL_StartTime && now <= AIMI_BL_EndTime && ! profile.temptargetSet && aimi_delta > 0 && aimismb === true && glucose_status.long_avgdelta > 0){

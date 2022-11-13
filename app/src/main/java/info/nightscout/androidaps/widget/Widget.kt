@@ -250,7 +250,7 @@ class Widget : AppWidgetProvider() {
         if (request is DetermineBasalResultSMB) {
             val isfMgdl = profileFunction.getProfile()?.getIsfMgdl()
             val variableSens = request.variableSens
-            if (variableSens != isfMgdl && variableSens != null && isfMgdl != null) {
+            if (variableSens != null && isfMgdl != null) {
                 views.setTextViewText(
                     R.id.variable_sensitivity,
                     String.format(

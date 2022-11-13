@@ -261,6 +261,15 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var tdd_8 = meal_data.TDDLast8;
     var tdd8to4 = meal_data.TDD4to8;
     var tdd_last8_wt = (((1.4 * tdd_4) + (0.6 * tdd8to4)) * 3);
+
+    if ( tdd_last8_wt < (0.75 * tdd7)) {
+        tdd7 = ( ( tdd_last8_wt / tdd7 ) * tdd7 );
+        console.log("Current TDD use below 75% of TDD7; adjusting TDD7 down");
+    }
+    else {
+        console.log("Normal TDD calculation used");
+    }
+
     var tdd8_exp = (3 * tdd_8);
         console.log("TDD:                                ");
         console.log("  8h extrapolated: " + round(tdd8_exp, 2));
@@ -298,7 +307,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     console.log("For " + profile.insulinType + " (insulin peak: " + profile.insulinPeak + ") divisor is: " + ins_val + "; ");
 
-    var sens_normalTarget = profile.sens;
+    var profileSwitch = profile.profilePercent;
+    var sens_normalTarget = profile.sens * (profileSwitch / 100);
     var getISFforBG = function (bg) {
         var sens_BG = Math.log((bg / ins_val) + 1);
         var scaler = sens_BG / Math.log((normalTarget / ins_val) + 1);
@@ -803,7 +813,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             // for IOBpredBGs, predicted deviation impact drops linearly from current deviation down to zero
             // over 60 minutes (data points every 5m)
             var predDev = ci * (1 - Math.min(1, IOBpredBGs.length / (60 / 5)));
-            IOBpredBG = IOBpredBGs[IOBpredBGs.length - 1] + predBGI + predDev;
+            //IOBpredBG = IOBpredBGs[IOBpredBGs.length - 1] + predBGI + predDev;
             IOBpredBG = IOBpredBGs[IOBpredBGs.length - 1] + (round((-iobTick.activity * getISFforBG(Math.max(IOBpredBGs[IOBpredBGs.length - 1], 39)) * 5), 2)) + predDev;
             // calculate predBGs with long zero temp without deviations
             var ZTpredBG = ZTpredBGs[ZTpredBGs.length - 1] + (round((-iobTick.iobWithZeroTemp.activity * getISFforBG(Math.max(ZTpredBGs[ZTpredBGs.length - 1], 39)) * 5), 2));
@@ -851,9 +861,10 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
             // set minPredBGs starting when currently-dosed insulin activity will peak
             // look ahead 60m (regardless of insulin type) so as to be less aggressive on slower insulins
-            var insulinPeakTime = 60;
-            // add 30m to allow for insulin delivery (SMBs or temps)
-            insulinPeakTime = 90;
+
+            //var insulinPeakTime = 60;
+            // change look ahead to use actual peak time from config and add 30m to allow for insulin delivery (SMBs or temps)
+            insulinPeakTime = insulinPeak + 30;
             var insulinPeak5m = (insulinPeakTime / 60) * 12;
             //console.error(insulinPeakTime, insulinPeak5m, profile.insulinPeakTime, profile.curve);
 
@@ -944,13 +955,18 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     console.log("EventualBG is" + eventualBG + " ;");
 
+    var now1 = new Date().getHours();
+    var boost_start = profile.boost_start;
+    var boost_end = profile.boost_end;
+
+
     if (meal_data.mealCOB > 0 && delta_accl > 0) {
 
         var future_sens = getISFforBG((eventualBG * 0.75) + (bg * 0.25));
         console.log("Future state sensitivity is " + future_sens + " weighted on eventual BG due to COB");
         rT.reason += "Dosing sensitivity: " + future_sens + " weighted on predicted BG due to COB;";
     }
-    else if (glucose_status.delta > 4 && delta_accl > 10 && bg < 180 && eventualBG > bg) {
+    else if (glucose_status.delta > 4 && delta_accl > 10 && bg < 180 && eventualBG > bg && now1 >= boost_start && now1 < boost_end ) {
         var future_sens = getISFforBG((eventualBG * 0.5) + (bg * 0.5));
         console.log("Future state sensitivity is " + future_sens + " weighted on predicted bg due to increasing deltas");
         rT.reason += "Dosing sensitivity: " + future_sens + " weighted on predicted BG due to delta;";
@@ -979,7 +995,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
     else {
         var future_sens = getISFforBG(Math.max(minPredBG, 1));
-        console.log("Future state sensitivity is " + future_sens + " based on min predited bg due to -ve delta");
+        console.log("Future state sensitivity is " + future_sens + " based on min predicted bg due to -ve delta");
         rT.reason += "Dosing sensitivity: " + future_sens + " using eventual BG;";
     }
     //future_sens = future_sens * circadian_sensitivity;
@@ -1408,7 +1424,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             console.error("Max IOB from automated boluses = " + boostMaxIOB + "; ");
             console.error("            ");
 
-            var now1 = new Date().getHours();
+                //var now1 = new Date().getHours();
 
             if (now1 >= profile.boost_start && now1 <= profile.boost_end) {
                 console.error("Hours are now " + now1 + ", so UAM Boost is enabled;");
@@ -1416,8 +1432,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 console.error("Hours are now " + now1 + ", so UAM Boost is disabled;");
             }
 
-            var boost_start = profile.boost_start;
-            var boost_end = profile.boost_end;
+                /*var boost_start = profile.boost_start;
+                var boost_end = profile.boost_end;*/
             var boost_max = profile.boost_bolus;
             console.error("            ");
             console.error("Max automated bolus is " + boost_max + "; ");
@@ -1483,7 +1499,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                     boostInsulinReq = boostInsulinReq;
                 }
                 if (delta_accl > 1) {
-                    insulinReqPCT = 1;
+                    insulinReqPCT = insulinDivisor;
                 }
                 else {
                     insulinReqPCT;
@@ -1522,7 +1538,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                      rT.reason += "100% of insulinRequired "+insulinReq;
                   }*/
             //If no other criteria are met, and delta is positive, scale microbolus size up to 1.0x insulin required from bg > 108 to bg = 180.
-            else if (bg > 108 && bg < 181 && glucose_status.delta > 3 && delta_accl > 0 && eventualBG > target_bg && iob_data.iob < boostMaxIOB && now1 >= boost_start && now1 < boost_end && profile.enableBoostPercentScale === true) {
+           else if (bg > 108 && bg < 181 && glucose_status.delta > 3 && delta_accl > 0 && eventualBG > target_bg && iob_data.iob < boostMaxIOB && now1 >= boost_start && now1 < boost_end && profile.enableBoostPercentScale === true) {
                 if (insulinReq > boostMaxIOB - iob_data.iob) {
                     insulinReq = boostMaxIOB - iob_data.iob;
                 }

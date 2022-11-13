@@ -255,7 +255,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     //*********************************************************************************
 
         console.error("---------------------------------------------------------");
-        console.error( "     Boost version 3.7 ");
+        console.error( "     Boost version: Aggressive Mods 1.3                 ");
         console.error("---------------------------------------------------------");
 
     if (meal_data.TDDAIMI7){
@@ -273,12 +273,17 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         var tdd8to4 = meal_data.TDD4to8;
         var tdd_last8_wt = ( ( ( 1.4 * tdd_4) + ( 0.6 * tdd8to4) ) * 3 );
         var tdd8_exp = ( 3 * tdd_8 );
-        console.log("8 hour extrapolated = " +tdd8_exp+ "; ");
+        //console.log("8 hour extrapolated = " +tdd8_exp+ "; ");
 
+
+        if ( tdd_last8_wt < (0.75 * tdd7)) {
+            tdd7 = tdd_last8_wt + ( ( tdd_last8_wt / tdd7 ) * ( tdd7 - tdd_last8_wt ) );
+            console.log(" Current TDD use below 75% of TDD7; adjusting TDD7 down to: "+tdd7+"; ");
+        }
+        else {
+            console.log("Normal TDD calculation used");
+        }
         TDD = ( tdd_last8_wt * 0.33 ) + ( tdd7 * 0.34 ) + (tdd1 * 0.33);
-        console.log("TDD = " +TDD+ " using rolling 8h Total extrapolation + TDD7 (60/40); ");
-        //var TDD = (tdd7 * 0.4) + (tdd_24 * 0.6);
-
        console.error("                                 ");
        //console.error("7-day average TDD is: " +tdd7+ "; ");
        console.error("Rolling 8 hours weight average: "+tdd_last8_wt+"; ");
@@ -288,7 +293,15 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     var dynISFadjust = profile.DynISFAdjust;
     var dynISFadjust = ( dynISFadjust / 100 );
+
+    var profileSwitch = profile.profilePercent;
+
+    console.error("Current Profile percent: "+profileSwitch+"; ");
+
+    dynISFadjust = dynISFadjust * (profileSwitch / 100);
     var TDD = (dynISFadjust * TDD);
+
+    console.error("Adjusted TDD = "+TDD+"; ");
 
     var insulin = profile.insulinType;
 
@@ -668,7 +681,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             , 'deliverAt' : deliverAt // The time at which the microbolus should be delivered
             , 'sensitivityRatio' : sensitivityRatio // autosens ratio (fraction of normal basal)
             , 'Total Daily Dose 7-day Ave' : tdd7 //7 day average tdd
-            , 'variable_sens': sens
+            , 'variable_sens' : sens
         };
 
     // generate predicted future BGs based on IOB, COB, and current absorption rate
@@ -873,9 +886,10 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
             // set minPredBGs starting when currently-dosed insulin activity will peak
             // look ahead 60m (regardless of insulin type) so as to be less aggressive on slower insulins
-            var insulinPeakTime = 60;
-            // add 30m to allow for insulin delivery (SMBs or temps)
-            insulinPeakTime = 90;
+
+            //var insulinPeakTime = 60;
+            // change look ahead to use actual peak time from config and add 30m to allow for insulin delivery (SMBs or temps)
+            insulinPeakTime = insulinPeak + 30;
             var insulinPeak5m = (insulinPeakTime/60)*12;
             //console.error(insulinPeakTime, insulinPeak5m, profile.insulinPeakTime, profile.curve);
 
@@ -966,13 +980,18 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
         console.log("EventualBG is" +eventualBG+" ;");
 
+    var now1 = new Date().getHours();
+    var boost_start = profile.boost_start;
+    var boost_end = profile.boost_end;
+
+
         if( meal_data.mealCOB > 0 && delta_accl > 0 ) {
 
             var future_sens = ( 1800 / (Math.log((((eventualBG * 0.75) + (bg * 0.25))/ins_val)+1)*TDD));
             console.log("Future state sensitivity is " +future_sens+" weighted on eventual BG due to COB");
             rT.reason += "Dosing sensitivity: " +future_sens+" weighted on predicted BG due to COB;";
             }
-        else if( glucose_status.delta > 4 && delta_accl > 10 && bg < 180 && eventualBG > bg ) {
+        else if( glucose_status.delta > 4 && delta_accl > 10 && bg < 180 && eventualBG > bg && now1 >= boost_start && now1 < boost_end ) {
 
             var future_sens = ( 1800 / (Math.log((((eventualBG * 0.5) + (bg * 0.5))/ins_val)+1)*TDD));
             console.log("Future state sensitivity is " +future_sens+" weighted on predicted bg due to increasing deltas");
@@ -1431,7 +1450,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 console.error("Max IOB from automated boluses = "+boostMaxIOB+"; ");
                 console.error("            ");
 
-                var now1 = new Date().getHours();
+                //var now1 = new Date().getHours();
 
                 if (now1 >= profile.boost_start && now1 <= profile.boost_end) {
                     console.error("Hours are now "+now1+", so UAM Boost is enabled;");
@@ -1439,8 +1458,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                     console.error("Hours are now "+now1+", so UAM Boost is disabled;");
                 }
 
-                var boost_start = profile.boost_start;
-                var boost_end = profile.boost_end;
+                /*var boost_start = profile.boost_start;
+                var boost_end = profile.boost_end;*/
                 var boost_max = profile.boost_bolus;
                 console.error("            ");
                 console.error("Max automated bolus is "+boost_max+"; ");

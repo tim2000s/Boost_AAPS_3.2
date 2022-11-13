@@ -362,6 +362,8 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         val enableSensTDD = sp.getBoolean(R.string.key_use_sens_tdd, false)
         this.profile.put("use_sens_TDD", enableSensTDD) // Override profile ISF with TDD ISF if selected in prefs
         this.profile.put("sens_TDD_useProfile", sp.getBoolean(R.string.key_sens_tdd_use_profile, false))
+        val enableSensLCTDD = sp.getBoolean(R.string.key_use_sens_lctdd, false)
+        this.profile.put("use_sens_LCTDD", enableSensLCTDD) // Override profile ISF with LCTDD ISF if selected in prefs
         this.profile.put("sens_TDD_scale",SafeParse.stringToDouble(sp.getString(R.string.key_sens_tdd_scale,"100")))
         this.profile.put("percent", if (profile is ProfileSealed.EPS) profile.value.originalPercentage else 100)
         val enableSRTDD = sp.getBoolean(R.string.key_use_sr_tdd, false)
@@ -373,8 +375,8 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         val TDDLastUpdate =  sp.getLong("TDDLastUpdate",0)
         val TDDHrSinceUpdate = (now - TDDLastUpdate) / 3600000
 
-        if (TDDLastUpdate == 0L || TDDHrSinceUpdate > 12) {
-            // Generate the data for the larger datasets every 12 hours
+        if (TDDLastUpdate == 0L || TDDHrSinceUpdate > 6) {
+            // Generate the data for the larger datasets every 6 hours
             var TDDAvg7d = tddCalculator.averageTDD(tddCalculator.calculate(7))?.totalAmount
             if (TDDAvg7d == 0.0 || TDDAvg7d == null ) TDDAvg7d = ((basalRate * 12)*100)/21
             sp.putDouble("TDDAvg7d", TDDAvg7d)
@@ -382,8 +384,7 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         }
 
         // use stored value where appropriate
-        val TDDAvg7d = sp.getDouble("TDDAvg7d", ((basalRate * 12)*100)/21)
-        this.mealData.put("TDDAvg7d",TDDAvg7d)
+        var TDDAvg7d = sp.getDouble("TDDAvg7d", ((basalRate * 12)*100)/21)
 
         // calculate the rest of the TDD data
         var TDDAvg1d = tddCalculator.averageTDD(tddCalculator.calculate(1))?.totalAmount
@@ -403,6 +404,10 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         val TDDLast8_wt = (((1.4 * TDDLast4h) + (0.6 * TDDLast8hfor4h)) * 3)
         var TDD8h_exp = (3 * TDDLast8h)
 
+        if ( TDDLast8_wt < (0.75 * TDDAvg7d)) TDDAvg7d = TDDLast8_wt + ( ( TDDLast8_wt / TDDAvg7d ) * ( TDDAvg7d - TDDLast8_wt ) )
+
+        this.mealData.put("TDDAvg7d",TDDAvg7d)
+
         val TDD = (TDDLast8_wt * 0.33) + (TDDAvg7d * 0.34) + (TDDAvg1d * 0.33)
         this.mealData.put("TDD", TDD)
 
@@ -420,7 +425,9 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
             sp.putDouble("TDDAvgtoCannula", TDDAvgtoCannula)
         }
         this.mealData.put("TDDAvgtoCannula", TDDAvgtoCannula)
-        val TDDLastCannula = if (lastCannAgeMins > 1440) tddCalculator.calculate(lastCannulaTime, now).totalAmount / (lastCannAgeMins/1440) else TDDAvgtoCannula
+        // val TDDLastCannula = if (lastCannAgeMins > 1440) tddCalculator.calculate(lastCannulaTime, now).totalAmount / (lastCannAgeMins/1440) else TDDAvgtoCannula
+        // val TDDLastCannula = if (lastCannAgeMins > 1440) tddCalculator.calculate(lastCannulaTime, now).totalAmount / (lastCannAgeMins/1440) else (TDDAvgtoCannula * 0.8) + (TDD * 0.2)
+        val TDDLastCannula = if (lastCannAgeMins > 1440) tddCalculator.calculate(lastCannulaTime, now).totalAmount / (lastCannAgeMins/1440) else (TDDAvg7d + TDD) / 2
         this.mealData.put("TDDLastCannula", TDDLastCannula)
 
         this.mealData.put("TDDAvg7d", sp.getDouble("TDDAvg7d", ((basalRate * 12)*100)/21))
@@ -431,10 +438,10 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         val resistancePerHr = sp.getDouble(R.string.en_resistance_per_hour, 0.0)
         this.profile.put("resistancePerHr", sp.getDouble(R.string.en_resistance_per_hour, 0.0))
         if (resistancePerHr > 0) {
-            this.mealData.put("TIRW4H", tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(4, 3, 72.0, 160.0)).abovePct())
-            this.mealData.put("TIRW3H", tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(3, 2, 72.0, 160.0)).abovePct())
-            this.mealData.put("TIRW2H", tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(2, 1, 72.0, 160.0)).abovePct())
-            this.mealData.put("TIRW1H", tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(1, 0, 72.0, 160.0)).abovePct())
+            this.mealData.put("TIRW4H", tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(4, 3, 72.0, 150.0)).abovePct())
+            this.mealData.put("TIRW3H", tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(3, 2, 72.0, 150.0)).abovePct())
+            this.mealData.put("TIRW2H", tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(2, 1, 72.0, 150.0)).abovePct())
+            this.mealData.put("TIRW1H", tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(1, 0, 72.0, 150.0)).abovePct())
         }
 
         // TIR Windows for normalTarget
