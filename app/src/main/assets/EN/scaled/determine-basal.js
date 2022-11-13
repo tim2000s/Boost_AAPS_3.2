@@ -196,7 +196,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
     var profileScale = (profile.use_sens_TDD && profile.sens_TDD_useProfile) ? (100.0 / profile.percent) : 1;
 
-    var sensitivityRatio;
+    var sensitivityRatio = 1;
     var high_temptarget_raises_sensitivity = profile.exercise_mode || profile.high_temptarget_raises_sensitivity;
     var normalTarget = profile.normal_target_bg; // evaluate high/low temptarget against 100, not scheduled target (which might change)
     var halfBasalTarget = (profile.half_basal_exercise_target) ? profile.half_basal_exercise_target : 160;
@@ -517,19 +517,28 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     // TIR_sens - a very simple implementation of autoISF configurable % per hour
     var TIR_sens = 0, TIRH_percent = profile.resistancePerHr/100;
-    if (ENtimeOK && TIRH_percent && bg > 150 && delta >= -4 && delta <= 4) {
+    //if (ENtimeOK && TIRH_percent && bg > 150 && delta >= -4 && delta <= 4) {
+    if (TIRH_percent && bg > 150 && delta >= -4 && delta <= 4) {
         if (meal_data.TIRW1H > 25) TIR_sens = meal_data.TIRW1H / 100;
         if (meal_data.TIRW2H > 0 && TIR_sens == 1) TIR_sens += meal_data.TIRW2H/100;
         if (meal_data.TIRW3H > 0 && TIR_sens == 2) TIR_sens += meal_data.TIRW3H/100;
         if (meal_data.TIRW4H > 0 && TIR_sens == 3) TIR_sens += meal_data.TIRW4H/100;
-    } else if (!ENtimeOK && TIRH_percent && bg > normalTarget + 9 && delta >= -4 && delta <= 10) {
+    //} else if (!ENtimeOK && TIRH_percent && bg > normalTarget + 9 && delta >= -4 && delta <= 10) {
+    } else if (TIRH_percent && bg > normalTarget + (ENtimeOK ? 18 : 9) && delta >= -4 && delta <= (ENtimeOK ? 4 : 10)) {
         if (meal_data.TIRTW1H > 25) TIR_sens = meal_data.TIRTW1H / 100;
         if (meal_data.TIRTW2H > 0 && TIR_sens == 1) TIR_sens += meal_data.TIRTW2H / 100;
         if (meal_data.TIRTW3H > 0 && TIR_sens == 2) TIR_sens += meal_data.TIRTW3H / 100;
         if (meal_data.TIRTW4H > 0 && TIR_sens == 3) TIR_sens += meal_data.TIRTW4H / 100;
+    } else if (TIRH_percent && bg < normalTarget) {
+        if (meal_data.TIRTW1L > 25) TIR_sens = meal_data.TIRTW1L / 100;
+        if (meal_data.TIRTW2L > 0 && TIR_sens == 1) TIR_sens += meal_data.TIRTW2L / 100;
+        if (meal_data.TIRTW3L > 0 && TIR_sens == 2) TIR_sens += meal_data.TIRTW3L / 100;
+        if (meal_data.TIRTW4L > 0 && TIR_sens == 3) TIR_sens += meal_data.TIRTW4L / 100;
     }
     var TIR_sum = Math.max(TIR_sens,1); // use this for BG+
-    TIR_sens = TIR_sens * TIRH_percent + 1;
+    //TIR_sens = 1 + (TIR_sens * TIRH_percent);
+    // if above target use resistance calc if below sensitivity calc, if either is present
+    TIR_sens = (bg > normalTarget ? 1 + (TIR_sens * TIRH_percent) : 1 - (TIR_sens * TIRH_percent) );
 
     enlog += "sens_normalTarget: " + convert_bg(sens_normalTarget, profile) + "\n";
     // MaxISF is the user defined limit for sens_TDD based on a percentage of the current profile based ISF
@@ -552,53 +561,30 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         //sens =  sens / sensitivityRatio ; // CHECK THIS  LINE
         sens_normalTarget = round(sens_normalTarget, 1);
 
-        if (profile.use_sens_TDD) {
-            sens_TDD = sens_TDD / sensitivityRatio;
-            sens_TDD = round(sens_TDD, 1);
-        }
         enlog += "sens_normalTarget now " + sens_normalTarget + "due to temp target; ";
     } else {
         sensitivityRatio = 1;
         sensitivityRatio = (typeof autosens_data !== 'undefined' && autosens_data ? autosens_data.ratio : sensitivityRatio);
     }
 
-    // adjust profile basal and ISF based on prefs and sensitivityRatio
-    if (profile.use_sens_TDD || profile.use_sens_LCTDD ) {
-        // dont adjust sens_normalTarget
-        //sens_normalTarget = sens_normalTarget;
-        //sensitivityRatio = 1;
-        // SR can use the profile ISF and current TDD ISF to scale SR
-        sensitivityRatio = (profile.enableSRTDD  && !firstMealScaling ? sens / sens_normalTarget : 1);
-        // when SR_TDD shows sensitivity but TIR is resistant reset sensitivityRatio to 100%
-        sensitivityRatio = (TIR_sens > 1 && sensitivityRatio < 1 ?  1 : sensitivityRatio);
-        // sens_normalTarget will be adjusted later with SR so set to profile ISF
-        // sens_normalTarget = (sensitivityRatio !=1 ? profile_sens : sens_normalTarget);
-    } else if (profile.enableSRTDD && SR_TDD !=1) {
+    if (profile.enableSRTDD && SR_TDD !=1) {
         // dont apply autosens limits to show SR_TDD full potential
         //SR_TDD = Math.min(SR_TDD, profile.autosens_max);
         //SR_TDD = Math.max(SR_TDD, profile.autosens_min);
         // Use SR_TDD when no TT, profile switch
-        sensitivityRatio = (profile.temptargetSet && !ENTTActive || profile.percent != 100 ?  1 : SR_TDD);
+        sensitivityRatio *= (profile.temptargetSet && !ENTTActive || profile.percent != 100 ?  1 : SR_TDD);
         // when SR_TDD shows sensitivity but TIR is resistant reset sensitivityRatio to 100%
         sensitivityRatio = (TIR_sens > 1 && sensitivityRatio < 1 ?  1 : sensitivityRatio);
         // adjust basal later
         // basal = profile.current_basal * sensitivityRatio;
         // adjust sens_normalTarget below with TIR_sens
         // sens_normalTarget = sens_normalTarget / sensitivityRatio;
-    } else {
-        // apply autosens limits
-        sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
-        sensitivityRatio = Math.max(sensitivityRatio, profile.autosens_min);
-        // adjust sens_normalTarget below with TIR_sens
-        // sens_normalTarget = sens_normalTarget / sensitivityRatio;
-        // adjust basal later
-        //basal = profile.current_basal * sensitivityRatio;
     }
 
     // adjust basal prior to TIR_sens addition with limits applied
+    sensitivityRatio = sensitivityRatio * TIR_sens;
     sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
     sensitivityRatio = Math.max(sensitivityRatio, profile.autosens_min);
-    sensitivityRatio = sensitivityRatio * TIR_sens;
     sensitivityRatio = round(sensitivityRatio, 2);
 
     // adjust ISF
