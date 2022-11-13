@@ -362,6 +362,7 @@
     <string name="wear_shortname">WEAR</string>
     <string name="smscommunicator_shortname">SMS</string>
     <string name="short_tabtitles">Shorten tab titles</string>
+    <string name="show_tbr_as_percent">Show TBR as percentage</string>
     <string name="always_use_shortavg">Always use short average delta instead of simple delta</string>
     <string name="always_use_shortavg_summary">Useful when data from unfiltered sources like xDrip+ gets noisy.</string>
     <string name="profile">Profile</string>
@@ -930,6 +931,7 @@
     <string name="loop_swap_smbtbr_order">Swap SMB and TBR commands order</string>
     <string name="loop_swap_smbtbr_order_summary">On some systems TBR can be very slow and delay or even prevent SMB from being submitted. This change makes SMB command go first, but can result in potential dangerous situation in case of TBR fail or pump connection break.</string>
     <string name="key_short_tabtitles" translatable="false">short_tabtitles</string>
+    <string name="key_show_tbr_as_percent" translatable="false">show_tbr_as_percent</string>
     <string name="profile_total">== ∑  %1$s U</string>
     <string name="key_dexcom_lognssensorchange" translatable="false">dexcom_lognssensorchange</string>
     <string name="dexcom_lognssensorchange_title">Log sensor change to NS</string>
