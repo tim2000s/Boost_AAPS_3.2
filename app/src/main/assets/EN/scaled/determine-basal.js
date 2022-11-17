@@ -1218,7 +1218,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         insulinReq_sens = getISFforBG(bg),
         sens_predType = "NA",
         eBGweight_orig = (minPredBG < eventualBG ? 0 : 1),
-        eBGweight = eBGweight_orig;
+        eBGweight = eBGweight_orig,
+        AllowZT = true;
 
     // EN TT active and no bolus yet with UAM increase insulinReq_bg to provide initial bolus
     var UAMBGPreBolus = (!UAMCOBPreBolus && ENWindowRunTime < ENWindowDuration && ENWindowRunTime < lastBolusAge && !COB);
