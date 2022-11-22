@@ -330,12 +330,6 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         val firstCarbTime = getCarbsSinceENStart.lastOrNull()?.timestamp
         this.mealData.put("firstCarbTime",firstCarbTime)
 
-        // get the FIRST bolus time since EN activation
-        repository.getENBolusFromTimeOfType(ENStartTime,true, Bolus.Type.NORMAL, enwMinBolus ).blockingGet().lastOrNull()?.let { firstENBolus->
-            this.mealData.put("firstENBolusTime", firstENBolus.timestamp)
-            this.mealData.put("firstENBolusUnits", firstENBolus.amount)
-        }
-
         // get the FIRST EN TT time since EN activation
         repository.getENTemporaryTargetDataFromTime(ENStartTime,true).blockingGet().lastOrNull()?.let { firstENTempTarget ->
             this.mealData.put("firstENTempTargetTime", firstENTempTarget.timestamp)
@@ -347,12 +341,18 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
             this.mealData.put("activeENTempTargetDuration",activeENTempTarget.duration/60000)
         }
 
-        // get the LAST bolus time since EN activation
-        if (enwMinBolus > 0)
-            repository.getENBolusFromTimeOfType(ENStartTime, false, Bolus.Type.NORMAL, enwMinBolus).blockingGet().lastOrNull()?.let { it ->
-                this.mealData.put("lastENBolusTime", it.timestamp)
-                this.mealData.put("lastENBolusUnits", it.amount)
+        if (enwMinBolus > 0) {
+            // get the FIRST bolus time since EN activation
+            repository.getENBolusFromTimeOfType(ENStartTime,true, Bolus.Type.NORMAL, enwMinBolus ).blockingGet().lastOrNull()?.let { firstENBolus->
+                this.mealData.put("firstENBolusTime", firstENBolus.timestamp)
+                this.mealData.put("firstENBolusUnits", firstENBolus.amount)
             }
+            // get the LAST bolus time since EN activation
+            repository.getENBolusFromTimeOfType(ENStartTime, false, Bolus.Type.NORMAL, enwMinBolus).blockingGet().lastOrNull()?.let { lastENBolus ->
+                this.mealData.put("lastENBolusTime", lastENBolus.timestamp)
+                this.mealData.put("lastENBolusUnits", lastENBolus.amount)
+            }
+        }
 
         // 3PM is used as a low basal point at which the rest of the day leverages for ISF variance when using one ISF in the profile
         this.profile.put("enableBasalAt3PM", sp.getBoolean(R.string.key_use_3pm_basal, false))
