@@ -163,6 +163,10 @@ android {
         }
     }
 
+    buildFeatures {
+        dataBinding true
+    }
+
     useLibrary "org.apache.http.legacy"
 
     applicationVariants.all { variant ->
@@ -188,6 +192,7 @@ dependencies {
     implementation project(':core')
     implementation project(':automation')
     implementation project(':combo')
+    implementation project(':combov2')
     implementation project(':database')
     implementation project(':dana')
     implementation project(':danars')

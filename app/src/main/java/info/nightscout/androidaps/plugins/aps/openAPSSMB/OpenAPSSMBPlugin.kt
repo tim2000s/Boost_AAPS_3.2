@@ -210,7 +210,7 @@ class OpenAPSSMBPlugin @Inject constructor(
                 smbAllowed.value(),
                 uam.value(),
                 advancedFiltering.value(),
-                activePlugin.activeBgSource.javaClass.simpleName == "DexcomPlugin"
+                true//activePlugin.activeBgSource.javaClass.simpleName == "DexcomPlugin"
             )
             val now = System.currentTimeMillis()
             val determineBasalResultSMB = determineBasalAdapterSMBJS.invoke()
