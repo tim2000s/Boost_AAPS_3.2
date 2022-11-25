@@ -38,12 +38,6 @@ class SafetyPlugin @Inject constructor(
     private val sp: SP,
     private val rxBus: RxBus,
     private val constraintChecker: ConstraintChecker,
-    private val openAPSAMAPlugin: OpenAPSAMAPlugin,
-    private val openAPSSMBPlugin: OpenAPSSMBPlugin,
-    private val openAPSSMBDynamicISFPlugin: OpenAPSSMBDynamicISFPlugin,
-    private val fullUAMPlugin: AIMIPlugin,
-    private val BoostPlugin: BoostPlugin,
-    private val ENPlugin: ENPlugin,
     private val sensitivityOref1Plugin: SensitivityOref1Plugin,
     private val activePlugin: ActivePlugin,
     private val hardLimits: HardLimits,
@@ -197,23 +191,17 @@ class SafetyPlugin @Inject constructor(
     }
 
     override fun applyMaxIOBConstraints(maxIob: Constraint<Double>): Constraint<Double> {
-        val apsMode = sp.getString(R.string.key_aps_mode, "open")
-        val maxIobPref: Double = when {
-            openAPSSMBPlugin.isEnabled(PluginType.APS)             -> sp.getDouble(R.string.key_openapssmb_max_iob, 3.0)
-            openAPSSMBDynamicISFPlugin.isEnabled(PluginType.APS)   -> sp.getDouble(R.string.key_openapssmb_max_iob, 3.0)
-            fullUAMPlugin.isEnabled(PluginType.APS)                -> sp.getDouble(R.string.key_openapssmb_max_iob, 3.0)
-            BoostPlugin.isEnabled(PluginType.APS)                  -> sp.getDouble(R.string.key_openapssmb_max_iob, 3.0)
-            ENPlugin.isEnabled(PluginType.APS)                     -> sp.getDouble(R.string.key_openapssmb_max_iob, 1.5)
-            else                                                   -> sp.getDouble(R.string.key_openapsma_max_iob, 1.5)
+        val (maxIobPref : Double, maxIobLimit: Double) = when (activePlugin.activeAPS){
+            is AIMIPlugin                   -> Pair(sp.getDouble(R.string.key_openapssmb_max_iob, 3.0), hardLimits.maxIobAimi())
+            is BoostPlugin                  -> Pair(sp.getDouble(R.string.key_openapssmb_max_iob, 3.0), hardLimits.maxIobBoost())
+            is ENPlugin                     -> Pair(sp.getDouble(R.string.key_openapssmb_max_iob, 3.0), hardLimits.maxIobEN())
+            is OpenAPSSMBPlugin             -> Pair(sp.getDouble(R.string.key_openapssmb_max_iob, 3.0), hardLimits.maxIobSMB())
+            is OpenAPSAMAPlugin             -> Pair(sp.getDouble(R.string.key_openapssmb_max_iob, 1.5), hardLimits.maxIobAMA())
+            else                            -> Pair(sp.getDouble(R.string.key_openapsma_max_iob, 1.5), HardLimits.MAX_IOB_LGS)
         }
         maxIob.setIfSmaller(aapsLogger, maxIobPref, String.format(rh.gs(R.string.limitingiob), maxIobPref, rh.gs(R.string.maxvalueinpreferences)), this)
-        if (openAPSAMAPlugin.isEnabled()) maxIob.setIfSmaller(aapsLogger, hardLimits.maxIobAMA(), String.format(rh.gs(R.string.limitingiob), hardLimits.maxIobAMA(), rh.gs(R.string.hardlimit)), this)
-        if (openAPSSMBPlugin.isEnabled()) maxIob.setIfSmaller(aapsLogger, hardLimits.maxIobSMB(), String.format(rh.gs(R.string.limitingiob), hardLimits.maxIobSMB(), rh.gs(R.string.hardlimit)), this)
-        if (BoostPlugin.isEnabled()) maxIob.setIfSmaller(aapsLogger, hardLimits.maxIobBoost(), String.format(rh.gs(R.string.limitingiob), hardLimits.maxIobBoost(), rh.gs(R.string.hardlimit)), this)
-        if (openAPSSMBDynamicISFPlugin.isEnabled()) maxIob.setIfSmaller(aapsLogger, hardLimits.maxIobSMB(), rh.gs(R.string.limitingiob, hardLimits.maxIobSMB(), rh.gs(R.string.hardlimit)), this)
-        if (fullUAMPlugin.isEnabled()) maxIob.setIfSmaller(aapsLogger, hardLimits.maxIobAimi(), String.format(rh.gs(R.string.limitingiob), hardLimits.maxIobAimi(), rh.gs(R.string.hardlimit)), this)
-        if (ENPlugin.isEnabled()) maxIob.setIfSmaller(aapsLogger, hardLimits.maxIobEN(), String.format(rh.gs(R.string.limitingiob), hardLimits.maxIobEN(), rh.gs(R.string.hardlimit)), this)
-        if (apsMode == "lgs") maxIob.setIfSmaller(aapsLogger, HardLimits.MAX_IOB_LGS, String.format(rh.gs(R.string.limitingiob), HardLimits.MAX_IOB_LGS, rh.gs(R.string.lowglucosesuspend)), this)
+        maxIob.setIfSmaller(aapsLogger, maxIobLimit,String.format(rh.gs(R.string.limitingiob), hardLimits.maxIobAMA(), rh.gs(R.string.hardlimit)), this)
+        if (sp.getString(R.string.key_aps_mode, "open") == "lgs") maxIob.setIfSmaller(aapsLogger, HardLimits.MAX_IOB_LGS, String.format(rh.gs(R.string.limitingiob), HardLimits.MAX_IOB_LGS, rh.gs(R.string.lowglucosesuspend)), this)
         return maxIob
     }
 

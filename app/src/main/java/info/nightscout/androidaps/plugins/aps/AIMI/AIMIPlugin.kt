@@ -26,6 +26,7 @@ import info.nightscout.androidaps.utils.Round
 import info.nightscout.androidaps.interfaces.ResourceHelper
 import info.nightscout.androidaps.plugins.aps.OpenAPSFragment
 import info.nightscout.androidaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
+import info.nightscout.androidaps.plugins.aps.openAPSSMB.OpenAPSSMBPlugin
 import info.nightscout.shared.sharedPreferences.SP
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,30 +36,47 @@ import javax.inject.Singleton
 class AIMIPlugin @Inject constructor(
     injector: HasAndroidInjector,
     aapsLogger: AAPSLogger,
-    private val rxBus: RxBus,
-    private val constraintChecker: ConstraintChecker,
-    resourceHelper: ResourceHelper,
-    private val profileFunction: ProfileFunction,
-    val context: Context,
-    private val activePlugin: ActivePlugin,
-    private val iobCobCalculator: IobCobCalculator,
-    private val hardLimits: HardLimits,
-    private val profiler: Profiler,
-    private val sp: SP,
-    private val dateUtil: DateUtil,
-    private val repository: AppRepository,
-    private val glucoseStatusProvider: GlucoseStatusProvider
-)  : PluginBase(
-    PluginDescription()
-        .mainType(PluginType.APS)
-        .fragmentClass(OpenAPSFragment::class.java.name)
-        .pluginIcon(R.drawable.ic_generic_icon)
-        .pluginName(R.string.fulluam)
-        .shortName(R.string.fulluam_shortname)
-        .preferencesId(R.xml.pref_fulluam)
-        .description(R.string.description_fulluam),
-    aapsLogger, resourceHelper, injector
-), APS, Constraints {
+    rxBus: RxBus,
+    constraintChecker: ConstraintChecker,
+    rh: ResourceHelper,
+    profileFunction: ProfileFunction,
+    context: Context,
+    activePlugin: ActivePlugin,
+    iobCobCalculator: IobCobCalculator,
+    hardLimits: HardLimits,
+    profiler: Profiler,
+    sp: SP,
+    dateUtil: DateUtil,
+    repository: AppRepository,
+    glucoseStatusProvider: GlucoseStatusProvider,
+    val buildHelper : BuildHelper
+) : OpenAPSSMBPlugin(
+    injector,
+    aapsLogger,
+    rxBus,
+    constraintChecker,
+    rh,
+    profileFunction,
+    context,
+    activePlugin,
+    iobCobCalculator,
+    hardLimits,
+    profiler,
+    sp,
+    dateUtil,
+    repository,
+    glucoseStatusProvider
+) {
+    init {
+        pluginDescription
+            .mainType(PluginType.APS)
+            .fragmentClass(OpenAPSFragment::class.java.name)
+            .pluginIcon(R.drawable.ic_generic_icon)
+            .pluginName(R.string.fulluam)
+            .shortName(R.string.fulluam_shortname)
+            .preferencesId(R.xml.pref_fulluam)
+            .description(R.string.description_fulluam)
+    }
 
     // last values
     override var lastAPSRun: Long = 0
@@ -225,7 +243,8 @@ class AIMIPlugin @Inject constructor(
         value.set(aapsLogger, false)
         return value
     }
-    fun provideDetermineBasalAdapter(): DetermineBasalAdapterInterface = DetermineBasalAdapterAIMIJS(ScriptReader(context), injector)
+
+    override fun provideDetermineBasalAdapter(): DetermineBasalAdapterInterface = DetermineBasalAdapterAIMIJS(ScriptReader(context), injector)
 }
 
 

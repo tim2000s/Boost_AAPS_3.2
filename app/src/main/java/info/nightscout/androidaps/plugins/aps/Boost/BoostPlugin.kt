@@ -24,6 +24,7 @@ import info.nightscout.androidaps.utils.Round
 import info.nightscout.androidaps.interfaces.ResourceHelper
 import info.nightscout.androidaps.plugins.aps.OpenAPSFragment
 import info.nightscout.androidaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
+import info.nightscout.androidaps.plugins.aps.openAPSSMB.OpenAPSSMBPlugin
 import info.nightscout.shared.logging.AAPSLogger
 import info.nightscout.shared.logging.LTag
 import info.nightscout.shared.sharedPreferences.SP
@@ -35,33 +36,49 @@ import javax.inject.Singleton
 class BoostPlugin @Inject constructor(
     injector: HasAndroidInjector,
     aapsLogger: AAPSLogger,
-    private val rxBus: RxBus,
-    private val constraintChecker: ConstraintChecker,
+    rxBus: RxBus,
+    constraintChecker: ConstraintChecker,
     rh: ResourceHelper,
-    private val profileFunction: ProfileFunction,
-    private val context: Context,
-    private val activePlugin: ActivePlugin,
-    private val iobCobCalculator: IobCobCalculator,
-    private val hardLimits: HardLimits,
-    private val profiler: Profiler,
-    private val sp: SP,
-    private val dateUtil: DateUtil,
-    private val repository: AppRepository,
-    private val glucoseStatusProvider: GlucoseStatusProvider,
-    private val buildHelper: BuildHelper
-) : PluginBase(
-    PluginDescription()
-        .mainType(PluginType.APS)
-        .fragmentClass(OpenAPSFragment::class.java.name)
-        .pluginIcon(R.drawable.ic_generic_icon)
-        .pluginName(R.string.Boost)
-        .shortName(R.string.Boost_shortname)
-        .preferencesId(R.xml.pref_boost)
-        .description(R.string.description_Boost)
-        .setDefault(false)
-        .showInList(buildHelper.isEngineeringMode()),
-    aapsLogger, rh, injector
-), APS, Constraints {
+    profileFunction: ProfileFunction,
+    context: Context,
+    activePlugin: ActivePlugin,
+    iobCobCalculator: IobCobCalculator,
+    hardLimits: HardLimits,
+    profiler: Profiler,
+    sp: SP,
+    dateUtil: DateUtil,
+    repository: AppRepository,
+    glucoseStatusProvider: GlucoseStatusProvider,
+    val buildHelper : BuildHelper
+) : OpenAPSSMBPlugin(
+    injector,
+    aapsLogger,
+    rxBus,
+    constraintChecker,
+    rh,
+    profileFunction,
+    context,
+    activePlugin,
+    iobCobCalculator,
+    hardLimits,
+    profiler,
+    sp,
+    dateUtil,
+    repository,
+    glucoseStatusProvider
+) {
+    init {
+        pluginDescription
+            .mainType(PluginType.APS)
+            .fragmentClass(OpenAPSFragment::class.java.name)
+            .pluginIcon(R.drawable.ic_generic_icon)
+            .pluginName(R.string.Boost)
+            .shortName(R.string.Boost_shortname)
+            .preferencesId(R.xml.pref_boost)
+            .description(R.string.description_Boost)
+            .setDefault(false)
+            .showInList(buildHelper.isEngineeringMode())
+    }
 
     // last values
     override var lastAPSRun: Long = 0
@@ -70,8 +87,6 @@ class BoostPlugin @Inject constructor(
     override var lastAutosensResult = AutosensResult()
 
     override fun specialEnableCondition(): Boolean {
-        if (!buildHelper.isEngineeringMode())
-            return false
         return try {
             activePlugin.activePump.pumpDescription.isTempBasalCapable
         } catch (ignored: Exception) {
@@ -243,5 +258,5 @@ class BoostPlugin @Inject constructor(
         return value
     }
 
-    fun provideDetermineBasalAdapter(): DetermineBasalAdapterInterface = DetermineBasalAdapterBoostJS(ScriptReader(context), injector)
+    override fun provideDetermineBasalAdapter(): DetermineBasalAdapterInterface = DetermineBasalAdapterBoostJS(ScriptReader(context), injector)
 }

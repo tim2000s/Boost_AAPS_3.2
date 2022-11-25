@@ -12,7 +12,7 @@
     <string name="tempbasaldeliveryerror">Ошибка подачи врем базала</string>
     <string name="goingtodeliver">Будет подано %1$.2f ед инс</string>
     <string name="waitingforpump">ожидание помпы</string>
-    <string name="connectingfor">Связь установлена за %1$d сек</string>
+    <string name="connectingfor">соединение устанавливается %1$d сек</string>
     <string name="bolusdelivering">Подается болюс %1$.2fед</string>
     <string name="handshaking">Подтверждение связи</string>
     <string name="connecting">соединение устанавливается</string>

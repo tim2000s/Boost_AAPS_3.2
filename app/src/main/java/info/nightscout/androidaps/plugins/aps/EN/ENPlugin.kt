@@ -24,6 +24,7 @@ import info.nightscout.androidaps.utils.Round
 import info.nightscout.androidaps.interfaces.ResourceHelper
 import info.nightscout.androidaps.plugins.aps.OpenAPSFragment
 import info.nightscout.androidaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
+import info.nightscout.androidaps.plugins.aps.openAPSSMB.OpenAPSSMBPlugin
 import info.nightscout.shared.logging.AAPSLogger
 import info.nightscout.shared.logging.LTag
 import info.nightscout.shared.sharedPreferences.SP
@@ -35,30 +36,46 @@ import javax.inject.Singleton
 class ENPlugin @Inject constructor(
     injector: HasAndroidInjector,
     aapsLogger: AAPSLogger,
-    private val rxBus: RxBus,
-    private val constraintChecker: ConstraintChecker,
+    rxBus: RxBus,
+    constraintChecker: ConstraintChecker,
     rh: ResourceHelper,
-    private val profileFunction: ProfileFunction,
-    val context: Context,
-    private val activePlugin: ActivePlugin,
-    private val iobCobCalculator: IobCobCalculator,
-    private val hardLimits: HardLimits,
-    private val profiler: Profiler,
-    private val sp: SP,
-    private val dateUtil: DateUtil,
-    private val repository: AppRepository,
-    private val glucoseStatusProvider: GlucoseStatusProvider
-) : PluginBase(
-    PluginDescription()
-        .mainType(PluginType.APS)
-        .fragmentClass(OpenAPSFragment::class.java.name)
-        .pluginIcon(R.drawable.ic_generic_icon)
-        .pluginName(R.string.EN)
-        .shortName(R.string.EN_shortname)
-        .preferencesId(R.xml.pref_eatingnow)
-        .description(R.string.description_EN),
-    aapsLogger, rh, injector
-), APS, Constraints {
+    profileFunction: ProfileFunction,
+    context: Context,
+    activePlugin: ActivePlugin,
+    iobCobCalculator: IobCobCalculator,
+    hardLimits: HardLimits,
+    profiler: Profiler,
+    sp: SP,
+    dateUtil: DateUtil,
+    repository: AppRepository,
+    glucoseStatusProvider: GlucoseStatusProvider
+) : OpenAPSSMBPlugin(
+    injector,
+    aapsLogger,
+    rxBus,
+    constraintChecker,
+    rh,
+    profileFunction,
+    context,
+    activePlugin,
+    iobCobCalculator,
+    hardLimits,
+    profiler,
+    sp,
+    dateUtil,
+    repository,
+    glucoseStatusProvider
+) {
+    init{
+        pluginDescription
+            .mainType(PluginType.APS)
+            .fragmentClass(OpenAPSFragment::class.java.name)
+            .pluginIcon(R.drawable.ic_generic_icon)
+            .pluginName(R.string.EN)
+            .shortName(R.string.EN_shortname)
+            .preferencesId(R.xml.pref_eatingnow)
+            .description(R.string.description_EN)
+    }
 
     // last values
     override var lastAPSRun: Long = 0
@@ -228,5 +245,5 @@ class ENPlugin @Inject constructor(
         return value
     }
 
-    fun provideDetermineBasalAdapter(): DetermineBasalAdapterInterface = DetermineBasalAdapterENJS(ScriptReader(context), injector)
+    override fun provideDetermineBasalAdapter(): DetermineBasalAdapterInterface = DetermineBasalAdapterENJS(ScriptReader(context), injector)
 }
