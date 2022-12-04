@@ -1098,10 +1098,10 @@ class SmsCommunicatorPlugin @Inject constructor(
 
     private fun sendReport(senderNumber: String, replyText: String, tryAddingPumpStatus: Boolean = false) {
         val message =
-            if (tryAddingPumpStatus && sp.getBoolean(R.string.smscommunicator_addpumpstatus, true)) replyText + "\n" + activePlugin.activePump.shortStatus(true)
+            if (tryAddingPumpStatus && sp.getBoolean(R.string.key_smscommunicator_addpumpstatus, true)) replyText + "\n" + activePlugin.activePump.shortStatus(true)
             else replyText
         val sms = Sms(senderNumber, message)
-        if (sp.getBoolean(R.string.smscommunicator_reporttoall, true)) sendSMSToAllNumbers(sms)
+        if (sp.getBoolean(R.string.key_smscommunicator_reporttoall, true)) sendSMSToAllNumbers(sms)
         else sendSMS(sms)
     }
 
