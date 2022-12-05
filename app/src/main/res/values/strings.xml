@@ -266,6 +266,9 @@
     <string name="smscommunicator_tt_set">Target %1$s for %2$d minutes set successfully</string>
     <string name="smscommunicator_tt_canceled">Temp Target canceled successfully</string>
     <string name="smscommunicator_remotecommandsallowed">Allow remote commands via SMS</string>
+    <string name="smscommunicator_addpumpstatus">Add short pump status to result message</string>
+    <string name="smscommunicator_reporttoall">Send report to all</string>
+    <string name="smscommunicator_reporttoall_summary">Disabling this option will send successful command report to command sender only</string>
     <string name="smscommunicator_loophasbeendisabled">Loop has been disabled</string>
     <string name="smscommunicator_loophasbeenenabled">Loop has been enabled</string>
     <string name="smscommunicator_loopisenabled">Loop is enabled</string>
@@ -423,6 +426,8 @@
     <string name="notavailable">n/a</string>
     <string name="key_smscommunicator_allowednumbers" translatable="false">smscommunicator_allowednumbers</string>
     <string name="key_smscommunicator_remotecommandsallowed" translatable="false">smscommunicator_remotecommandsallowed</string>
+    <string name="key_smscommunicator_addpumpstatus" translatable="false">smscommunicator_addpumpstatus</string>
+    <string name="key_smscommunicator_reporttoall" translatable="false">smscommunicator_reporttoall</string>
     <string name="patientage">Patient type</string>
     <string name="child">Child</string>
     <string name="teenage">Teenage</string>
