@@ -1631,7 +1631,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         if (insulinReq > max_iob - iob_data.iob) {
             rT.reason += "max_iob " + max_iob + ", ";
             insulinReq = max_iob - iob_data.iob;
+        } else if (max_iob_en > 0 && insulinReq > max_iob_en - iob_data.iob) {
+            rT.reason += "max_iob_en " + max_iob_en + ", ";
+            insulinReq = max_iob_en - iob_data.iob;
         }
+
 
         // rate required to deliver insulinReq more insulin over 30m:
         rate = basal + (2 * insulinReq);
@@ -1754,6 +1758,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                     maxBolus = round(maxBolus, 1);
                 }
 
+                /*
                 // ============== IOB RESTRICTION  ==============
                 if (insulinReq > max_iob - iob_data.iob) {
                     insulinReq = round(max_iob - iob_data.iob, 2);
@@ -1761,6 +1766,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 if (insulinReq > max_iob_en - iob_data.iob) {
                     insulinReq = round(max_iob_en - iob_data.iob, 2);
                 }
+                */
             }
             // END === if we are eating now and BGL prediction is higher than normal target ===
             // ============  EATING NOW MODE  ==================== END ===
