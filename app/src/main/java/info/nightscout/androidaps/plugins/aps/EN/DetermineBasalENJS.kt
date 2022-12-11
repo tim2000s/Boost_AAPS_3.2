@@ -273,11 +273,6 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         this.profile.put("EN_UAMbgBoost_maxBolus", sp.getDouble(R.string.key_eatingnow_uambgboost_maxbolus, 0.0))
         this.profile.put("EN_UAMPlus_NoENW", sp.getBoolean(R.string.key_use_uamplus_noenw, false))
 
-
-        // Outside of the EN Window ********************************************************************************
-        // this.profile.put("COB_maxBolus", sp.getDouble(R.string.key_eatingnow_isfboost_maxbolus, 0.0))
-        // this.profile.put("UAM_maxBolus", sp.getDouble(R.string.key_eatingnow_uam_maxbolus, 0.0))
-
         this.profile.put("SMBbgOffset", Profile.toMgdl(sp.getDouble(R.string.key_eatingnow_smbbgoffset, 0.0),profileFunction.getUnits()))
         this.profile.put("SMBbgOffset_day", Profile.toMgdl(sp.getDouble(R.string.key_eatingnow_smbbgoffset_day, 0.0),profileFunction.getUnits()))
         this.profile.put("ISFbgscaler", sp.getDouble(R.string.key_eatingnow_isfbgscaler, 0.0))
@@ -331,6 +326,12 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         val firstCarbTime = getCarbsSinceENStart.lastOrNull()?.timestamp
         this.mealData.put("firstCarbTime",firstCarbTime)
 
+        // get the FIRST bolus time since EN activation
+        repository.getENBolusFromTimeOfType(ENStartTime,true, Bolus.Type.NORMAL, enwMinBolus ).blockingGet().lastOrNull()?.let { firstENBolus->
+            this.mealData.put("firstENBolusTime", firstENBolus.timestamp)
+            this.mealData.put("firstENBolusUnits", firstENBolus.amount)
+        }
+
         // get the FIRST EN TT time since EN activation
         repository.getENTemporaryTargetDataFromTime(ENStartTime,true).blockingGet().lastOrNull()?.let { firstENTempTarget ->
             this.mealData.put("firstENTempTargetTime", firstENTempTarget.timestamp)
@@ -342,17 +343,10 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
             this.mealData.put("activeENTempTargetDuration",activeENTempTarget.duration/60000)
         }
 
-        if (enwMinBolus > 0) {
-            // get the FIRST bolus time since EN activation
-            repository.getENBolusFromTimeOfType(ENStartTime,true, Bolus.Type.NORMAL, enwMinBolus ).blockingGet().lastOrNull()?.let { firstENBolus->
-                this.mealData.put("firstENBolusTime", firstENBolus.timestamp)
-                this.mealData.put("firstENBolusUnits", firstENBolus.amount)
-            }
-            // get the LAST bolus time since EN activation
-            repository.getENBolusFromTimeOfType(ENStartTime, false, Bolus.Type.NORMAL, enwMinBolus).blockingGet().lastOrNull()?.let { lastENBolus ->
-                this.mealData.put("lastENBolusTime", lastENBolus.timestamp)
-                this.mealData.put("lastENBolusUnits", lastENBolus.amount)
-            }
+        // get the LAST bolus time since EN activation
+        repository.getENBolusFromTimeOfType(ENStartTime, false, Bolus.Type.NORMAL, enwMinBolus).blockingGet().lastOrNull()?.let { it ->
+            this.mealData.put("lastENBolusTime", it.timestamp)
+            this.mealData.put("lastENBolusUnits", it.amount)
         }
 
         // 3PM is used as a low basal point at which the rest of the day leverages for ISF variance when using one ISF in the profile
@@ -420,10 +414,10 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         // this.mealData.put("lastCannAgeMins", lastCannAgeMins)
 
         // sp.putDouble("TDDAvgtoCannula", 0.0) // reset
-        var TDDAvgtoCannula = sp.getDouble("TDDAvgtoCannula", 0.0)
+        val TDDAvgtoCannula = sp.getDouble("TDDAvgtoCannula", 0.0)
         if (lastCannAgeMins <= 30 || TDDAvgtoCannula == 0.0) {
             val daysPrior = 3
-            TDDAvgtoCannula = tddCalculator.calculate(lastCannulaTime - 86400000 * daysPrior, lastCannulaTime).totalAmount / daysPrior
+            val TDDAvgtoCannula = tddCalculator.calculate(lastCannulaTime - 86400000 * daysPrior, lastCannulaTime).totalAmount / daysPrior
             sp.putDouble("TDDAvgtoCannula", TDDAvgtoCannula)
         }
         this.mealData.put("TDDAvgtoCannula", TDDAvgtoCannula)
@@ -446,18 +440,39 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
 
         // TIR Windows for normalTarget
         if (resistancePerHr > 0) {
-            val tirTW4 = tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(4, 3, normalTargetBG-9.0, normalTargetBG+9.0));
-            this.mealData.put("TIRTW4H", tirTW4.abovePct())
-            this.mealData.put("TIRTW4L", tirTW4.belowPct())
-            val tirTW3 = tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(3, 2, normalTargetBG-9.0, normalTargetBG+9.0))
-            this.mealData.put("TIRTW3H", tirTW3.abovePct())
-            this.mealData.put("TIRTW3L", tirTW3.belowPct())
-            val tirTW2 = tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(2, 1, normalTargetBG-9.0, normalTargetBG+9.0))
-            this.mealData.put("TIRTW2H", tirTW2.abovePct())
-            this.mealData.put("TIRTW2L", tirTW2.belowPct())
-            val tirTW1 = tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(1, 0, normalTargetBG-9.0, normalTargetBG+9.0))
-            this.mealData.put("TIRTW1H", tirTW1.abovePct())
-            this.mealData.put("TIRTW1L", tirTW1.belowPct())
+
+            // TIR 4h ago
+            tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(4, 3, normalTargetBG-9.0, normalTargetBG+18.0)).let { tir ->
+                this.mealData.put("TIRTW4H",tir.abovePct())
+                this.mealData.put("TIRTW4L",tir.belowPct())
+            }
+
+            // TIR 3h ago
+            tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(3, 2, normalTargetBG-9.0, normalTargetBG+18.0)).let { tir ->
+                this.mealData.put("TIRTW3H",tir.abovePct())
+                this.mealData.put("TIRTW3L",tir.belowPct())
+            }
+
+            // TIR 2h ago
+            tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(2, 1, normalTargetBG-9.0, normalTargetBG+18.0)).let { tir ->
+                this.mealData.put("TIRTW2H",tir.abovePct())
+                this.mealData.put("TIRTW2L",tir.belowPct())
+            }
+
+            // TIR 1h ago
+            tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(1, 0, normalTargetBG-9.0, normalTargetBG+18.0)).let { tir ->
+                this.mealData.put("TIRTW1H",tir.abovePct())
+                this.mealData.put("TIRTW1L",tir.belowPct())
+            }
+            // this.mealData.put("TIRTW4H", tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(4, 3, normalTargetBG-9.0, normalTargetBG+9.0)).abovePct())
+            // this.mealData.put("TIRTW3H", tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(3, 2, normalTargetBG-9.0, normalTargetBG+9.0)).abovePct())
+            // this.mealData.put("TIRTW2H", tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(2, 1, normalTargetBG-9.0, normalTargetBG+9.0)).abovePct())
+            // this.mealData.put("TIRTW1H", tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(1, 0, normalTargetBG-9.0, normalTargetBG+9.0)).abovePct())
+
+            // this.mealData.put("TIRTW4L",tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(4,3,normalTargetBG-9.0, normalTargetBG+9.0)).belowPct())
+            // this.mealData.put("TIRTW3L",tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(3,2,normalTargetBG-9.0, normalTargetBG+9.0)).belowPct())
+            // this.mealData.put("TIRTW2L",tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(2,1,normalTargetBG-9.0, normalTargetBG+9.0)).belowPct())
+            // this.mealData.put("TIRTW1L",tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(1,0,normalTargetBG-9.0, normalTargetBG+9.0)).belowPct())
         }
 
         if (constraintChecker.isAutosensModeEnabled().value()) {
