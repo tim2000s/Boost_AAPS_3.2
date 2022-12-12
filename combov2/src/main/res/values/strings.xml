@@ -85,6 +85,9 @@ buttons at the same time to cancel pairing)\n
     <string name="combov2_getting_basal_profile">Getting basal profile; %1$d factor(s) read</string>
     <string name="combov2_setting_basal_profile">Setting basal profile; %1$d factor(s) written</string>
     <string name="combov2_delivering_bolus">Delivering bolus (%1$.1f of %2$.1f U delivered)</string>
+    <string name="combov2_datetime_changed">Date and/or time changed</string>
+    <string name="combov2_dst_ended">Daylight savings time (DST) ended</string>
+    <string name="combov2_dst_started">Daylight savings time (DST) started</string>
     <string name="combov2_cannot_deliver_pump_suspended">Cannot deliver treatment - pump is suspended</string>
     <string name="combov2_insufficient_insulin_in_reservoir">Insufficient insulin in reservoir</string>
     <string name="combov2_bolus_cancelled">Bolus cancelled</string>
@@ -123,6 +126,8 @@ buttons at the same time to cancel pairing)\n
     <string name="combov2_short_status_battery_state_low">low</string>
     <string name="combov2_short_status_battery_state_full">full</string>
     <string name="combov2_short_status_battery_state">Batt: %s</string>
+
+    <string name="combov2_timezone_changed">Timezone changed</string>
     <string name="key_combov2_automatic_reservoir_entry" translatable="false">combov2_automatic_reservoir_entry</string>
     <string name="key_combov2_automatic_battery_entry" translatable="false">combov2_automatic_battery_entry</string>
     <string name="combov2_automatic_reservoir_entry">Autodetect and automatically enter insulin reservoir change</string>
