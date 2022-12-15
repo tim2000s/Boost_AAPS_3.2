@@ -1696,7 +1696,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             var ENWinsulinReqPct = 0.85; // ENW insulinReqPct is 85%
 
             // START === if we are eating now and BGL prediction is higher than normal target ===
-            if (ENactive && eventualBG > target_bg) {
+            //if (ENactive && eventualBG > target_bg) {
 
                 // ============== INSULINREQPCT RESTRICTIONS ==============
 
@@ -1770,7 +1770,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                     insulinReqPct = insulinReqPctDefault;
                     // default SMB unless TBR
                     maxBolus = (sens_predType == "TBR" ? 0 : round(maxBolus, 1));
-                }
+                //}
 
                 /*
                 // ============== IOB RESTRICTION  ==============
