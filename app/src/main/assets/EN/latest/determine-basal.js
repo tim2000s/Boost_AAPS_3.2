@@ -1236,7 +1236,13 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     // minPredBG and eventualBG based dosing - insulinReq_bg
     // insulinReq_sens is calculated using a percentage of eventualBG (eBGweight) with the rest as minPredBG, to reduce the risk of overdosing.
-    var insulinReq_bg_orig = Math.min(minPredBG, eventualBG), insulinReq_bg = insulinReq_bg_orig, sens_predType = "NA", eBGweight_orig = (minPredBG < eventualBG ? 0 : 1), minBG = minPredBG, eBGweight = eBGweight_orig, AllowZT = true;
+    var insulinReq_bg_orig = Math.min(minPredBG, eventualBG),
+        insulinReq_bg = insulinReq_bg_orig,
+        sens_predType = "NA",
+        eBGweight_orig = (minPredBG < eventualBG ? 0 : 1),
+        minBG = minPredBG,
+        eBGweight = eBGweight_orig,
+        AllowZT = true;
     var insulinReq_sens = sens_normalTarget, insulinReq_sens_normalTarget = sens_normalTarget_orig;
 
     // EN TT active and no bolus yet with UAM increase insulinReq_bg to provide initial bolus
