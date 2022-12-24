@@ -251,7 +251,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     enlog += "ENStartOffset: " + ENStartOffset + ", ENEndOffset: " + ENEndOffset + "\n";
     enlog += "ENStartTime: " + new Date(ENStartTime).toLocaleString() + "\n";
     enlog += "ENEndTime: " + new Date(ENEndTime).toLocaleString() + "\n";
-    enlog += "lastENCarbTime: " + meal_data.lastENCarbTime + ", lastENBolusTime: " + meal_data.lastENBolusTime + "\n";
+//    enlog += "lastENCarbTime: " + meal_data.lastENCarbTime + ", lastENBolusTime: " + meal_data.lastENBolusTime + "\n";
     enlog += "lastNormalCarbAge: " + lastNormalCarbAge + "\n";
 
     /*
@@ -430,7 +430,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     // Allow user preferences to adjust the scaling of ISF as BG increases
     // Scaling is converted to a percentage, 0 is normal scaling (1), 5 is 5% stronger (0.95) and -5 is 5% weaker (1.05)
     // When eating now is not active during the day or at night do not apply additional scaling unless weaker
-    var ISFBGscaler = (ENSleepMode || !ENactive && ENtimeOK ? Math.min(profile.ISFbgscaler, 0) : profile.ISFbgscaler);
+    var ISFBGscaler = (ENSleepModeNoSMB || !ENactive && ENtimeOK ? Math.min(profile.ISFbgscaler, 0) : profile.ISFbgscaler);
     enlog += "ISFBGscaler is now :" + round(ISFBGscaler, 2) + "\n";
     // Convert ISFBGscaler to %
     ISFBGscaler = (100 - ISFBGscaler) / 100;
@@ -1378,7 +1378,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
         // insulinReq_sens determines the ISF used for final insulinReq calc
         //insulinReq_sens = (sens_predType == "PB" ? sens : dynISF(insulinReq_bg,normalTarget,insulinReq_sens_normalTarget,ins_val)); // dynISF
-        insulinReq_sens = (sens_predType == "PB" ? sens : dynISF(insulinReq_bg,target_bg,insulinReq_sens_normalTarget,ins_val)); // dynISF
+        insulinReq_sens = (sens_predType == "PB" ? sens : getISFforBG(insulinReq_bg)); // dynISF
 
         // use the strongest ISF when ENW active
         insulinReq_sens = (!firstMealWindow && !COB && ENWindowRunTime <= ENWindowDuration ? Math.min(insulinReq_sens, sens) : insulinReq_sens);
