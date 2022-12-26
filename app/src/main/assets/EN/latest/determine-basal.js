@@ -712,7 +712,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     sens = (ENactive ? sens_currentBG : sens_normalTarget);
     // at night use sens_currentBG, additional scaling from ISFBGscaler has been reduced earlier
     sens = (!ENactive && !ENtimeOK ? sens_currentBG : sens);
-    enlog += "sens final result:" + sens + "=" + convert_bg(sens, profile) + "\n";
+    enlog += "sens final result: " + round(sens, 2) + "=" + convert_bg(sens, profile) + "\n";
 
     // compare currenttemp to iob_data.lastTemp and cancel temp if they don't match
     var lastTempAge;
