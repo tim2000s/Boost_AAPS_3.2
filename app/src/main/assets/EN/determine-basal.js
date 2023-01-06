@@ -1309,9 +1309,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
             // when UAM+ is triggered but minGuardBG is below threshold force BG+
             if (minGuardBG < threshold) sens_predType = "BG+";
-
-            // if there is no ENW but still UAM+ was triggered then its OK to enable the ENW to allow the larger SMB later
-            ENWindowOK = true;
         }
 
         // UAM predictions, no COB or GhostCOB
@@ -1373,6 +1370,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     enlog += "sens_predType: " + sens_predType + "\n";
     enlog += "eBGweight final result: " + eBGweight + "\n";
     // END OF Eventual BG based future sensitivity - insulinReq_sens
+    rT.variable_sens = insulinReq_sens;
 
     rT.COB = meal_data.mealCOB;
     rT.IOB = iob_data.iob;
@@ -1731,22 +1729,21 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             // UAM+ PreBolus gets 100% insulinReqPct
             insulinReqPct = (sens_predType == "PB"  ? 1 : insulinReqPct);
 
+            // set initial ENMaxSMB
+            ENMaxSMB = (sens_predType == "COB" ? profile.EN_COB_maxBolus : profile.EN_UAM_maxBolus);
+
             // if ENWindowOK allow further increase max of SMB within the window
             if (ENWindowOK) {
-                // set initial ENMaxSMB for ENW
-                ENMaxSMB = (sens_predType == "COB" ? profile.EN_COB_maxBolus : profile.EN_UAM_maxBolus);
-
-                // when eating firstmeal set a larger SMB
-                if (firstMealWindow) ENMaxSMB = (COB ? profile.EN_COB_maxBolus_breakfast : profile.EN_UAM_maxBolus_breakfast);
-
-                // when prebolusing
-                if (sens_predType == "PB") ENMaxSMB = (!profile.EN_UAMPlus_PreBolus ? ENMaxSMB : profile.EN_UAMPlus_PreBolus);
-
-                // UAM+ uses different SMB when configured
-                if (sens_predType == "UAM+") ENMaxSMB = profile.EN_UAMPlus_maxBolus;
+                if (COB) {
+                    ENMaxSMB = (firstMealWindow ? profile.EN_COB_maxBolus_breakfast : profile.EN_COB_maxBolus);
+                } else {
+                    ENMaxSMB = (firstMealWindow ? profile.EN_UAM_maxBolus_breakfast : profile.EN_UAM_maxBolus);
+                    if (sens_predType == "PB") ENMaxSMB = (!profile.EN_UAMPlus_PreBolus ? ENMaxSMB : profile.EN_UAMPlus_PreBolus);
+                }
             }
 
-            // BG+ is the only EN prediction type allowed outside of ENW
+            // set EN SMB limit for appropriate prediction type, some of these may be more restrictive
+            ENMaxSMB = (sens_predType == "UAM+" ? profile.EN_UAMPlus_maxBolus : ENMaxSMB);
             ENMaxSMB = (sens_predType == "BG+" ? profile.EN_BGPlus_maxBolus : ENMaxSMB);
 
             // ============== MAXBOLUS RESTRICTIONS ==============
@@ -1826,7 +1823,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
             /*
             if (microBolus >= maxBolus) {
-                rT.reason += "; maxBolus: " + maxBolus;
+                rT.reason += "; maxBolus " + maxBolus;
             }
             */
 
