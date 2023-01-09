@@ -374,11 +374,6 @@
                 android:title="Use GhostCOB Always"
                 android:summary="Always ignore COB." />
 
-            <SwitchPreference
-                android:defaultValue="true"
-                android:key="key_eatingnow_use_ebgw"
-                android:title="Use eBGw" />
-
             <Preference android:summary="The first manual bolus or carb entry is considered breakfast, or the first meal of the day.\nThe time of the first meal of the day may vary. ISF and CR scaling can be applied to a single ISF/CR profile entry allowing flexibility without profile shifts."></Preference>
 
             <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference

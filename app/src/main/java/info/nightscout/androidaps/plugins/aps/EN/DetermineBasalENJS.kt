@@ -253,7 +253,6 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         this.profile.put("enableGhostCOBAlways", sp.getBoolean(R.string.key_use_ghostcob_always, false))
 
         this.profile.put("allowENWovernight", sp.getBoolean(R.string.key_use_enw_overnight, false))
-        this.profile.put("use_ebgw", sp.getBoolean(R.string.key_eatingnow_use_ebgw, true))
         //this.profile.put("COBWindow", sp.getInt(R.string.key_eatingnow_cobboostminutes, 0))
 
         // Within the EN Window ********************************************************************************
