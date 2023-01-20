@@ -1279,7 +1279,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         // reset to UAM prediction when COB are not mostly absorbed
         if (meal_data.carbs && fractionCOBAbsorbed < 75) sens_predType = "UAM";
         // if there is no ENW it means UAM+ is allowed outside ENW so formally enable the ENW to allow the larger SMB later
-        ENWindowOK = true;
+        if (sens_predType = "UAM+" && !ENWindowOK) ENWindowOK = true;
     }
 
     // PREbolus active
@@ -1291,7 +1291,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     // evaluate prediction type and weighting - Only use during day or when its night and TBR only
     //if (ENactive || ENSleepModeNoSMB || TIR_sens_limited > 1) {
     // evaluate prediction type and weighting - Only use during day or when TIR is above threshold for relevant band
-    if (ENactive || TIRB_sum > 1) {
+    if (ENactive || TIRB_sum > 1 || !ENtimeOK && eventualBG > target_bg) {
 
         // PREbolus active
         if (sens_predType == "PB") {
