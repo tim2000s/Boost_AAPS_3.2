@@ -566,7 +566,7 @@
                 android:title="ISF BG Scaling velocity %"
                 android:summary="This controls how fast will be ISF scaled based on BG level"
                 android:dialogMessage="This controls how fast will be ISF scaled based on BG level: 0% means no scaling at all, constant ISF value for every BG level; 100% - normal DynamicISF scaling;"
-                validate:floatmaxNumber="100"
+                validate:floatmaxNumber="200"
                 validate:floatminNumber="0"
                 validate:testType="floatNumericRange"/>
 
