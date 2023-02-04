@@ -359,11 +359,11 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
 
         // get the FIRST and LAST ENTempTarget time since EN activation NEW
         repository.getENTemporaryTargetDataFromTimetoTime(ENStartTime,now,true).blockingGet().let { ENTempTarget ->
-            val firstENTempTargetTime = with(ENTempTarget.firstOrNull()?.timestamp) { this ?: 0 }
+            val firstENTempTargetTime = ENTempTarget.firstOrNull()?.timestamp ?: 0
             this.mealData.put("firstENTempTargetTime",firstENTempTargetTime)
             if (firstENTempTargetTime >0) ENStartedArray += firstENTempTargetTime
 
-            val lastENTempTargetTime = with(ENTempTarget.lastOrNull()?.timestamp) { this ?: 0 }
+            val lastENTempTargetTime = ENTempTarget.lastOrNull()?.timestamp ?: 0
             this.mealData.put("lastENTempTargetTime",lastENTempTargetTime)
             ENWStartTimeArray += lastENTempTargetTime
         }

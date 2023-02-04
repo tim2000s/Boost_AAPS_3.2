@@ -418,9 +418,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     ENWindowRunTime = (nowUTC - meal_data.ENWStartTime) / 60000;
 
     var ENWindowDuration = (firstMealWindow ? ENBkfstWindow : profile.ENWindow);
-    var ENWttDuration = (meal_data.activeENTempTargetDuration > 0 ? meal_data.activeENTempTargetDuration : ENWindowDuration);
-    //ENWindowDuration = (!firstMealWindow && meal_data.activeENTempTargetDuration > ENWindowDuration - ENWindowRunTime ? meal_data.activeENTempTargetDuration : ENWindowDuration);
-    ENWindowDuration = (firstMealWindow ? ENWindowDuration : Math.min(ENWttDuration, ENWindowDuration));
+    var ENWttDuration = meal_data.activeENTempTargetDuration;
+    ENWindowDuration = (ENWttDuration > 0 ? ENWttDuration : ENWindowDuration);
 
     // ENWindowOK is when there is a recent COB entry or manual bolus
     ENWindowOK = (ENactive && ENWindowRunTime < ENWindowDuration || ENWTriggerOK);
