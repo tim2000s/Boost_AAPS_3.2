@@ -1,50 +1,5 @@
 package info.nightscout.implementation.pump
 
-<<<<<<<< HEAD:pump/virtual/src/main/java/info/nightscout/pump/PumpSyncImplementation.kt
-import info.nightscout.androidaps.core.R
-import info.nightscout.androidaps.data.DetailedBolusInfo
-import info.nightscout.androidaps.database.AppRepository
-import info.nightscout.androidaps.database.ValueWrapper
-import info.nightscout.androidaps.database.embedments.InterfaceIDs
-import info.nightscout.androidaps.database.entities.Bolus
-import info.nightscout.androidaps.database.entities.Carbs
-import info.nightscout.androidaps.database.entities.ExtendedBolus
-import info.nightscout.androidaps.database.entities.TemporaryBasal
-import info.nightscout.androidaps.database.entities.TherapyEvent
-import info.nightscout.androidaps.database.entities.TotalDailyDose
-import info.nightscout.androidaps.database.entities.UserEntry
-import info.nightscout.androidaps.database.entities.ValueWithUnit
-import info.nightscout.androidaps.database.transactions.InsertBolusWithTempIdTransaction
-import info.nightscout.androidaps.database.transactions.InsertIfNewByTimestampCarbsTransaction
-import info.nightscout.androidaps.database.transactions.InsertIfNewByTimestampTherapyEventTransaction
-import info.nightscout.androidaps.database.transactions.InsertTemporaryBasalWithTempIdTransaction
-import info.nightscout.androidaps.database.transactions.InsertTherapyEventAnnouncementTransaction
-import info.nightscout.androidaps.database.transactions.InvalidateTemporaryBasalTransaction
-import info.nightscout.androidaps.database.transactions.InvalidateTemporaryBasalTransactionWithPumpId
-import info.nightscout.androidaps.database.transactions.InvalidateTemporaryBasalWithTempIdTransaction
-import info.nightscout.androidaps.database.transactions.SyncBolusWithTempIdTransaction
-import info.nightscout.androidaps.database.transactions.SyncPumpBolusTransaction
-import info.nightscout.androidaps.database.transactions.SyncPumpCancelExtendedBolusIfAnyTransaction
-import info.nightscout.androidaps.database.transactions.SyncPumpCancelTemporaryBasalIfAnyTransaction
-import info.nightscout.androidaps.database.transactions.SyncPumpExtendedBolusTransaction
-import info.nightscout.androidaps.database.transactions.SyncPumpTemporaryBasalTransaction
-import info.nightscout.androidaps.database.transactions.SyncPumpTotalDailyDoseTransaction
-import info.nightscout.androidaps.database.transactions.SyncTemporaryBasalWithTempIdTransaction
-import info.nightscout.androidaps.interfaces.ActivePlugin
-import info.nightscout.androidaps.interfaces.ProfileFunction
-import info.nightscout.androidaps.interfaces.PumpSync
-import info.nightscout.androidaps.interfaces.ResourceHelper
-import info.nightscout.androidaps.logging.UserEntryLogger
-import info.nightscout.androidaps.plugins.bus.RxBus
-import info.nightscout.androidaps.plugins.general.overview.events.EventNewNotification
-import info.nightscout.androidaps.plugins.general.overview.notifications.Notification
-import info.nightscout.androidaps.plugins.pump.common.defs.PumpType
-import info.nightscout.androidaps.plugins.pump.virtual.VirtualPumpPlugin
-import info.nightscout.androidaps.utils.DateUtil
-import info.nightscout.androidaps.utils.T
-import info.nightscout.shared.logging.AAPSLogger
-import info.nightscout.shared.logging.LTag
-========
 import info.nightscout.core.events.EventNewNotification
 import info.nightscout.core.pump.fromDbPumpType
 import info.nightscout.core.pump.toDbPumpType
@@ -88,7 +43,6 @@ import info.nightscout.rx.bus.RxBus
 import info.nightscout.rx.logging.AAPSLogger
 import info.nightscout.rx.logging.LTag
 import info.nightscout.shared.interfaces.ResourceHelper
->>>>>>>> dev:implementation/src/main/java/info/nightscout/implementation/pump/PumpSyncImplementation.kt
 import info.nightscout.shared.sharedPreferences.SP
 import info.nightscout.shared.utils.DateUtil
 import info.nightscout.shared.utils.T
@@ -133,15 +87,6 @@ class PumpSyncImplementation @Inject constructor(
         return false
     }
 
-    override fun verifyPumpIdentification(type: PumpType, serialNumber: String): Boolean {
-        val storedType = sp.getString(R.string.key_active_pump_type, "")
-        val storedSerial = sp.getString(R.string.key_active_pump_serial_number, "")
-        if (activePlugin.activePump is VirtualPumpPlugin) return true
-        if (type.description == storedType && serialNumber == storedSerial) return true
-        aapsLogger.debug(LTag.PUMP, "verifyPumpIdentification failed for $type $serialNumber")
-        return false
-    }
-
     /**
      * Check if data is coming from currently active pump to prevent overlapping pump histories
      *
@@ -164,21 +109,13 @@ class PumpSyncImplementation @Inject constructor(
             return timestamp > dateUtil.now() - T.mins(1).msecs() // allow first record to be 1 min old
         }
 
-<<<<<<<< HEAD:pump/virtual/src/main/java/info/nightscout/pump/PumpSyncImplementation.kt
-        if (activePlugin.activePump is VirtualPumpPlugin || (type.description == storedType && serialNumber == storedSerial && timestamp >= storedTimestamp)) {
-========
         if (activePlugin.activePump is VirtualPump || (type.description == storedType && serialNumber == storedSerial && timestamp >= storedTimestamp)) {
->>>>>>>> dev:implementation/src/main/java/info/nightscout/implementation/pump/PumpSyncImplementation.kt
             // data match
             return true
         }
 
         if (showNotification && (type.description != storedType || serialNumber != storedSerial) && timestamp >= storedTimestamp)
-<<<<<<<< HEAD:pump/virtual/src/main/java/info/nightscout/pump/PumpSyncImplementation.kt
-            rxBus.send(EventNewNotification(Notification(Notification.WRONG_PUMP_DATA, rh.gs(R.string.wrong_pump_data), Notification.URGENT)))
-========
             rxBus.send(EventNewNotification(Notification(Notification.WRONG_PUMP_DATA, rh.gs(info.nightscout.core.ui.R.string.wrong_pump_data), Notification.URGENT)))
->>>>>>>> dev:implementation/src/main/java/info/nightscout/implementation/pump/PumpSyncImplementation.kt
         aapsLogger.error(
             LTag.PUMP,
             "Ignoring pump history record  Allowed: ${dateUtil.dateAndTimeAndSecondsString(storedTimestamp)} $storedType $storedSerial Received: $timestamp ${

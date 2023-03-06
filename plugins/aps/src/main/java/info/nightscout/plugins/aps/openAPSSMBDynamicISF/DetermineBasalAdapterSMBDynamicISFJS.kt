@@ -1,56 +1,53 @@
-package info.nightscout.androidaps.plugins.aps.openAPSSMBDynamicISF
+package info.nightscout.plugins.aps.openAPSSMBDynamicISF
 
 import dagger.android.HasAndroidInjector
-import info.nightscout.androidaps.R
-import info.nightscout.androidaps.data.IobTotal
-import info.nightscout.androidaps.data.MealData
-import info.nightscout.androidaps.database.AppRepository
-import info.nightscout.androidaps.extensions.convertedToAbsolute
-import info.nightscout.androidaps.extensions.getPassedDurationToTimeInMinutes
-import info.nightscout.androidaps.extensions.plannedRemainingMinutes
-import info.nightscout.androidaps.interfaces.ActivePlugin
-import info.nightscout.androidaps.interfaces.GlucoseUnit
-import info.nightscout.androidaps.interfaces.IobCobCalculator
-import info.nightscout.androidaps.interfaces.Profile
-import info.nightscout.androidaps.interfaces.ProfileFunction
-import info.nightscout.androidaps.plugins.aps.logger.LoggerCallback
-import info.nightscout.androidaps.plugins.aps.loop.ScriptReader
-import info.nightscout.androidaps.interfaces.DetermineBasalAdapterInterface
-import info.nightscout.androidaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
-import info.nightscout.androidaps.plugins.aps.openAPSSMB.SMBDefaults
-import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
-import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatus
-import info.nightscout.androidaps.utils.DateUtil
-import info.nightscout.androidaps.interfaces.ResourceHelper
-import info.nightscout.androidaps.plugins.aps.loop.LoopVariantPreference
-import info.nightscout.androidaps.utils.Round
-import info.nightscout.androidaps.utils.stats.TddCalculator
+import info.nightscout.core.extensions.convertedToAbsolute
+import info.nightscout.core.extensions.getPassedDurationToTimeInMinutes
+import info.nightscout.core.extensions.plannedRemainingMinutes
+import info.nightscout.interfaces.GlucoseUnit
+import info.nightscout.interfaces.aps.DetermineBasalAdapter
+import info.nightscout.interfaces.aps.SMBDefaults
+import info.nightscout.interfaces.iob.GlucoseStatus
+import info.nightscout.interfaces.iob.IobCobCalculator
+import info.nightscout.interfaces.iob.IobTotal
+import info.nightscout.interfaces.iob.MealData
+import info.nightscout.interfaces.plugin.ActivePlugin
+import info.nightscout.interfaces.profile.Profile
+import info.nightscout.interfaces.profile.ProfileFunction
+import info.nightscout.interfaces.stats.TddCalculator
+import info.nightscout.interfaces.utils.Round
+import info.nightscout.plugins.aps.R
+import info.nightscout.plugins.aps.logger.LoggerCallback
+import info.nightscout.plugins.aps.openAPSSMB.DetermineBasalResultSMB
+import info.nightscout.plugins.aps.utils.ScriptReader
+import info.nightscout.rx.logging.AAPSLogger
+import info.nightscout.rx.logging.LTag
 import info.nightscout.shared.SafeParse
-import info.nightscout.shared.logging.AAPSLogger
-import info.nightscout.shared.logging.LTag
 import info.nightscout.shared.sharedPreferences.SP
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import org.mozilla.javascript.*
+import org.mozilla.javascript.Context
 import org.mozilla.javascript.Function
+import org.mozilla.javascript.NativeJSON
+import org.mozilla.javascript.NativeObject
+import org.mozilla.javascript.RhinoException
+import org.mozilla.javascript.Scriptable
+import org.mozilla.javascript.ScriptableObject
+import org.mozilla.javascript.Undefined
 import java.io.IOException
 import java.lang.reflect.InvocationTargetException
 import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 import kotlin.math.ln
 
-class DetermineBasalAdapterSMBDynamicISFJS internal constructor(private val scriptReader: ScriptReader, private val injector: HasAndroidInjector) : DetermineBasalAdapterInterface {
+class DetermineBasalAdapterSMBDynamicISFJS internal constructor(private val scriptReader: ScriptReader, private val injector: HasAndroidInjector) : DetermineBasalAdapter {
 
     @Inject lateinit var aapsLogger: AAPSLogger
-    @Inject lateinit var constraintChecker: ConstraintChecker
     @Inject lateinit var sp: SP
-    @Inject lateinit var rh: ResourceHelper
     @Inject lateinit var profileFunction: ProfileFunction
     @Inject lateinit var iobCobCalculator: IobCobCalculator
     @Inject lateinit var activePlugin: ActivePlugin
-    @Inject lateinit var repository: AppRepository
-    @Inject lateinit var dateUtil: DateUtil
     @Inject lateinit var tddCalculator: TddCalculator
 
     private var profile = JSONObject()
@@ -62,7 +59,7 @@ class DetermineBasalAdapterSMBDynamicISFJS internal constructor(private val scri
     private var microBolusAllowed = false
     private var smbAlwaysAllowed = false
     private var currentTime: Long = 0
-    private var saveCgmSource = false
+    private var flatBGsDetected = false
 
     override var currentTempParam: String? = null
     override var iobDataParam: String? = null
@@ -84,7 +81,7 @@ class DetermineBasalAdapterSMBDynamicISFJS internal constructor(private val scri
         aapsLogger.debug(LTag.APS, "MicroBolusAllowed:  $microBolusAllowed")
         aapsLogger.debug(LTag.APS, "SMBAlwaysAllowed:  $smbAlwaysAllowed")
         aapsLogger.debug(LTag.APS, "CurrentTime: $currentTime")
-        aapsLogger.debug(LTag.APS, "isSaveCgmSource: $saveCgmSource")
+        aapsLogger.debug(LTag.APS, "flatBGsDetected: $flatBGsDetected")
         var determineBasalResultSMB: DetermineBasalResultSMB? = null
         val rhino = Context.enter()
         val scope: Scriptable = rhino.initStandardObjects()
@@ -131,7 +128,7 @@ var getIsfByProfile = function (bg, profile) {
                     java.lang.Boolean.valueOf(microBolusAllowed),
                     makeParam(null, rhino, scope),  // reservoir data as undefined
                     java.lang.Long.valueOf(currentTime),
-                    java.lang.Boolean.valueOf(saveCgmSource)
+                    java.lang.Boolean.valueOf(flatBGsDetected)
                 )
                 val jsResult = determineBasalObj.call(rhino, scope, scope, params) as NativeObject
                 scriptDebug = LoggerCallback.scriptDebug
@@ -186,7 +183,7 @@ var getIsfByProfile = function (bg, profile) {
         microBolusAllowed: Boolean,
         uamAllowed: Boolean,
         advancedFiltering: Boolean,
-        isSaveCgmSource: Boolean
+        flatBGsDetected: Boolean
     ) {
         val pump = activePlugin.activePump
         val pumpBolusStep = pump.pumpDescription.bolusStep
@@ -227,22 +224,22 @@ var getIsfByProfile = function (bg, profile) {
         this.profile.put("enableUAM", uamAllowed)
         this.profile.put("A52_risk_enable", SMBDefaults.A52_risk_enable)
         val smbEnabled = sp.getBoolean(R.string.key_use_smb, false)
-        this.profile.put("SMBInterval", sp.getInt(R.string.key_smbinterval, SMBDefaults.SMBInterval))
+        this.profile.put("SMBInterval", sp.getInt(R.string.key_smb_interval, SMBDefaults.SMBInterval))
         this.profile.put("enableSMB_with_COB", smbEnabled && sp.getBoolean(R.string.key_enableSMB_with_COB, false))
         this.profile.put("enableSMB_with_temptarget", smbEnabled && sp.getBoolean(R.string.key_enableSMB_with_temptarget, false))
         this.profile.put("allowSMB_with_high_temptarget", smbEnabled && sp.getBoolean(R.string.key_allowSMB_with_high_temptarget, false))
         this.profile.put("enableSMB_always", smbEnabled && sp.getBoolean(R.string.key_enableSMB_always, false) && advancedFiltering)
         this.profile.put("enableSMB_after_carbs", smbEnabled && sp.getBoolean(R.string.key_enableSMB_after_carbs, false) && advancedFiltering)
-        this.profile.put("maxSMBBasalMinutes", sp.getInt(R.string.key_smbmaxminutes, SMBDefaults.maxSMBBasalMinutes))
-        this.profile.put("maxUAMSMBBasalMinutes", sp.getInt(R.string.key_uamsmbmaxminutes, SMBDefaults.maxUAMSMBBasalMinutes))
+        this.profile.put("maxSMBBasalMinutes", sp.getInt(R.string.key_smb_max_minutes, SMBDefaults.maxSMBBasalMinutes))
+        this.profile.put("maxUAMSMBBasalMinutes", sp.getInt(R.string.key_uam_smb_max_minutes, SMBDefaults.maxUAMSMBBasalMinutes))
         //set the min SMB amount to be the amount set by the pump.
         this.profile.put("bolus_increment", pumpBolusStep)
         this.profile.put("carbsReqThreshold", sp.getInt(R.string.key_carbsReqThreshold, SMBDefaults.carbsReqThreshold))
         this.profile.put("current_basal", basalRate)
         this.profile.put("temptargetSet", tempTargetSet)
 
-        val autosens_max = SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_autosens_max, "1.2"))
-        val autosens_min = SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_autosens_min, "0.7"))
+        val autosens_max = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_openapsama_autosens_max, "1.2"))
+        val autosens_min = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_openapsama_autosens_min, "0.7"))
         this.profile.put("autosens_max", autosens_max)
         this.profile.put("autosens_min", autosens_min)
         //set the min SMB amount to be the amount set by the pump.
@@ -292,14 +289,15 @@ var getIsfByProfile = function (bg, profile) {
 
         if (useTDD || adjustSens) {
 
-            val tdd7D = tddCalculator.averageTDD(tddCalculator.calculate(7))?.totalAmount
+            val tdd7D = tddCalculator.averageTDD(tddCalculator.calculate(7, allowMissingDays = false))?.totalAmount
             val tddLast24H = tddCalculator.calculateDaily(-24, 0).totalAmount
 
             if (useTDD) {
-                val tdd1D = tddCalculator.averageTDD(tddCalculator.calculate(1))?.totalAmount
-                val tddLast4H = tddCalculator.calculateDaily(-4, 0).totalAmount
-                val tddLast8to4H = tddCalculator.calculateDaily(-8, -4).totalAmount
-                val tddWeightedFromLast8H = ((1.4 * tddLast4H) + (0.6 * tddLast8to4H)) * 3
+                val tdd1D = tddCalculator.averageTDD(tddCalculator.calculate(1, allowMissingDays = false))?.totalAmount
+                val tddLast24H = tddCalculator.calculateDaily(-24, 0)?.totalAmount
+                val tddLast8to4H = tddCalculator.calculateDaily(-8, -4)?.totalAmount
+                if (tddLast24H != null && tddLast4H != null && tddLast8to4H != null) {
+                    val tddWeightedFromLast8H = ((1.4 * tddLast4H) + (0.6 * tddLast8to4H)) * 3
                 var tdd =
                     if (tdd1D != null && tdd7D != null) (tddWeightedFromLast8H * 0.33) + (tdd7D * 0.34) + (tdd1D * 0.33)
                     else tddWeightedFromLast8H
@@ -309,6 +307,7 @@ var getIsfByProfile = function (bg, profile) {
 
                 sensNormalTarget = 1800 / (tdd * (ln((profile.getTargetMgdl() / insulinDivisor) + 1)))
                 variableSensitivity = 1800 / (tdd * (ln((glucoseStatus.glucose / insulinDivisor) + 1)))
+                this.profile.put("TDD", tdd)
             }
 
             if (adjustSens && tdd7D != null)
@@ -333,7 +332,7 @@ var getIsfByProfile = function (bg, profile) {
         this.microBolusAllowed = microBolusAllowed
         smbAlwaysAllowed = advancedFiltering
         currentTime = now
-        saveCgmSource = isSaveCgmSource
+        this.flatBGsDetected = flatBGsDetected
     }
 
     private fun makeParam(jsonObject: JSONObject?, rhino: Context, scope: Scriptable): Any {

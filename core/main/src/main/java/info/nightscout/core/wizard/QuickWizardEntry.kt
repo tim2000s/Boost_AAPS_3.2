@@ -113,7 +113,7 @@ class QuickWizardEntry @Inject constructor(private val injector: HasAndroidInjec
         //BG
         var bg = 0.0
         if (useBG() == YES) {
-            bg = lastBG.valueToUnits(profileFunction.getUnits(), sp)
+            bg = lastBG.valueToUnits(profileFunction.getUnits())
         }
         // COB
         val cob =
