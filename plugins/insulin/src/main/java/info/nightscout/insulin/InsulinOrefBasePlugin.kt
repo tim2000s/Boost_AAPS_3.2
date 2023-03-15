@@ -9,6 +9,7 @@ import info.nightscout.interfaces.Config
 import info.nightscout.interfaces.insulin.Insulin
 import info.nightscout.interfaces.iob.Iob
 import info.nightscout.interfaces.notifications.Notification
+import info.nightscout.interfaces.plugin.ActivePlugin
 import info.nightscout.interfaces.plugin.PluginBase
 import info.nightscout.interfaces.plugin.PluginDescription
 import info.nightscout.interfaces.plugin.PluginType
@@ -18,12 +19,11 @@ import info.nightscout.interfaces.utils.HardLimits
 import info.nightscout.rx.bus.RxBus
 import info.nightscout.rx.logging.AAPSLogger
 import info.nightscout.shared.interfaces.ResourceHelper
+import info.nightscout.shared.sharedPreferences.SP
 import info.nightscout.shared.utils.T
 import kotlin.math.exp
 import kotlin.math.pow
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.hours
+import javax.inject.Inject
 
 /**
  * Created by adrian on 13.08.2017.
@@ -37,7 +37,7 @@ abstract class InsulinOrefBasePlugin(
     val profileFunction: ProfileFunction,
     val rxBus: RxBus,
     aapsLogger: AAPSLogger,
-    config: Config,
+    val config: Config,
     val hardLimits: HardLimits,
     val uiInteraction: UiInteraction
 ) : PluginBase(
@@ -53,7 +53,6 @@ abstract class InsulinOrefBasePlugin(
 
     @Inject lateinit var activePlugin: ActivePlugin
     @Inject lateinit var sp: SP
-    @Inject lateinit var buildHelper: BuildHelper
 
     private var lastWarned: Long = 0
     override val dia
@@ -162,7 +161,7 @@ abstract class InsulinOrefBasePlugin(
 
     override fun preprocessPreferences(preferenceFragment: PreferenceFragmentCompat) {
         super.preprocessPreferences(preferenceFragment)
-        preferenceFragment.findPreference<SwitchPreference>(rh.gs(R.string.iob_use_aimi))?.isVisible = buildHelper.isEngineeringMode()
+        preferenceFragment.findPreference<SwitchPreference>(rh.gs(R.string.iob_use_aimi))?.isVisible = config.isEngineeringMode()
     }
 
     override val comment

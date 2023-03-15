@@ -290,27 +290,28 @@ var getIsfByProfile = function (bg, profile) {
         if (useTDD || adjustSens) {
 
             val tdd7D = tddCalculator.averageTDD(tddCalculator.calculate(7, allowMissingDays = false))?.totalAmount
-            val tddLast24H = tddCalculator.calculateDaily(-24, 0).totalAmount
+            val tddLast24H = tddCalculator.calculateDaily(-24, 0)?.totalAmount
 
             if (useTDD) {
                 val tdd1D = tddCalculator.averageTDD(tddCalculator.calculate(1, allowMissingDays = false))?.totalAmount
-                val tddLast24H = tddCalculator.calculateDaily(-24, 0)?.totalAmount
+                val tddLast4H = tddCalculator.calculateDaily(-4, 0)?.totalAmount
                 val tddLast8to4H = tddCalculator.calculateDaily(-8, -4)?.totalAmount
                 if (tddLast24H != null && tddLast4H != null && tddLast8to4H != null) {
                     val tddWeightedFromLast8H = ((1.4 * tddLast4H) + (0.6 * tddLast8to4H)) * 3
-                var tdd =
-                    if (tdd1D != null && tdd7D != null) (tddWeightedFromLast8H * 0.33) + (tdd7D * 0.34) + (tdd1D * 0.33)
-                    else tddWeightedFromLast8H
+                    var tdd =
+                        if (tdd1D != null && tdd7D != null) (tddWeightedFromLast8H * 0.33) + (tdd7D * 0.34) + (tdd1D * 0.33)
+                        else tddWeightedFromLast8H
 
-                val dynISFadjust = SafeParse.stringToDouble(sp.getString(R.string.key_DynISFAdjust, "100")) / 100.0
-                tdd *= dynISFadjust
+                    val dynISFadjust = SafeParse.stringToDouble(sp.getString(R.string.key_DynISFAdjust, "100")) / 100.0
+                    tdd *= dynISFadjust
 
-                sensNormalTarget = 1800 / (tdd * (ln((profile.getTargetMgdl() / insulinDivisor) + 1)))
-                variableSensitivity = 1800 / (tdd * (ln((glucoseStatus.glucose / insulinDivisor) + 1)))
-                this.profile.put("TDD", tdd)
+                    sensNormalTarget = 1800 / (tdd * (ln((profile.getTargetMgdl() / insulinDivisor) + 1)))
+                    variableSensitivity = 1800 / (tdd * (ln((glucoseStatus.glucose / insulinDivisor) + 1)))
+                    this.profile.put("TDD", tdd)
+                }
             }
 
-            if (adjustSens && tdd7D != null)
+            if (adjustSens && tdd7D != null && tddLast24H != null)
                 autosensData.put("ratio", Math.max(Math.min(tddLast24H / tdd7D, autosens_max), autosens_min ))
         }
 

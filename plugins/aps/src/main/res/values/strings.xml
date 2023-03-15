@@ -21,7 +21,10 @@
     <string name="key_openapssmb_max_iob" translatable="false">openapsmb_max_iob</string>
     <string name="key_lgs_threshold" translatable="false">lgsThreshold</string>
     <string name="key_DynISFAdjust" translatable="false">DynISFAdjust</string>
+    <string name="key_DynISFUseTDD" translatable="false">DynISFUseTDD</string>
+    <string name="key_DynISFVelocity" translatable="false">DynISFVelocity</string>
     <string name="key_adjust_sensitivity" translatable="false">dynisf_adjust_sensitivity</string>
+
     <string name="key_openapsma_max_basal" translatable="false">openapsma_max_basal</string>
     <string name="key_openapsama_use_autosens" translatable="false">openapsama_useautosens</string>
 

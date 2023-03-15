@@ -1,12 +1,10 @@
-package info.nightscout.androidaps.plugins.aps.loop
+package info.nightscout.plugins.aps.loop
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.util.AttributeSet
 import androidx.preference.DropDownPreference
-import androidx.preference.PreferenceDataStore
 import dagger.android.HasAndroidInjector
-import info.nightscout.androidaps.core.R
+import info.nightscout.plugins.aps.R
 import info.nightscout.shared.sharedPreferences.SP
 import java.util.*
 import javax.inject.Inject

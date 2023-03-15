@@ -7,7 +7,8 @@ import info.nightscout.interfaces.aps.AutosensResult
 import info.nightscout.interfaces.insulin.Insulin
 import info.nightscout.interfaces.iob.IobTotal
 import info.nightscout.interfaces.profile.Profile
-import info.nightscout.interfaces.utils.DecimalFormatter
+import info.nightscout.interfaces.utils.DecimalFormatter.to0Decimal
+import info.nightscout.interfaces.utils.DecimalFormatter.to2Decimal
 import info.nightscout.shared.utils.DateUtil
 import info.nightscout.shared.utils.T
 import kotlin.math.ceil
@@ -37,13 +38,13 @@ val TemporaryBasal.durationInMinutes
 fun TemporaryBasal.toStringFull(profile: Profile, dateUtil: DateUtil): String {
     return when {
         type == TemporaryBasal.Type.FAKE_EXTENDED -> {
-            DecimalFormatter.to2Decimal(rate) + "U/h (" + DecimalFormatter.to2Decimal(netExtendedRate(profile)) + "E) @" +
+            to2Decimal(rate) + "U/h (" + to2Decimal(netExtendedRate(profile)) + "E) @" +
                 dateUtil.timeString(timestamp) +
                 " " + getPassedDurationToTimeInMinutes(dateUtil.now()) + "/" + durationInMinutes + "'"
         }
 
         isAbsolute                                -> {
-            DecimalFormatter.to2Decimal(rate) + "U/h @" +
+            to2Decimal(rate) + "U/h @" +
                 dateUtil.timeString(timestamp) +
                 " " + getPassedDurationToTimeInMinutes(dateUtil.now()) + "/" + durationInMinutes + "'"
         }
@@ -57,8 +58,8 @@ fun TemporaryBasal.toStringFull(profile: Profile, dateUtil: DateUtil): String {
 }
 
 fun TemporaryBasal.toStringShort(): String =
-    if (isAbsolute || type == TemporaryBasal.Type.FAKE_EXTENDED) DecimalFormatter.to2Decimal(rate) + "U/h"
-    else "${DecimalFormatter.to0Decimal(rate)}%"
+    if (isAbsolute || type == TemporaryBasal.Type.FAKE_EXTENDED) to2Decimal(rate) + "U/h"
+    else "${to0Decimal(rate)}%"
 
 fun TemporaryBasal.toStringShort(forcePercentage: Boolean, profileBasal: Double): String =
     if (isAbsolute || type == TemporaryBasal.Type.FAKE_EXTENDED) {

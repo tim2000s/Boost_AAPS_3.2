@@ -60,7 +60,6 @@ class GlimpPlugin @Inject constructor(
                 timestamp = inputData.getLong("myTimestamp", 0),
                 value = inputData.getDouble("mySGV", 0.0),
                 raw = inputData.getDouble("mySGV", 0.0),
-                smoothed = null,
                 noise = null,
                 trendArrow = GlucoseValue.TrendArrow.fromString(inputData.getString("myTrend")),
                 sourceSensor = GlucoseValue.SourceSensor.LIBRE_1_GLIMP
