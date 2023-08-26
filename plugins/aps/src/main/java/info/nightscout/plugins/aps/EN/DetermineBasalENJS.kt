@@ -1,52 +1,60 @@
-package info.nightscout.androidaps.plugins.aps.EN
+package info.nightscout.plugins.aps.EN
 
 import dagger.android.HasAndroidInjector
-import info.nightscout.androidaps.R
-import info.nightscout.androidaps.data.IobTotal
-import info.nightscout.androidaps.data.MealData
-import info.nightscout.androidaps.data.ProfileSealed
-import info.nightscout.androidaps.database.AppRepository
-import info.nightscout.androidaps.database.ValueWrapper
-import info.nightscout.androidaps.database.entities.Bolus
-import info.nightscout.androidaps.database.entities.TherapyEvent
-import info.nightscout.androidaps.extensions.convertedToAbsolute
-import info.nightscout.androidaps.extensions.getPassedDurationToTimeInMinutes
-import info.nightscout.androidaps.extensions.plannedRemainingMinutes
-import info.nightscout.androidaps.interfaces.*
-import info.nightscout.androidaps.plugins.aps.logger.LoggerCallback
-import info.nightscout.androidaps.plugins.aps.loop.APSResult
-import info.nightscout.androidaps.plugins.aps.loop.ScriptReader
-import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
-import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatus
-import info.nightscout.androidaps.utils.MidnightTime
-import info.nightscout.androidaps.interfaces.ResourceHelper
-import info.nightscout.androidaps.plugins.aps.loop.LoopVariantPreference
-import info.nightscout.androidaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
-import info.nightscout.shared.sharedPreferences.SP
-import info.nightscout.androidaps.utils.stats.TddCalculator
-import info.nightscout.androidaps.utils.stats.TirCalculator
+import info.nightscout.androidaps.plugins.aps.EN.ENDefaults
+import info.nightscout.plugins.aps.APSResultObject
+import info.nightscout.core.extensions.convertedToAbsolute
+import info.nightscout.core.extensions.getPassedDurationToTimeInMinutes
+import info.nightscout.core.extensions.plannedRemainingMinutes
+import info.nightscout.core.profile.ProfileSealed
+import info.nightscout.core.validators.LoopVariantPreference
+import info.nightscout.database.ValueWrapper
+import info.nightscout.database.entities.Bolus
+import info.nightscout.database.entities.TherapyEvent
+import info.nightscout.database.impl.AppRepository
+import info.nightscout.interfaces.GlucoseUnit
+import info.nightscout.interfaces.aps.DetermineBasalAdapter
+import info.nightscout.interfaces.aps.SMBDefaults
+import info.nightscout.interfaces.constraints.Constraints
+import info.nightscout.interfaces.iob.GlucoseStatus
+import info.nightscout.interfaces.iob.IobCobCalculator
+import info.nightscout.interfaces.iob.IobTotal
+import info.nightscout.interfaces.iob.MealData
+import info.nightscout.interfaces.plugin.ActivePlugin
+import info.nightscout.interfaces.profile.Profile
+import info.nightscout.interfaces.profile.ProfileFunction
+import info.nightscout.interfaces.stats.TddCalculator
+import info.nightscout.interfaces.stats.TirCalculator
+import info.nightscout.interfaces.utils.MidnightTime
+import info.nightscout.plugins.aps.R
+import info.nightscout.plugins.aps.logger.LoggerCallback
+import info.nightscout.plugins.aps.openAPSSMB.DetermineBasalResultSMB
+import info.nightscout.plugins.aps.utils.ScriptReader
+import info.nightscout.rx.logging.AAPSLogger
+import info.nightscout.rx.logging.LTag
 import info.nightscout.shared.SafeParse
-import info.nightscout.shared.logging.AAPSLogger
-import info.nightscout.shared.logging.LTag
+import info.nightscout.shared.sharedPreferences.SP
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import org.mozilla.javascript.*
+import org.mozilla.javascript.Context
 import org.mozilla.javascript.Function
+import org.mozilla.javascript.NativeJSON
+import org.mozilla.javascript.NativeObject
+import org.mozilla.javascript.RhinoException
+import org.mozilla.javascript.Scriptable
+import org.mozilla.javascript.ScriptableObject
+import org.mozilla.javascript.Undefined
 import java.io.IOException
 import java.lang.reflect.InvocationTargetException
 import java.nio.charset.StandardCharsets
 import javax.inject.Inject
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.roundToInt
 
-class DetermineBasalAdapterENJS internal constructor(private val scriptReader: ScriptReader, private val injector: HasAndroidInjector) : DetermineBasalAdapterInterface {
+class DetermineBasalAdapterENJS internal constructor(private val scriptReader: ScriptReader, private val injector: HasAndroidInjector) : DetermineBasalAdapter {
 
     @Inject lateinit var aapsLogger: AAPSLogger
-    @Inject lateinit var constraintChecker: ConstraintChecker
+    @Inject lateinit var constraintChecker: Constraints
     @Inject lateinit var sp: SP
-    @Inject lateinit var rh: ResourceHelper
     @Inject lateinit var profileFunction: ProfileFunction
     @Inject lateinit var iobCobCalculator: IobCobCalculator
     @Inject lateinit var activePlugin: ActivePlugin
@@ -74,7 +82,7 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
     override var scriptDebug = ""
 
     @Suppress("SpellCheckingInspection")
-    override operator fun invoke(): APSResult? {
+    override operator fun invoke(): APSResultObject? {
         aapsLogger.debug(LTag.APS, ">>> Invoking determine_basal <<<")
         aapsLogger.debug(LTag.APS, "Glucose status: " + mGlucoseStatus.toString().also { glucoseStatusParam = it })
         aapsLogger.debug(LTag.APS, "IOB data:       " + iobData.toString().also { iobDataParam = it })
@@ -192,10 +200,10 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         this.profile.put("type", "current")
         this.profile.put("max_daily_basal", profile.getMaxDailyBasal())
         this.profile.put("max_basal", maxBasal)
-        this.profile.put("safety_maxbolus", sp.getDouble(R.string.key_treatmentssafety_maxbolus, 3.0))
-        this.profile.put("min_bg", minBg.roundToInt())
-        this.profile.put("max_bg", maxBg.roundToInt())
-        this.profile.put("target_bg", targetBg.roundToInt())
+        this.profile.put("safety_maxbolus", sp.getDouble(info.nightscout.core.utils.R.string.key_treatmentssafety_maxbolus, 3.0))
+        this.profile.put("min_bg", minBg)
+        this.profile.put("max_bg", maxBg)
+        this.profile.put("target_bg", targetBg)
         this.profile.put("carb_ratio", profile.getIc())
         this.profile.put("carb_ratio_midnight", profile.getIc(MidnightTime.calc(now)))
         this.profile.put("sens", profile.getIsfMgdl())
@@ -224,28 +232,28 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         this.profile.put("enableUAM", uamAllowed)
         this.profile.put("A52_risk_enable", ENDefaults.A52_risk_enable)
         val smbEnabled = sp.getBoolean(R.string.key_use_smb, false)
-        this.profile.put("SMBInterval", sp.getInt(R.string.key_smbinterval, ENDefaults.SMBInterval))
+        this.profile.put("SMBInterval", sp.getInt(R.string.key_smb_interval, ENDefaults.SMBInterval))
         this.profile.put("enableSMB_with_COB", smbEnabled && sp.getBoolean(R.string.key_enableSMB_with_COB, false))
         this.profile.put("enableSMB_with_temptarget", smbEnabled && sp.getBoolean(R.string.key_enableSMB_with_temptarget, false))
         this.profile.put("allowSMB_with_high_temptarget", smbEnabled && sp.getBoolean(R.string.key_allowSMB_with_high_temptarget, false))
         this.profile.put("enableSMB_always", smbEnabled && sp.getBoolean(R.string.key_enableSMB_always, false) && advancedFiltering)
         this.profile.put("enableSMB_after_carbs", smbEnabled && sp.getBoolean(R.string.key_enableSMB_after_carbs, false) && advancedFiltering)
-        this.profile.put("maxSMBBasalMinutes", sp.getInt(R.string.key_smbmaxminutes, ENDefaults.maxSMBBasalMinutes))
-        this.profile.put("maxUAMSMBBasalMinutes", sp.getInt(R.string.key_uamsmbmaxminutes, ENDefaults.maxUAMSMBBasalMinutes))
+        this.profile.put("maxSMBBasalMinutes", sp.getInt(R.string.key_smb_max_minutes, ENDefaults.maxSMBBasalMinutes))
+        this.profile.put("maxUAMSMBBasalMinutes", sp.getInt(R.string.key_uam_smb_max_minutes, ENDefaults.maxUAMSMBBasalMinutes))
         //set the min SMB amount to be the amount set by the pump.
         this.profile.put("bolus_increment", pumpBolusStep)
         this.profile.put("carbsReqThreshold", sp.getInt(R.string.key_carbsReqThreshold, ENDefaults.carbsReqThreshold))
         this.profile.put("current_basal", basalRate)
         this.profile.put("temptargetSet", tempTargetSet)
-        this.profile.put("use_autosens", sp.getBoolean(R.string.key_openapsama_useautosens, false))
+        this.profile.put("use_autosens", sp.getBoolean(R.string.key_openapsama_use_autosens, false))
         //this.profile.put("use_autosens", true)
-        this.profile.put("autosens_min", SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_autosens_min, "0.8")))
-        this.profile.put("autosens_max", SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_autosens_max, "1.2")))
+        this.profile.put("autosens_min", SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_openapsama_autosens_min, "0.8")))
+        this.profile.put("autosens_max", SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_openapsama_autosens_max, "1.2")))
 //**********************************************************************************************************************************************
         // patches ==== START
         this.profile.put("EatingNowTimeStart", sp.getInt(R.string.key_eatingnow_timestart, 9))
         this.profile.put("EatingNowTimeEnd", sp.getInt(R.string.key_eatingnow_timeend, 17))
-        val normalTargetBG = profile.getTargetMgdl().roundToInt()
+        val normalTargetBG = profile.getTargetMgdl()
         this.profile.put("normal_target_bg", normalTargetBG)
         this.profile.put("EN_max_iob", sp.getDouble(R.string.key_en_max_iob, 0.0))
         this.profile.put("EN_max_iob_allow_smb", sp.getBoolean(R.string.key_en_max_iob_allow_smb, true))
@@ -341,7 +349,7 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         }
 
         // get the FIRST and LAST bolus time since EN activation NEW
-        repository.getENBolusFromTimeOfType(ENStartTime,true, Bolus.Type.NORMAL, enwMinBolus ).blockingGet().let { ENBolus->
+        repository.getENBolusFromTimeOfType(ENStartTime, true, Bolus.Type.NORMAL, enwMinBolus ).blockingGet().let { ENBolus->
             val firstENBolusTime = with(ENBolus.firstOrNull()?.timestamp) { this ?: 0 }
             this.mealData.put("firstENBolusTime",firstENBolusTime)
             if (firstENBolusTime >0) ENStartedArray += firstENBolusTime
@@ -381,7 +389,7 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
 
         // get the TDD since ENW Start
         this.mealData.put("ENWStartTime", ENWStartTime)
-        this.mealData.put("ENWTDD", if (now <= ENWStartTime+(4*3600000)) tddCalculator.calculate(ENWStartTime, now).bolusAmount else 0)
+        this.mealData.put("ENWTDD", if (now <= ENWStartTime+(4*3600000)) tddCalculator.calculate(ENWStartTime, now, false)?.bolusAmount ?: 0 else 0)
         // this.mealData.put("ENWTDD", if (now <= ENWStartTime+(4*3600000)) tddCalculator.calculate(ENWStartTime, now).totalAmount else 0)
         // this.mealData.put("ENWTDD", 0)
         this.profile.put("ENW_breakfast_max_tdd", sp.getDouble(R.string.key_enw_breakfast_max_tdd, 0.0))
@@ -410,7 +418,7 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
 
         if (TDDLastUpdate == 0L || TDDHrSinceUpdate > 6) {
             // Generate the data for the larger datasets every 6 hours
-            var TDDAvg7d = tddCalculator.averageTDD(tddCalculator.calculate(7))?.totalAmount
+            var TDDAvg7d = tddCalculator.averageTDD(tddCalculator.calculate(7, allowMissingDays = false))?.totalAmount
             if (TDDAvg7d == 0.0 || TDDAvg7d == null ) TDDAvg7d = ((basalRate * 12)*100)/21
             sp.putDouble("TDDAvg7d", TDDAvg7d)
             sp.putLong("TDDLastUpdate", now)
@@ -420,15 +428,15 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         var TDDAvg7d = sp.getDouble("TDDAvg7d", ((basalRate * 12)*100)/21)
 
         // calculate the rest of the TDD data
-        var TDDAvg1d = tddCalculator.averageTDD(tddCalculator.calculate(1))?.totalAmount
-        if (TDDAvg1d == null || TDDAvg1d < basalRate) TDDAvg1d =  tddCalculator.calculateDaily(-24, 0).totalAmount
+        var TDDAvg1d = tddCalculator.averageTDD(tddCalculator.calculate(1, allowMissingDays = false))?.totalAmount
+        if (TDDAvg1d == null || TDDAvg1d < basalRate) TDDAvg1d = tddCalculator.calculateDaily(-24, 0)?.totalAmount ?: 0.0
         if (TDDAvg1d < basalRate) TDDAvg1d = ((basalRate * 12)*100)/21
         this.mealData.put("TDDAvg1d", TDDAvg1d)
 
-        val TDDLast4h = tddCalculator.calculateDaily(-4, 0).totalAmount
+        val TDDLast4h = tddCalculator.calculateDaily(-4, 0)?.totalAmount ?: 0.0
         this.mealData.put("TDDLast4h", TDDLast4h)
 
-        val TDDLast8h = tddCalculator.calculateDaily(-8, 0).totalAmount
+        var TDDLast8h = tddCalculator.calculateDaily(-8, 0)?.totalAmount ?: 0.0
         this.mealData.put("TDDLast8h", TDDLast8h)
 
         val TDDLast8hfor4h = TDDLast8h - TDDLast4h
@@ -452,14 +460,14 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         // this.mealData.put("lastCannAgeMins", lastCannAgeMins)
 
         // sp.putDouble("TDDAvgtoCannula", 0.0) // reset
-        val TDDAvgtoCannula = sp.getDouble("TDDAvgtoCannula", 0.0)
+        var TDDAvgtoCannula = sp.getDouble("TDDAvgtoCannula", 0.0)
         if (lastCannAgeMins <= 30 || TDDAvgtoCannula == 0.0) {
             val daysPrior = 3
-            val TDDAvgtoCannula = tddCalculator.calculate(lastCannulaTime - 86400000 * daysPrior, lastCannulaTime).totalAmount / daysPrior
+            TDDAvgtoCannula = (tddCalculator.calculate(lastCannulaTime - 86400000 * daysPrior, lastCannulaTime, false)?.totalAmount ?: 0.0) / daysPrior
             sp.putDouble("TDDAvgtoCannula", TDDAvgtoCannula)
         }
         this.mealData.put("TDDAvgtoCannula", TDDAvgtoCannula)
-        val TDDLastCannula = if (lastCannAgeMins > 1440) tddCalculator.calculate(lastCannulaTime, now).totalAmount / (lastCannAgeMins/1440) else (TDDAvg7d * 0.8) + (TDD * 0.2)
+        val TDDLastCannula = if (lastCannAgeMins > 1440) (tddCalculator.calculate(lastCannulaTime, now, false)?.totalAmount ?: 0.0) / (lastCannAgeMins/1440) else (TDDAvg7d * 0.8) + (TDD * 0.2)
         this.mealData.put("TDDLastCannula", TDDLastCannula)
 
         this.mealData.put("TDDAvg7d", sp.getDouble("TDDAvg7d", ((basalRate * 12)*100)/21))

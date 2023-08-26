@@ -44,7 +44,7 @@ class OpenAPSSMBDynamicISFPlugin @Inject constructor(
     repository: AppRepository,
     glucoseStatusProvider: GlucoseStatusProvider,
     private val config: Config,
-    private val bgQualityCheck: BgQualityCheck
+    bgQualityCheck: BgQualityCheck
 ) : OpenAPSSMBPlugin(
     injector,
     aapsLogger,

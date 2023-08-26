@@ -49,6 +49,7 @@ class HardLimitsImpl @Inject constructor(
         val VERY_HARD_LIMIT_TEMP_MAX_BG = intArrayOf(72, 270)
         val VERY_HARD_LIMIT_TEMP_TARGET_BG = intArrayOf(72, 200)
         val MIN_DIA = doubleArrayOf(5.0, 5.0, 5.0, 5.0, 5.0)
+        val MIN_DIA_AIMI = doubleArrayOf(2.5, 2.5, 2.5, 2.5, 2.5)
         val MAX_DIA = doubleArrayOf(9.0, 9.0, 9.0, 9.0, 10.0)
         val MIN_IC = doubleArrayOf(2.0, 2.0, 2.0, 2.0, 0.3)
         val MAX_IC = doubleArrayOf(100.0, 100.0, 100.0, 100.0, 100.0)
@@ -56,6 +57,7 @@ class HardLimitsImpl @Inject constructor(
         const val MAX_ISF = 1000.0 // mgdl
         val MAX_IOB_AMA = doubleArrayOf(3.0, 5.0, 7.0, 12.0, 25.0)
         val MAX_IOB_SMB = doubleArrayOf(7.0, 13.0, 22.0, 30.0, 70.0)
+        val MAX_IOB_AIMI    = doubleArrayOf(3.0, 13.0, 22.0, 30.0, 40.0)
         val MAX_BASAL = doubleArrayOf(2.0, 5.0, 10.0, 12.0, 25.0)
 
         //LGS Hard limits
@@ -76,8 +78,10 @@ class HardLimitsImpl @Inject constructor(
     override fun maxBolus(): Double = MAX_BOLUS[loadAge()]
     override fun maxIobAMA(): Double = MAX_IOB_AMA[loadAge()]
     override fun maxIobSMB(): Double = MAX_IOB_SMB[loadAge()]
+    override fun maxIobAimi(): Double = MAX_IOB_AIMI[loadAge()]
     override fun maxBasal(): Double = MAX_BASAL[loadAge()]
     override fun minDia(): Double = MIN_DIA[loadAge()]
+    override fun minDiaAimi(): Double = MIN_DIA_AIMI[loadAge()]
     override fun maxDia(): Double = MAX_DIA[loadAge()]
     override fun minIC(): Double = MIN_IC[loadAge()]
     override fun maxIC(): Double = MAX_IC[loadAge()]

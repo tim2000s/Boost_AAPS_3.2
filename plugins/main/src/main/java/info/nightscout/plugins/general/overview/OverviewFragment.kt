@@ -38,6 +38,7 @@ import info.nightscout.core.ui.elements.SingleClickButton
 import info.nightscout.core.ui.toast.ToastUtils
 import info.nightscout.core.utils.fabric.FabricPrivacy
 import info.nightscout.core.wizard.QuickWizard
+import info.nightscout.database.entities.TemporaryTarget
 import info.nightscout.database.entities.UserEntry.Action
 import info.nightscout.database.entities.UserEntry.Sources
 import info.nightscout.database.entities.interfaces.end
@@ -429,7 +430,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                             }
                                 ?: ToastUtils.infoToast(activity, rh.gs(R.string.dexcom_app_not_installed))
                         } catch (e: ActivityNotFoundException) {
-                            ToastUtils.infoToast(activity, rh.gs(R.string.g5appnotdetected))
+                            ToastUtils.infoToast(activity, rh.gs(R.string.dexcom_app_not_installed))
                         }
                     }
                 }
@@ -1102,7 +1103,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
     private fun updateSensitivity() {
         _binding ?: return
 
-        if (sp.getBoolean(R.string.key_openapsama_useautosens, false) && constraintChecker.isAutosensModeEnabled().value()) {
+        if (constraintChecker.isAutosensModeEnabled().value()) {
             binding.infoLayout.sensitivityIcon.setImageResource(info.nightscout.core.main.R.drawable.ic_swap_vert_black_48dp_green)
             binding.infoLayout.sensitivity.visibility = View.VISIBLE
             binding.infoLayout.sensitivity.text = overviewData.lastAutosensData(iobCobCalculator)?.let { autosensData ->
@@ -1118,8 +1119,8 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         val request = loop.lastRun?.request
         val isfMgdl = profile?.getIsfMgdl()
         val variableSens =
-            if (config.APS && request is DetermineBasalResultSMB) request.variableSens ?: 0.0
-            else if (config.NSCLIENT) JsonHelper.safeGetDouble(nsDeviceStatus.getAPSResult(injector).json, "variable_sens")
+            if (config.APS && request is VariableSensitivityResult) request.variableSens ?: 0.0
+            else if (config.NSCLIENT) JsonHelper.safeGetDouble(processedDeviceStatusData.getAPSResult(injector).json, "variable_sens")
             else 0.0
 
         if (variableSens != 0.0 && isfMgdl != null) {

@@ -1,59 +1,68 @@
-package info.nightscout.androidaps.plugins.aps.AIMI
+package info.nightscout.plugins.aps.AIMI
 
 import dagger.android.HasAndroidInjector
-import info.nightscout.androidaps.R
-import info.nightscout.androidaps.data.IobTotal
-import info.nightscout.androidaps.data.MealData
-import info.nightscout.androidaps.database.AppRepository
-import info.nightscout.androidaps.database.ValueWrapper
-import info.nightscout.androidaps.database.entities.Bolus
-import info.nightscout.androidaps.extensions.convertedToAbsolute
-import info.nightscout.androidaps.extensions.getPassedDurationToTimeInMinutes
-import info.nightscout.androidaps.extensions.plannedRemainingMinutes
-import info.nightscout.androidaps.interfaces.ActivePlugin
-import info.nightscout.androidaps.interfaces.GlucoseUnit
-import info.nightscout.androidaps.interfaces.IobCobCalculator
-import info.nightscout.androidaps.interfaces.Profile
-import info.nightscout.shared.logging.AAPSLogger
-import info.nightscout.androidaps.interfaces.ProfileFunction
-import info.nightscout.shared.logging.LTag
-import info.nightscout.androidaps.plugins.aps.logger.LoggerCallback
-import info.nightscout.androidaps.plugins.aps.loop.ScriptReader
-import info.nightscout.androidaps.interfaces.DetermineBasalAdapterInterface
-import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
-import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatus
-import info.nightscout.androidaps.utils.DateUtil
+import info.nightscout.androidaps.plugins.aps.AIMI.AIMIDefaults
+import info.nightscout.plugins.aps.APSResultObject
+import info.nightscout.core.extensions.convertedToAbsolute
+import info.nightscout.core.extensions.getPassedDurationToTimeInMinutes
+import info.nightscout.core.extensions.plannedRemainingMinutes
+import info.nightscout.core.profile.ProfileSealed
+import info.nightscout.core.validators.LoopVariantPreference
+import info.nightscout.database.ValueWrapper
+import info.nightscout.database.entities.Bolus
+import info.nightscout.database.entities.TherapyEvent
+import info.nightscout.database.impl.AppRepository
+import info.nightscout.interfaces.GlucoseUnit
+import info.nightscout.interfaces.aps.DetermineBasalAdapter
+import info.nightscout.interfaces.aps.SMBDefaults
+import info.nightscout.interfaces.constraints.Constraints
+import info.nightscout.interfaces.iob.GlucoseStatus
+import info.nightscout.interfaces.iob.IobCobCalculator
+import info.nightscout.interfaces.iob.IobTotal
+import info.nightscout.interfaces.iob.MealData
+import info.nightscout.interfaces.plugin.ActivePlugin
+import info.nightscout.interfaces.profile.Profile
+import info.nightscout.interfaces.profile.ProfileFunction
+import info.nightscout.interfaces.stats.TddCalculator
+import info.nightscout.interfaces.stats.TirCalculator
+import info.nightscout.interfaces.utils.MidnightTime
+import info.nightscout.interfaces.utils.Round
+import info.nightscout.plugins.aps.R
+import info.nightscout.plugins.aps.logger.LoggerCallback
+import info.nightscout.plugins.aps.openAPSSMB.DetermineBasalResultSMB
+import info.nightscout.plugins.aps.utils.ScriptReader
+import info.nightscout.rx.logging.AAPSLogger
+import info.nightscout.rx.logging.LTag
 import info.nightscout.shared.SafeParse
-import info.nightscout.androidaps.interfaces.ResourceHelper
-import info.nightscout.androidaps.plugins.aps.loop.LoopVariantPreference
-import info.nightscout.androidaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
 import info.nightscout.shared.sharedPreferences.SP
-import info.nightscout.androidaps.utils.stats.TddCalculator
+import info.nightscout.shared.utils.T
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import org.mozilla.javascript.*
+import org.mozilla.javascript.Context
 import org.mozilla.javascript.Function
+import org.mozilla.javascript.NativeJSON
+import org.mozilla.javascript.NativeObject
+import org.mozilla.javascript.RhinoException
+import org.mozilla.javascript.Scriptable
+import org.mozilla.javascript.ScriptableObject
+import org.mozilla.javascript.Undefined
 import java.io.IOException
 import java.lang.reflect.InvocationTargetException
 import java.nio.charset.StandardCharsets
 import javax.inject.Inject
-import info.nightscout.androidaps.utils.stats.TirCalculator
-import info.nightscout.androidaps.utils.Round
 import kotlin.math.ln
-import info.nightscout.androidaps.utils.T
 
-class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader: ScriptReader, private val injector: HasAndroidInjector): DetermineBasalAdapterInterface {
+class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader: ScriptReader, private val injector: HasAndroidInjector): DetermineBasalAdapter {
 
     @Inject lateinit var aapsLogger: AAPSLogger
-    @Inject lateinit var constraintChecker: ConstraintChecker
+    @Inject lateinit var constraintChecker: Constraints
     @Inject lateinit var sp: SP
-    @Inject lateinit var rh: ResourceHelper
     @Inject lateinit var profileFunction: ProfileFunction
     @Inject lateinit var iobCobCalculator: IobCobCalculator
     @Inject lateinit var activePlugin: ActivePlugin
     @Inject lateinit var repository: AppRepository
-    @Inject lateinit var dateUtil: DateUtil
+    // @Inject lateinit var dateUtil: DateUtil
     @Inject lateinit var tddCalculator: TddCalculator
     @Inject lateinit var tirCalculator: TirCalculator
 
@@ -217,8 +226,8 @@ class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader:
 //**********************************************************************************************************************************************
         //this.profile.put("high_temptarget_raises_sensitivity", false)
         //mProfile.put("low_temptarget_lowers_sensitivity", SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, UAMDefaults.low_temptarget_lowers_sensitivity));
-        this.profile.put("high_temptarget_raises_sensitivity",sp.getBoolean(rh.gs(R.string.key_high_temptarget_raises_sensitivity), AIMIDefaults.high_temptarget_raises_sensitivity))
-        this.profile.put("low_temptarget_lowers_sensitivity",sp.getBoolean(rh.gs(R.string.key_low_temptarget_lowers_sensitivity), AIMIDefaults.low_temptarget_lowers_sensitivity))
+        this.profile.put("high_temptarget_raises_sensitivity",sp.getBoolean(R.string.key_high_temptarget_raises_sensitivity, AIMIDefaults.high_temptarget_raises_sensitivity))
+        this.profile.put("low_temptarget_lowers_sensitivity",sp.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, AIMIDefaults.low_temptarget_lowers_sensitivity))
         //this.profile.put("low_temptarget_lowers_sensitivity", false)
 //**********************************************************************************************************************************************
         this.profile.put("sensitivity_raises_target", sp.getBoolean(R.string.key_sensitivity_raises_target, AIMIDefaults.sensitivity_raises_target))
@@ -239,20 +248,20 @@ class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader:
 
         this.profile.put("A52_risk_enable", AIMIDefaults.A52_risk_enable)
         val smbEnabled = sp.getBoolean(R.string.key_use_smb, false)
-        this.profile.put("SMBInterval", sp.getInt(R.string.key_smbinterval, AIMIDefaults.SMBInterval))
+        this.profile.put("SMBInterval", sp.getInt(R.string.key_smb_interval, AIMIDefaults.SMBInterval))
         this.profile.put("enableSMB_with_COB", smbEnabled && sp.getBoolean(R.string.key_enableSMB_with_COB, false))
         this.profile.put("enableSMB_with_temptarget", smbEnabled && sp.getBoolean(R.string.key_enableSMB_with_temptarget, false))
         this.profile.put("allowSMB_with_high_temptarget", smbEnabled && sp.getBoolean(R.string.key_allowSMB_with_high_temptarget, false))
         this.profile.put("enableSMB_always", smbEnabled && sp.getBoolean(R.string.key_enableSMB_always, false) && advancedFiltering)
         this.profile.put("enableSMB_after_carbs", smbEnabled && sp.getBoolean(R.string.key_enableSMB_after_carbs, false) && advancedFiltering)
-        this.profile.put("maxSMBBasalMinutes", sp.getInt(R.string.key_smbmaxminutes, AIMIDefaults.maxSMBBasalMinutes))
-        this.profile.put("maxUAMSMBBasalMinutes", sp.getInt(R.string.key_uamsmbmaxminutes, AIMIDefaults.maxUAMSMBBasalMinutes))
+        this.profile.put("maxSMBBasalMinutes", sp.getInt(R.string.key_smb_max_minutes, AIMIDefaults.maxSMBBasalMinutes))
+        this.profile.put("maxUAMSMBBasalMinutes", sp.getInt(R.string.key_uam_smb_max_minutes, AIMIDefaults.maxUAMSMBBasalMinutes))
         //set the min SMB amount to be the amount set by the pump.
         this.profile.put("bolus_increment", pumpBolusStep)
         this.profile.put("carbsReqThreshold", sp.getInt(R.string.key_carbsReqThreshold, AIMIDefaults.carbsReqThreshold))
         this.profile.put("current_basal", basalRate)
         this.profile.put("temptargetSet", tempTargetSet)
-        this.profile.put("autosens_max", SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_autosens_max, "1.2")))
+        this.profile.put("autosens_max", SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_openapsama_autosens_max, "1.2")))
 //**********************************************************************************************************************************************
 
         this.profile.put("iTime",SafeParse.stringToDouble(sp.getString(R.string.key_iTime,"180")))
@@ -283,7 +292,7 @@ class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader:
         this.profile.put("key_AIMI_BreakFastLight_timestart", SafeParse.stringToDouble(sp.getString(R.string.key_AIMI_BreakFastLight_timestart, "6")))
         this.profile.put("key_AIMI_BreakFastLight_timeend", SafeParse.stringToDouble(sp.getString(R.string.key_AIMI_BreakFastLight_timeend, "10")))
         this.profile.put("key_use_AIMI_CAP", SafeParse.stringToDouble(sp.getString(R.string.key_use_AIMI_CAP, "150")))
-        this.profile.put("key_insulin_oref_peak", SafeParse.stringToDouble(sp.getString(R.string.key_insulin_oref_peak, "35")))
+        this.profile.put("key_insulin_oref_peak", SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_insulin_oref_peak, "35")))
 
 
 //**********************************************************************************************************************************************
@@ -343,15 +352,15 @@ class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader:
         val lastHourTIRAbove = lastHourTIR.abovePct()
         val lastHourTIRLow = lastHourTIR.belowPct()
         val last2HourTIRAbove = tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(2, 1,80.0, 180.0)).abovePct()
-        val tdd1D = tddCalculator.averageTDD(tddCalculator.calculate(1))?.totalAmount
-        val tdd7D = tddCalculator.averageTDD(tddCalculator.calculate(7))?.totalAmount
-        val tddLast24H = tddCalculator.calculateDaily(-24, 0).totalAmount
-        val tddLast4H = tddCalculator.calculateDaily(-4, 0).totalAmount
-        val tddLast8to4H = tddCalculator.calculateDaily(-8, -4).totalAmount
-        val tddLast24to23H = tddCalculator.calculateDaily(-24, -23).totalAmount
-        val tddLast48to47H = tddCalculator.calculateDaily(-48, -47).totalAmount
-        val tddLast72to71H = tddCalculator.calculateDaily(-72, -71).totalAmount
-        val tddLast96to95H = tddCalculator.calculateDaily(-96, -95).totalAmount
+        val tdd1D = tddCalculator.averageTDD(tddCalculator.calculate(1, false))?.totalAmount
+        val tdd7D = tddCalculator.averageTDD(tddCalculator.calculate(7, false))?.totalAmount
+        val tddLast24H = tddCalculator.calculateDaily(-24, 0)?.totalAmount ?: 0.0
+        val tddLast4H = tddCalculator.calculateDaily(-4, 0)?.totalAmount ?: 0.0
+        val tddLast8to4H = tddCalculator.calculateDaily(-8, -4)?.totalAmount ?: 0.0
+        val tddLast24to23H = tddCalculator.calculateDaily(-24, -23)?.totalAmount ?: 0.0
+        val tddLast48to47H = tddCalculator.calculateDaily(-48, -47)?.totalAmount ?: 0.0
+        val tddLast72to71H = tddCalculator.calculateDaily(-72, -71)?.totalAmount ?: 0.0
+        val tddLast96to95H = tddCalculator.calculateDaily(-96, -95)?.totalAmount ?: 0.0
         val tddlastHaverage = (tddLast24to23H+tddLast48to47H+tddLast72to71H+tddLast96to95H)/4
 
         val tddWeightedFromLast8H = ((1.4 * tddLast4H) + (0.6 * tddLast8to4H)) * 3
@@ -383,9 +392,9 @@ class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader:
         this.profile.put("key_use_AimiIgnoreCOB", sp.getBoolean(R.string.key_use_AimiIgnoreCOB, false))
 
         //tddAIMI = TddCalculator(aapsLogger,rh,activePlugin,profileFunction,dateUtil,iobCobCalculator, repository)
-        this.mealData.put("TDDAIMI3", tddCalculator.averageTDD(tddCalculator.calculate(3))?.totalAmount)
-        this.mealData.put("TDDAIMIBASAL3", tddCalculator.averageTDD(tddCalculator.calculate(3))?.basalAmount)
-        this.mealData.put("TDDAIMIBASAL7", tddCalculator.averageTDD(tddCalculator.calculate(7))?.basalAmount)
+        this.mealData.put("TDDAIMI3", tddCalculator.averageTDD(tddCalculator.calculate(3, false))?.totalAmount)
+        this.mealData.put("TDDAIMIBASAL3", tddCalculator.averageTDD(tddCalculator.calculate(3, false))?.basalAmount)
+        this.mealData.put("TDDAIMIBASAL7", tddCalculator.averageTDD(tddCalculator.calculate(7, false))?.basalAmount)
 
         //StatTIR = TirCalculator(rh,profileFunction,dateUtil,repository)
         this.mealData.put("StatLow7", tirCalculator.averageTIR(tirCalculator.calculate(7, 65.0, 180.0)).belowPct())

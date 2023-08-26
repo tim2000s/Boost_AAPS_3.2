@@ -1,44 +1,62 @@
-package info.nightscout.androidaps.plugins.aps.Boost
+package info.nightscout.plugins.aps.Boost
 
 import dagger.android.HasAndroidInjector
-import info.nightscout.androidaps.R
-import info.nightscout.androidaps.data.IobTotal
-import info.nightscout.androidaps.data.MealData
-import info.nightscout.androidaps.data.ProfileSealed
-import info.nightscout.androidaps.extensions.convertedToAbsolute
-import info.nightscout.androidaps.extensions.getPassedDurationToTimeInMinutes
-import info.nightscout.androidaps.extensions.plannedRemainingMinutes
-import info.nightscout.androidaps.interfaces.*
-import info.nightscout.shared.logging.AAPSLogger
-import info.nightscout.shared.logging.LTag
-import info.nightscout.androidaps.plugins.aps.logger.LoggerCallback
-import info.nightscout.androidaps.plugins.aps.loop.APSResult
-import info.nightscout.androidaps.plugins.aps.loop.ScriptReader
-import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
-import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatus
+import info.nightscout.androidaps.plugins.aps.Boost.BoostDefaults
+import info.nightscout.plugins.aps.APSResultObject
+import info.nightscout.core.extensions.convertedToAbsolute
+import info.nightscout.core.extensions.getPassedDurationToTimeInMinutes
+import info.nightscout.core.extensions.plannedRemainingMinutes
+import info.nightscout.core.profile.ProfileSealed
+import info.nightscout.core.validators.LoopVariantPreference
+import info.nightscout.database.ValueWrapper
+import info.nightscout.database.entities.Bolus
+import info.nightscout.database.entities.TherapyEvent
+import info.nightscout.database.impl.AppRepository
+import info.nightscout.interfaces.GlucoseUnit
+import info.nightscout.interfaces.aps.DetermineBasalAdapter
+import info.nightscout.interfaces.aps.SMBDefaults
+import info.nightscout.interfaces.constraints.Constraints
+import info.nightscout.interfaces.iob.GlucoseStatus
+import info.nightscout.interfaces.iob.IobCobCalculator
+import info.nightscout.interfaces.iob.IobTotal
+import info.nightscout.interfaces.iob.MealData
+import info.nightscout.interfaces.plugin.ActivePlugin
+import info.nightscout.interfaces.profile.Profile
+import info.nightscout.interfaces.profile.ProfileFunction
+import info.nightscout.interfaces.stats.TddCalculator
+import info.nightscout.interfaces.stats.TirCalculator
+import info.nightscout.interfaces.utils.MidnightTime
+import info.nightscout.interfaces.utils.Round
+import info.nightscout.plugins.aps.R
+import info.nightscout.plugins.aps.logger.LoggerCallback
+import info.nightscout.plugins.aps.openAPSSMB.DetermineBasalResultSMB
+import info.nightscout.plugins.aps.utils.ScriptReader
+import info.nightscout.rx.logging.AAPSLogger
+import info.nightscout.rx.logging.LTag
 import info.nightscout.shared.SafeParse
-import info.nightscout.androidaps.interfaces.ResourceHelper
-import info.nightscout.androidaps.plugins.aps.loop.LoopVariantPreference
-import info.nightscout.androidaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
 import info.nightscout.shared.sharedPreferences.SP
+import info.nightscout.shared.utils.T
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import org.mozilla.javascript.*
+import org.mozilla.javascript.Context
 import org.mozilla.javascript.Function
+import org.mozilla.javascript.NativeJSON
+import org.mozilla.javascript.NativeObject
+import org.mozilla.javascript.RhinoException
+import org.mozilla.javascript.Scriptable
+import org.mozilla.javascript.ScriptableObject
+import org.mozilla.javascript.Undefined
 import java.io.IOException
 import java.lang.reflect.InvocationTargetException
 import java.nio.charset.StandardCharsets
 import javax.inject.Inject
-import info.nightscout.androidaps.utils.stats.TddCalculator
 
-
-class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader: ScriptReader, private val injector: HasAndroidInjector) : DetermineBasalAdapterInterface {
+class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader: ScriptReader, private val injector: HasAndroidInjector) : DetermineBasalAdapter {
 
     @Inject lateinit var aapsLogger: AAPSLogger
-    @Inject lateinit var constraintChecker: ConstraintChecker
+    @Inject lateinit var constraintChecker: Constraints
     @Inject lateinit var sp: SP
-    @Inject lateinit var rh: ResourceHelper
     @Inject lateinit var profileFunction: ProfileFunction
     @Inject lateinit var iobCobCalculator: IobCobCalculator
     @Inject lateinit var activePlugin: ActivePlugin
@@ -63,7 +81,7 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
     override var scriptDebug = ""
 
     @Suppress("SpellCheckingInspection")
-    override operator fun invoke(): APSResult? {
+    override operator fun invoke(): DetermineBasalResultSMB? {
         aapsLogger.debug(LTag.APS, ">>> Invoking determine_basal <<<")
         aapsLogger.debug(LTag.APS, "Glucose status: " + mGlucoseStatus.toString().also { glucoseStatusParam = it })
         aapsLogger.debug(LTag.APS, "IOB data:       " + iobData.toString().also { iobDataParam = it })
@@ -198,9 +216,9 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
 //**********************************************************************************************************************************************
         //this.profile.put("high_temptarget_raises_sensitivity", false)
         //mProfile.put("low_temptarget_lowers_sensitivity", SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, BoostDefaults.low_temptarget_lowers_sensitivity));
-        this.profile.put("high_temptarget_raises_sensitivity",sp.getBoolean(rh.gs(R.string.key_high_temptarget_raises_sensitivity),BoostDefaults.high_temptarget_raises_sensitivity))
-        this.profile.put("low_temptarget_lowers_sensitivity",sp.getBoolean(rh.gs(R.string.key_low_temptarget_lowers_sensitivity),BoostDefaults.low_temptarget_lowers_sensitivity))
-        this.profile.put("enableBoostPercentScale", sp.getBoolean(R.string.key_enableBoostPercentScale, false))
+        this.profile.put("high_temptarget_raises_sensitivity",sp.getBoolean(R.string.key_high_temptarget_raises_sensitivity,BoostDefaults.high_temptarget_raises_sensitivity))
+        this.profile.put("low_temptarget_lowers_sensitivity",sp.getBoolean(R.string.key_low_temptarget_lowers_sensitivity,BoostDefaults.low_temptarget_lowers_sensitivity))
+        this.profile.put("enableBoostPercentScale", sp.getBoolean(R.string.key_enable_boost_percent_scale, false))
         this.profile.put("enableCircadianISF", sp.getBoolean(R.string.key_enableCircadianISF, false))
         //this.profile.put("low_temptarget_lowers_sensitivity", false)
 //**********************************************************************************************************************************************
@@ -221,14 +239,14 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
         this.profile.put("enableUAM", uamAllowed)
         this.profile.put("A52_risk_enable", BoostDefaults.A52_risk_enable)
         val smbEnabled = sp.getBoolean(R.string.key_use_smb, false)
-        this.profile.put("SMBInterval", sp.getInt(R.string.key_smbinterval, BoostDefaults.SMBInterval))
+        this.profile.put("SMBInterval", sp.getInt(R.string.key_smb_interval, BoostDefaults.SMBInterval))
         this.profile.put("enableSMB_with_COB", smbEnabled && sp.getBoolean(R.string.key_enableSMB_with_COB, false))
         this.profile.put("enableSMB_with_temptarget", smbEnabled && sp.getBoolean(R.string.key_enableSMB_with_temptarget, false))
         this.profile.put("allowSMB_with_high_temptarget", smbEnabled && sp.getBoolean(R.string.key_allowSMB_with_high_temptarget, false))
         this.profile.put("enableSMB_always", smbEnabled && sp.getBoolean(R.string.key_enableSMB_always, false) && advancedFiltering)
         this.profile.put("enableSMB_after_carbs", smbEnabled && sp.getBoolean(R.string.key_enableSMB_after_carbs, false) && advancedFiltering)
-        this.profile.put("maxSMBBasalMinutes", sp.getInt(R.string.key_smbmaxminutes, BoostDefaults.maxSMBBasalMinutes))
-        this.profile.put("maxUAMSMBBasalMinutes", sp.getInt(R.string.key_uamsmbmaxminutes, BoostDefaults.maxUAMSMBBasalMinutes))
+        this.profile.put("maxSMBBasalMinutes", sp.getInt(R.string.key_smb_max_minutes, BoostDefaults.maxSMBBasalMinutes))
+        this.profile.put("maxUAMSMBBasalMinutes", sp.getInt(R.string.key_uam_smb_max_minutes, BoostDefaults.maxUAMSMBBasalMinutes))
         this.profile.put("DynISFAdjust",  SafeParse.stringToDouble(sp.getString(R.string.key_DynISFAdjust,"100")))
         this.profile.put("insulinType", insulinType)
         this.profile.put("insulinPeak", insulinPeak)
@@ -239,8 +257,8 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
         this.profile.put("carbsReqThreshold", sp.getInt(R.string.key_carbsReqThreshold, BoostDefaults.carbsReqThreshold))
         this.profile.put("current_basal", basalRate)
         this.profile.put("temptargetSet", tempTargetSet)
-        this.profile.put("autosens_max", SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_autosens_max, "1.2")))
-        this.profile.put("autosens_min", SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_autosens_min, "0.8")))
+        this.profile.put("autosens_max", SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_openapsama_autosens_max, "1.2")))
+        this.profile.put("autosens_min", SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_openapsama_autosens_min, "0.8")))
 //**********************************************************************************************************************************************
         //this.profile.put("scale_min",SafeParse.stringToDouble(sp.getString(R.string.key_scale_min,"70")))
         //this.profile.put("scale_max",SafeParse.stringToDouble(sp.getString(R.string.key_scale_max,"20")))
@@ -251,7 +269,7 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
         this.profile.put("boost_start",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_boost_start, "7.0")))
         this.profile.put("boost_end",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_boost_end, "8.0")))
         this.profile.put("boost_maxIOB",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_boost_max_iob, "1.0")))
-        this.profile.put("Boost_InsulinReq",  SafeParse.stringToDouble(sp.getString(R.string.key_Boost_InsulinReq,"50.0")))
+        this.profile.put("Boost_InsulinReq",  SafeParse.stringToDouble(sp.getString(R.string.key_boost_insulinreq,"50.0")))
         this.profile.put("boost_scale",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_boost_scale, "1.0")))
         //this.profile.put("Boost_eventualBG",SafeParse.stringToDouble(sp.getString(R.string.key_Boost_eventualBG,"155")))
         //this.profile.put("W2_IOB_threshold",SafeParse.stringToDouble(sp.getString(R.string.key_w2_iob_threshold,"20")))
@@ -287,14 +305,12 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
         this.mealData.put("lastBolusTime", mealData.lastBolusTime)
         this.mealData.put("lastCarbTime", mealData.lastCarbTime)
 
-        this.mealData.put("TDDAIMI1", tddCalculator.averageTDD(tddCalculator.calculate(1))?.totalAmount)
-        this.mealData.put("TDDAIMI7", tddCalculator.averageTDD(tddCalculator.calculate(7))?.totalAmount)
-        this.mealData.put("TDDLast4", tddCalculator.calculateDaily(-4, 0).totalAmount)
-        this.mealData.put("TDDLast8", tddCalculator.calculateDaily(-8, 0).totalAmount)
-        this.mealData.put("TDD4to8", tddCalculator.calculateDaily(-8, -4).totalAmount)
-        this.mealData.put("TDD24", tddCalculator.calculateDaily(-24, 0).totalAmount)
-
-
+        this.mealData.put("TDDAIMI1", tddCalculator.averageTDD(tddCalculator.calculate(1, false))?.totalAmount)
+        this.mealData.put("TDDAIMI7", tddCalculator.averageTDD(tddCalculator.calculate(7, false))?.totalAmount)
+        this.mealData.put("TDDLast4", tddCalculator.calculateDaily(-4, 0)?.totalAmount)
+        this.mealData.put("TDDLast8", tddCalculator.calculateDaily(-8, 0)?.totalAmount)
+        this.mealData.put("TDD4to8", tddCalculator.calculateDaily(-8, -4)?.totalAmount)
+        this.mealData.put("TDD24", tddCalculator.calculateDaily(-24, 0)?.totalAmount)
 
         if (constraintChecker.isAutosensModeEnabled().value()) {
             autosensData.put("ratio", autosensDataRatio)

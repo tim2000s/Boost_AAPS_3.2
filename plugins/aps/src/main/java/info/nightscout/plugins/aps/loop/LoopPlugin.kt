@@ -12,7 +12,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.SystemClock
 import androidx.core.app.NotificationCompat
-import com.microsoft.appcenter.analytics.Analytics
+// import com.microsoft.appcenter.analytics.Analytics
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.annotations.OpenForTesting
 import info.nightscout.core.events.EventNewNotification
@@ -255,13 +255,13 @@ class LoopPlugin @Inject constructor(
                 usedAPS.invoke(initiator, tempBasalFallback)
                 apsResult = usedAPS.lastAPSResult
 
-                Analytics.isEnabled().thenAccept {
-                    if(it) {
-                        val properties: MutableMap<String, String> = HashMap()
-                        properties["APSPlugin"] = usedAPS::class.java.simpleName
-                        Analytics.trackEvent("Loop", properties)
-                    }
-                }
+                // Analytics.isEnabled().thenAccept {
+                //     if(it) {
+                //         val properties: MutableMap<String, String> = HashMap()
+                //         properties["APSPlugin"] = usedAPS::class.java.simpleName
+                //         Analytics.trackEvent("Loop", properties)
+                //     }
+                // }
             }
 
             // Check if we have any result
@@ -403,7 +403,7 @@ class LoopPlugin @Inject constructor(
                             waiting
                         rxBus.send(EventLoopUpdateGui())
                         fabricPrivacy.logCustom("APSRequest")
-                        val swapCommands = sp.getBoolean(R.string.key_loop_swap_smbtbr_order, false)
+                        val swapCommands = sp.getBoolean(info.nightscout.core.utils.R.string.key_loop_swap_smbtbr_order, false)
                         if (swapCommands) {
                             applySMBRequest(resultAfterConstraints, object : Callback() {
                                 override fun run() {
@@ -678,7 +678,7 @@ class LoopPlugin @Inject constructor(
     private fun applySMBRequest(request: APSResult, callback: Callback?) {
         if (!request.isBolusRequested) {
             aapsLogger.debug(LTag.APS, "No SMB requested")
-            callback?.result(PumpEnactResult(injector).enacted(false).success(true).comment(R.string.nochangerequested))?.run()
+            callback?.result(PumpEnactResult(injector).enacted(false).success(true).comment(info.nightscout.core.ui.R.string.no_action_selected))?.run()
             return
         }
         val pump = activePlugin.activePump

@@ -8,6 +8,7 @@ import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.TableLayout
 import android.widget.TextView
+import info.nightscout.database.entities.TotalDailyDose
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.interfaces.Constants
 import info.nightscout.interfaces.profile.Profile
@@ -52,7 +53,7 @@ class TirCalculatorImpl @Inject constructor(
         return result
     }
 
-    private fun averageTIR(tirs: LongSparseArray<TIR>): TIR {
+    override fun averageTIR(tirs: LongSparseArray<TIR>): TIR {
         val totalTir = if (tirs.size() > 0) {
             TirImpl(tirs.valueAt(0).date, tirs.valueAt(0).lowThreshold, tirs.valueAt(0).highThreshold)
         } else {
@@ -114,4 +115,50 @@ class TirCalculatorImpl @Inject constructor(
             layout.addView(averageTit7.toTableRow(context, rh, tit7.size()))
             layout.addView(averageTit30.toTableRow(context, rh, tit30.size()))
         }
+
+    override fun calculateHoursPrior(hrsPriorStart: Long, hrsPriorEnd: Long, lowMgdl: Double, highMgdl: Double): LongSparseArray<TIR> {
+        if (lowMgdl < 39) throw RuntimeException("Low below 39")
+        if (lowMgdl > highMgdl) throw RuntimeException("Low > High")
+        val startTime = dateUtil.now() - T.hours(hour = hrsPriorStart).msecs()
+        val endTime = dateUtil.now() - T.hours(hour = hrsPriorEnd).msecs()
+        val bgReadings = repository.compatGetBgReadingsDataFromTime(startTime, endTime, true).blockingGet()
+
+        val result = LongSparseArray<TIR>()
+        for (bg in bgReadings) {
+            //val midnight = MidnightTime.calc(bg.date)
+            var tir = result[startTime]
+            if (tir == null) {
+                tir = TirImpl(startTime, lowMgdl, highMgdl)
+                result.append(startTime, tir)
+            }
+            if (bg.value < 39) tir.error()
+            if (bg.value >= 39 && bg.value < lowMgdl) tir.below()
+            if (bg.value in lowMgdl..highMgdl) tir.inRange()
+            if (bg.value > highMgdl) tir.above()
+        }
+        return result
+    }
+
+    override fun calculateDaily(lowMgdl: Double, highMgdl: Double): LongSparseArray<TIR> {
+        if (lowMgdl < 39) throw RuntimeException("Low below 39")
+        if (lowMgdl > highMgdl) throw RuntimeException("Low > High")
+        val startTime = MidnightTime.calc(dateUtil.now())
+        val endTime = dateUtil.now()
+        val bgReadings = repository.compatGetBgReadingsDataFromTime(startTime, endTime, true).blockingGet()
+
+        val result = LongSparseArray<TIR>()
+        for (bg in bgReadings) {
+            //val midnight = MidnightTime.calc(bg.date)
+            var tir = result[startTime]
+            if (tir == null) {
+                tir = TirImpl(startTime, lowMgdl, highMgdl)
+                result.append(startTime, tir)
+            }
+            if (bg.value < 39) tir.error()
+            if (bg.value >= 39 && bg.value < lowMgdl) tir.below()
+            if (bg.value in lowMgdl..highMgdl) tir.inRange()
+            if (bg.value > highMgdl) tir.above()
+        }
+        return result
+    }
 }

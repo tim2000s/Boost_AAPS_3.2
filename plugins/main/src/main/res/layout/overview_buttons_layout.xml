@@ -77,7 +77,7 @@
             android:textColor="?attr/icBolusCarbsColor"
             app:iconPadding="-4dp" />
 
-        <info.nightscout.androidaps.utils.ui.SingleClickButton
+        <info.nightscout.core.ui.elements.SingleClickButton
             android:id="@+id/en_button"
             style="@style/ButtonSmallFontStyle"
             android:layout_width="0dp"

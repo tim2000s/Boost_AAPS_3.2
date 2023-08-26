@@ -1,10 +1,10 @@
 package info.nightscout.insulin
 
 import dagger.android.HasAndroidInjector
-import info.nightscout.interfaces.R
 import info.nightscout.interfaces.Config
 import info.nightscout.interfaces.insulin.Insulin
 import info.nightscout.interfaces.profile.ProfileFunction
+import info.nightscout.interfaces.ui.UiInteraction
 import info.nightscout.interfaces.utils.HardLimits
 import info.nightscout.rx.bus.RxBus
 import info.nightscout.rx.logging.AAPSLogger
@@ -21,8 +21,9 @@ class InsulinLyumjevU100PDPlugin @Inject constructor(
     rxBus: RxBus,
     aapsLogger: AAPSLogger,
     config: Config,
-    hardLimits: HardLimits
-) : InsulinOrefBasePlugin(injector, rh, profileFunction, rxBus, aapsLogger, config, hardLimits) {
+    hardLimits: HardLimits,
+    uiInteraction: UiInteraction
+) : InsulinOrefBasePlugin(injector, rh, profileFunction, rxBus, aapsLogger, config, hardLimits, uiInteraction) {
 
     override val id get(): Insulin.InsulinType = Insulin.InsulinType.OREF_LYUMJEV_U100_PD
     override val friendlyName get(): String = rh.gs(R.string.lyumjev_U100_PD)

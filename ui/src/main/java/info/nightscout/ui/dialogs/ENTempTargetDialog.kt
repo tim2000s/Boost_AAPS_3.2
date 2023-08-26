@@ -1,4 +1,4 @@
-package info.nightscout.androidaps.dialogs
+package info.nightscout.ui.dialogs
 
 import android.content.Context
 import android.os.Bundle
@@ -8,30 +8,30 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import com.google.common.base.Joiner
 import com.google.common.collect.Lists
-import info.nightscout.androidaps.Constants
-import info.nightscout.androidaps.R
-import info.nightscout.androidaps.interfaces.Profile
-import info.nightscout.androidaps.database.AppRepository
-import info.nightscout.androidaps.database.ValueWrapper
-import info.nightscout.androidaps.database.entities.ValueWithUnit
-import info.nightscout.androidaps.database.entities.TemporaryTarget
-import info.nightscout.androidaps.database.entities.UserEntry.Action
-import info.nightscout.androidaps.database.entities.UserEntry.Sources
-import info.nightscout.androidaps.database.transactions.CancelCurrentTemporaryTargetIfAnyTransaction
-import info.nightscout.androidaps.database.transactions.InsertAndCancelCurrentTemporaryTargetTransaction
-import info.nightscout.androidaps.databinding.DialogEnTemptargetBinding
-import info.nightscout.androidaps.interfaces.GlucoseUnit
-import info.nightscout.androidaps.interfaces.ProfileFunction
-import info.nightscout.shared.logging.LTag
-import info.nightscout.androidaps.logging.UserEntryLogger
-import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
-import info.nightscout.androidaps.utils.DefaultValueHelper
-import info.nightscout.androidaps.utils.HtmlHelper
-import info.nightscout.androidaps.utils.ToastUtils
-import info.nightscout.androidaps.utils.alertDialogs.OKDialog
-import info.nightscout.androidaps.utils.protection.ProtectionCheck
-import info.nightscout.androidaps.utils.protection.ProtectionCheck.Protection.BOLUS
-import info.nightscout.androidaps.interfaces.ResourceHelper
+import info.nightscout.database.impl.AppRepository
+import info.nightscout.interfaces.Constants
+import info.nightscout.rx.logging.LTag
+import info.nightscout.shared.interfaces.ResourceHelper
+import info.nightscout.database.entities.ValueWithUnit
+import info.nightscout.database.entities.TemporaryTarget
+import info.nightscout.database.entities.UserEntry.Action
+import info.nightscout.database.entities.UserEntry.Sources
+import info.nightscout.interfaces.GlucoseUnit
+import info.nightscout.interfaces.protection.ProtectionCheck
+import info.nightscout.interfaces.constraints.Constraint
+import info.nightscout.interfaces.constraints.Constraints
+import info.nightscout.interfaces.logging.UserEntryLogger
+import info.nightscout.interfaces.profile.DefaultValueHelper
+import info.nightscout.interfaces.profile.Profile
+import info.nightscout.interfaces.profile.ProfileFunction
+import info.nightscout.ui.databinding.DialogEnTemptargetBinding
+import info.nightscout.core.ui.R
+import info.nightscout.core.ui.dialogs.OKDialog
+import info.nightscout.core.ui.toast.ToastUtils
+import info.nightscout.database.ValueWrapper
+import info.nightscout.database.impl.transactions.CancelCurrentTemporaryTargetIfAnyTransaction
+import info.nightscout.database.impl.transactions.InsertAndCancelCurrentTemporaryTargetTransaction
+import info.nightscout.interfaces.utils.HtmlHelper
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import java.text.DecimalFormat
@@ -41,7 +41,7 @@ import javax.inject.Inject
 
 class ENTempTargetDialog : DialogFragmentWithDate() {
 
-    @Inject lateinit var constraintChecker: ConstraintChecker
+    @Inject lateinit var constraintChecker: Constraints
     @Inject lateinit var rh: ResourceHelper
     @Inject lateinit var profileFunction: ProfileFunction
     @Inject lateinit var defaultValueHelper: DefaultValueHelper
@@ -75,10 +75,10 @@ class ENTempTargetDialog : DialogFragmentWithDate() {
         super.onViewCreated(view, savedInstanceState)
 
         val units = profileFunction.getUnits()
-        binding.units.text = if (units == GlucoseUnit.MMOL) rh.gs(R.string.mmol) else rh.gs(R.string.mgdl)
+        binding.units.text = if (units == GlucoseUnit.MMOL) rh.gs(info.nightscout.core.ui.R.string.mmol) else rh.gs(R.string.mgdl)
 
         // set the Eating Now defaults
-        val enTT = Profile.toCurrentUnits(units,profileFunction.getProfile()!!.getTargetMgdl())
+        val enTT = Profile.toCurrentUnits(units, profileFunction.getProfile()!!.getTargetMgdl())
 
         binding.duration.setParams(savedInstanceState?.getDouble("duration")
             ?: 0.0, 0.0, Constants.MAX_ENTT_DURATION, 10.0, DecimalFormat("0"), false, binding.okcancel.ok)
@@ -144,19 +144,19 @@ class ENTempTargetDialog : DialogFragmentWithDate() {
 
     private fun longClick(v: View) {
         when (v.id) {
-            R.id.eating_soon -> {
+            info.nightscout.ui.R.id.eating_soon -> {
                 binding.temptarget.value = defaultValueHelper.determineEatingSoonTT()
                 binding.duration.value = defaultValueHelper.determineEatingSoonTTDuration().toDouble()
                 binding.reasonList.setText(rh.gs(R.string.eatingsoon), false)
             }
 
-            R.id.activity    -> {
+            info.nightscout.ui.R.id.activity    -> {
                 binding.temptarget.value = defaultValueHelper.determineActivityTT()
                 binding.duration.value = defaultValueHelper.determineActivityTTDuration().toDouble()
                 binding.reasonList.setText(rh.gs(R.string.activity), false)
             }
 
-            R.id.hypo        -> {
+            info.nightscout.ui.R.id.hypo        -> {
                 binding.temptarget.value = defaultValueHelper.determineHypoTT()
                 binding.duration.value = defaultValueHelper.determineHypoTTDuration().toDouble()
                 binding.reasonList.setText(rh.gs(R.string.hypo), false)
@@ -189,7 +189,7 @@ class ENTempTargetDialog : DialogFragmentWithDate() {
             actions.add(rh.gs(R.string.time) + ": " + dateUtil.dateAndTimeString(eventTime))
 
         activity?.let { activity ->
-            OKDialog.showConfirmation(activity, rh.gs(R.string.careportal_temporarytarget), HtmlHelper.fromHtml(Joiner.on("<br/>").join(actions)), {
+            OKDialog.showConfirmation(activity, rh.gs(R.string.temporary_target), HtmlHelper.fromHtml(Joiner.on("<br/>").join(actions)), {
                 val units = profileFunction.getUnits()
                 when(reason) {
                     rh.gs(R.string.eatingnow)      -> uel.log(Action.TT, Sources.TTDialog, ValueWithUnit.Timestamp(eventTime).takeIf { eventTimeChanged }, ValueWithUnit.TherapyEventTTReason(TemporaryTarget.Reason.EATING_NOW), ValueWithUnit.fromGlucoseUnit(target, units.asText), ValueWithUnit.Minute(duration))
@@ -219,7 +219,8 @@ class ENTempTargetDialog : DialogFragmentWithDate() {
                         },
                         lowTarget = Profile.toMgdl(target, profileFunction.getUnits()),
                         highTarget = Profile.toMgdl(target, profileFunction.getUnits())
-                    )).subscribe({ result ->
+                    )
+                    ).subscribe({ result ->
                         result.inserted.forEach { aapsLogger.debug(LTag.DATABASE, "Inserted temp target $it") }
                         result.updated.forEach { aapsLogger.debug(LTag.DATABASE, "Updated temp target $it") }
                     }, {
@@ -227,7 +228,7 @@ class ENTempTargetDialog : DialogFragmentWithDate() {
                     })
                 }
 
-                if (duration == 10) sp.putBoolean(R.string.key_objectiveusetemptarget, true)
+                if (duration == 10) sp.putBoolean(info.nightscout.core.utils.R.string.key_objectiveusetemptarget, true)
             })
         }
         return true
@@ -241,10 +242,10 @@ class ENTempTargetDialog : DialogFragmentWithDate() {
                 val cancelFail = {
                     queryingProtection = false
                     aapsLogger.debug(LTag.APS, "Dialog canceled on resume protection: ${this.javaClass.name}")
-                    ToastUtils.showToastInUiThread(ctx, R.string.dialog_canceled)
+                    ToastUtils.showToastInUiThread(ctx, rh.gs(info.nightscout.ui.R.string.dialog_canceled))
                     dismiss()
                 }
-                protectionCheck.queryProtection(activity, BOLUS, { queryingProtection = false }, cancelFail, cancelFail)
+                protectionCheck.queryProtection(activity, ProtectionCheck.Protection.BOLUS, { queryingProtection = false }, cancelFail, cancelFail)
             }
         }
     }

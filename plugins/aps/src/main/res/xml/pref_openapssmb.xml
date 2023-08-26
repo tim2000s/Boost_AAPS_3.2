@@ -41,14 +41,14 @@
 
         <info.nightscout.core.validators.ValidatingEditTextPreference
             android:defaultValue="160"
-            android:dialogMessage="@string/halfbasalexercisetarget"
+            android:dialogMessage="@string/half_basal_exercise_target"
             android:digits="0123456789"
             android:inputType="number"
             android:key="@string/key_openapssmb_half_basal_exercise_target"
             android:maxLines="20"
             android:selectAllOnFocus="true"
             android:singleLine="true"
-            android:title="@string/halfbasalexercisetarget_summary"
+            android:title="@string/half_basal_exercise_target_summary"
             validate:maxNumber="200"
             validate:minNumber="110"
             validate:testType="numericRange" />
@@ -77,8 +77,8 @@
             android:defaultValue="false"
             android:dependency="@string/key_use_smb"
             android:key="@string/key_enableSMB_ignore"
-            android:summary="@string/enablesmbignore_summary"
-            android:title="@string/enablesmbignore" />
+            android:summary="@string/enable_smb_ignore_summary"
+            android:title="@string/enable_smb_ignore" />
 
         <SwitchPreference
             android:defaultValue="false"

@@ -101,8 +101,8 @@
             android:defaultValue="false"
             android:dependency="@string/key_use_smb"
             android:key="@string/key_enableSMB_ignore"
-            android:summary="@string/enablesmbignore_summary"
-            android:title="@string/enablesmbignore" />
+            android:summary="@string/enable_smb_ignore_summary"
+            android:title="@string/enable_smb_ignore" />
 
         <SwitchPreference
             android:defaultValue="false"

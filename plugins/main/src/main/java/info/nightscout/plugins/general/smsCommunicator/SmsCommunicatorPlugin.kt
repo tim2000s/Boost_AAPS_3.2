@@ -446,7 +446,7 @@ class SmsCommunicatorPlugin @Inject constructor(
                             override fun run() {
                                 if (!result.success) {
                                     var replyText = rh.gs(R.string.smscommunicator_tempbasal_failed)
-                                    if (sp.getBoolean(R.string.smscommunicator_addpumpstatus, true))
+                                    if (sp.getBoolean(R.string.key_smscommunicator_addpumpstatus, true))
                                         replyText += "\n" + activePlugin.activePump.shortStatus(true)
                                     sendSMS(Sms(receivedSms.phoneNumber, replyText))
                                 }
@@ -495,7 +495,7 @@ class SmsCommunicatorPlugin @Inject constructor(
                                         sendReport(receivedSms.phoneNumber, replyText)
                                     } else {
                                         var replyText = rh.gs(R.string.smscommunicator_tempbasal_cancel_failed)
-                                        if (sp.getBoolean(R.string.smscommunicator_addpumpstatus, true))
+                                        if (sp.getBoolean(R.string.key_smscommunicator_addpumpstatus, true))
                                             replyText += "\n" + activePlugin.activePump.shortStatus(true)
                                         sendSMS(Sms(receivedSms.phoneNumber, replyText))
                                     }
@@ -711,7 +711,7 @@ class SmsCommunicatorPlugin @Inject constructor(
                                 )
                             } else {
                                 var replyText = rh.gs(R.string.smscommunicator_tempbasal_cancel_failed)
-                                if (sp.getBoolean(R.string.smscommunicator_addpumpstatus, true))
+                                if (sp.getBoolean(R.string.key_smscommunicator_addpumpstatus, true))
                                     replyText += "\n" + activePlugin.activePump.shortStatus(true)
                                 sendSMS(Sms(receivedSms.phoneNumber, replyText))
                                 uel.log(
@@ -765,7 +765,7 @@ class SmsCommunicatorPlugin @Inject constructor(
                                         )
                                 } else {
                                     var replyText = rh.gs(R.string.smscommunicator_tempbasal_failed)
-                                    if (sp.getBoolean(R.string.smscommunicator_addpumpstatus, true))
+                                    if (sp.getBoolean(R.string.key_smscommunicator_addpumpstatus, true))
                                         replyText += "\n" + activePlugin.activePump.shortStatus(true)
                                     sendSMS(Sms(receivedSms.phoneNumber, replyText))
                                     uel.log(
@@ -818,7 +818,7 @@ class SmsCommunicatorPlugin @Inject constructor(
                                         )
                                 } else {
                                     var replyText = rh.gs(R.string.smscommunicator_tempbasal_failed)
-                                    if (sp.getBoolean(R.string.smscommunicator_addpumpstatus, true))
+                                    if (sp.getBoolean(R.string.key_smscommunicator_addpumpstatus, true))
                                         replyText += "\n" + activePlugin.activePump.shortStatus(true)
                                     sendSMS(Sms(receivedSms.phoneNumber, replyText))
                                     uel.log(
@@ -845,12 +845,12 @@ class SmsCommunicatorPlugin @Inject constructor(
                         override fun run() {
                             if (result.success) {
                                 var replyText = rh.gs(R.string.smscommunicator_extended_canceled)
-                                if (sp.getBoolean(R.string.smscommunicator_addpumpstatus, true))
+                                if (sp.getBoolean(R.string.key_smscommunicator_addpumpstatus, true))
                                     replyText += "\n" + activePlugin.activePump.shortStatus(true)
                                 sendReport(receivedSms.phoneNumber, replyText, true)
                             } else {
                                 var replyText = rh.gs(R.string.smscommunicator_extended_cancel_failed)
-                                if (sp.getBoolean(R.string.smscommunicator_addpumpstatus, true))
+                                if (sp.getBoolean(R.string.key_smscommunicator_addpumpstatus, true))
                                     replyText += "\n" + activePlugin.activePump.shortStatus(true)
                                 sendSMS(Sms(receivedSms.phoneNumber, replyText))
                                 uel.log(
@@ -880,7 +880,7 @@ class SmsCommunicatorPlugin @Inject constructor(
                                 if (result.success) {
                                     var replyText = rh.gs(R.string.smscommunicator_extended_set, aDouble, duration)
                                     if (config.APS) replyText += "\n" + rh.gs(info.nightscout.core.ui.R.string.loopsuspended)
-                                    if (sp.getBoolean(R.string.smscommunicator_addpumpstatus, true))
+                                    if (sp.getBoolean(R.string.key_smscommunicator_addpumpstatus, true))
                                         replyText += "\n" + activePlugin.activePump.shortStatus(true)
                                     sendReport(receivedSms.phoneNumber, replyText, true)
                                     if (config.APS)
@@ -900,7 +900,7 @@ class SmsCommunicatorPlugin @Inject constructor(
                                         )
                                 } else {
                                     var replyText = rh.gs(R.string.smscommunicator_extended_failed)
-                                    if (sp.getBoolean(R.string.smscommunicator_addpumpstatus, true))
+                                    if (sp.getBoolean(R.string.key_smscommunicator_addpumpstatus, true))
                                         replyText += "\n" + activePlugin.activePump.shortStatus(true)
                                     sendSMS(Sms(receivedSms.phoneNumber, replyText))
                                     uel.log(
@@ -986,7 +986,7 @@ class SmsCommunicatorPlugin @Inject constructor(
                                         uel.log(Action.BOLUS, Sources.SMS, replyText)
                                     } else {
                                         var replyText = rh.gs(R.string.smscommunicator_bolus_failed)
-                                        if (sp.getBoolean(R.string.smscommunicator_addpumpstatus, true))
+                                        if (sp.getBoolean(R.string.key_smscommunicator_addpumpstatus, true))
                                             replyText += "\n" + activePlugin.activePump.shortStatus(true)
                                         sendSMS(Sms(receivedSms.phoneNumber, replyText))
                                         uel.log(
@@ -1054,7 +1054,7 @@ class SmsCommunicatorPlugin @Inject constructor(
                                 )
                             } else {
                                 var replyText = rh.gs(R.string.smscommunicator_carbs_failed, anInteger)
-                                if (sp.getBoolean(R.string.smscommunicator_addpumpstatus, true))
+                                if (sp.getBoolean(R.string.key_smscommunicator_addpumpstatus, true))
                                     replyText += "\n" + activePlugin.activePump.shortStatus(true)
                                 sendSMS(Sms(receivedSms.phoneNumber, replyText))
                                 uel.log(
