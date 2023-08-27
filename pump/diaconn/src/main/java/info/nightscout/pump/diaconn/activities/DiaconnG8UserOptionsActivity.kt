@@ -5,7 +5,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import dagger.android.support.DaggerAppCompatActivity
+import info.nightscout.core.ui.activities.TranslatedDaggerAppCompatActivity
 import info.nightscout.core.ui.toast.ToastUtils
 import info.nightscout.core.utils.fabric.FabricPrivacy
 import info.nightscout.interfaces.plugin.ActivePlugin
@@ -23,7 +23,7 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 import java.text.DecimalFormat
 import javax.inject.Inject
 
-class DiaconnG8UserOptionsActivity : DaggerAppCompatActivity() {
+class DiaconnG8UserOptionsActivity : TranslatedDaggerAppCompatActivity() {
 
     @Inject lateinit var fabricPrivacy: FabricPrivacy
     @Inject lateinit var context: Context
@@ -55,6 +55,10 @@ class DiaconnG8UserOptionsActivity : DaggerAppCompatActivity() {
         binding = DiaconnG8UserOptionsActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        title = rh.gs(R.string.diaconng8_pump_settings)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
+
         binding.saveAlarm.setOnClickListener { onSaveAlarmClick() }
         binding.saveLcdOnTime.setOnClickListener { onSaveLcdOnTimeClick() }
         binding.saveLang.setOnClickListener { onSaveLangClick() }
@@ -69,7 +73,7 @@ class DiaconnG8UserOptionsActivity : DaggerAppCompatActivity() {
             LTag.PUMP,
             "UserOptionsLoaded:" + (System.currentTimeMillis() - diaconnG8Pump.lastConnection) / 1000 + " s ago"
                 + "\nbeepAndAlarm:" + diaconnG8Pump.beepAndAlarm
-                + "\nalarmIntesity:" + diaconnG8Pump.alarmIntesity
+                + "\nalarmIntensity:" + diaconnG8Pump.alarmIntensity
                 + "\nlanguage:" + diaconnG8Pump.selectedLanguage
                 + "\nlcdOnTimeSec:" + diaconnG8Pump.lcdOnTimeSec
         )
@@ -78,7 +82,7 @@ class DiaconnG8UserOptionsActivity : DaggerAppCompatActivity() {
         fillSoundSubCategory()
 
         binding.beepAndAlarm.setSelection(diaconnG8Pump.beepAndAlarm - 1)
-        binding.alarmIntesity.setSelection(diaconnG8Pump.alarmIntesity - 1)
+        binding.alarmIntesity.setSelection(diaconnG8Pump.alarmIntensity - 1)
 
         binding.beepAndAlarm.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -106,7 +110,7 @@ class DiaconnG8UserOptionsActivity : DaggerAppCompatActivity() {
         diaconnG8Pump.setUserOptionType = DiaconnG8Pump.ALARM
 
         diaconnG8Pump.beepAndAlarm = binding.beepAndAlarm.selectedItemPosition + 1
-        diaconnG8Pump.alarmIntesity = binding.alarmIntesity.selectedItemPosition + 1
+        diaconnG8Pump.alarmIntensity = binding.alarmIntesity.selectedItemPosition + 1
 
         onSaveClick()
     }

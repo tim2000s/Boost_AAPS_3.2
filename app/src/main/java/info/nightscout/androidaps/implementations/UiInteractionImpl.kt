@@ -126,11 +126,6 @@ class UiInteractionImpl @Inject constructor(
             .show(fragmentManager, "TempTargetDialog")
     }
 
-    override fun runENTempTargetDialog(fragmentManager: FragmentManager) {
-        TempTargetDialog()
-            .show(fragmentManager, "ENTempTargetDialog")
-    }
-
     override fun runExtendedBolusDialog(fragmentManager: FragmentManager) {
         ExtendedBolusDialog()
             .show(fragmentManager, "ExtendedBolusDialog")

@@ -5,7 +5,6 @@
     <string name="key_loop_openmode_min_change" translatable="false">loop_openmode_min_change</string>
     <string name="key_absorption_maxtime" translatable="false">absorption_maxtime</string>
     <string name="key_openapsama_min_5m_carbimpact" translatable="false">openapsama_min_5m_carbimpact</string>
-    <string name="key_high_temptarget_raises_sensitivity" translatable="false">high_temptarget_raises_sensitivity</string>
     <string name="key_absorption_cutoff" translatable="false">absorption_cutoff</string>
     <string name="key_danar_useextended" translatable="false">danar_useextended</string>
     <string name="key_eatingsoon_duration" translatable="false">eatingsoon_duration</string>
@@ -100,12 +99,15 @@
     <string name="key_objectiveusereconnect" translatable="false">ObjectivesReconnectUsed</string>
     <string name="key_aps_mode" translatable="false">aps_mode</string>
     <string name="key_boluswizard_percentage" translatable="false">boluswizard_percentage</string>
+    <string name="key_reset_boluswizard_percentage_time" translatable="false">key_reset_boluswizard_percentage_time</string>
     <string name="key_usesuperbolus" translatable="false">key_usersuperbolus</string>
     <string name="key_treatmentssafety_maxbolus" translatable="false">treatmentssafety_maxbolus</string>
     <string name="key_patient_name" translatable="false">patient_name</string>
     <string name="key_email_for_crash_report" translatable="false">email_for_crash_report</string>
     <string name="key_openapsama_autosens_period" translatable="false">openapsama_autosens_period</string>
     <string name="key_enable_fabric" translatable="false">enable_fabric2</string>
+    <string name="key_high_temptarget_raises_sensitivity" translatable="false">high_temptarget_raises_sensitivity</string>
+    <string name="key_low_temptarget_lowers_sensitivity" translatable="false">low_temptarget_lowers_sensitivity</string>
     <string name="key_openapsama_bolus_snooze_dia_divisor" translatable="false">bolussnooze_dia_divisor</string>
     <string name="key_wear_detailediob" translatable="false">wear_detailediob</string>
     <string name="key_wear_showbgi" translatable="false">wear_showbgi</string>
@@ -115,6 +117,7 @@
     <string name="key_wearwizard_trend" translatable="false">wearwizard_trend</string>
     <string name="key_wearwizard_cob" translatable="false">wearwizard_cob</string>
     <string name="key_wearwizard_iob" translatable="false">wearwizard_iob</string>
+    <string name="key_wear_custom_watchface_autorization" translatable="false">wear_custom_watchface_autorization</string>
     <string name="key_objectives_bg_is_available_in_ns" translatable="false">ObjectivesbgIsAvailableInNS</string>
     <string name="key_objectives_pump_status_is_available_in_ns" translatable="false">ObjectivespumpStatusIsAvailableInNS</string>
     <string name="key_statuslights_cage_warning" translatable="false">statuslights_cage_warning</string>

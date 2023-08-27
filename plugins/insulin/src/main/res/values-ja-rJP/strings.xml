@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+<<<<<<<< HEAD:app-wear-shared/shared/src/main/res/values-sr-rCS/strings.xml
+    <!--    DateUtil-->
+    <!-- Rx -->
+========
     <!-- Insulin -->
+>>>>>>>> origin/dev:plugins/insulin/src/main/res/values-ja-rJP/strings.xml
 </resources>

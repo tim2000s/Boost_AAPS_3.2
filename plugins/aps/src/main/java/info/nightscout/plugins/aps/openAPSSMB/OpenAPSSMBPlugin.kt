@@ -25,6 +25,7 @@ import info.nightscout.interfaces.plugin.PluginType
 import info.nightscout.interfaces.profile.Profile
 import info.nightscout.interfaces.profile.ProfileFunction
 import info.nightscout.interfaces.profiling.Profiler
+import info.nightscout.interfaces.stats.TddCalculator
 import info.nightscout.interfaces.utils.HardLimits
 import info.nightscout.interfaces.utils.Round
 import info.nightscout.plugins.aps.R
@@ -44,20 +45,21 @@ import kotlin.math.floor
 class OpenAPSSMBPlugin @Inject constructor(
     injector: HasAndroidInjector,
     aapsLogger: AAPSLogger,
-    val rxBus: RxBus,
-    val constraintChecker: Constraints,
+    private val rxBus: RxBus,
+    private val constraintChecker: Constraints,
     rh: ResourceHelper,
-    val profileFunction: ProfileFunction,
+    private val profileFunction: ProfileFunction,
     val context: Context,
-    val activePlugin: ActivePlugin,
-    val iobCobCalculator: IobCobCalculator,
-    val hardLimits: HardLimits,
-    val profiler: Profiler,
-    val sp: SP,
-    val dateUtil: DateUtil,
-    val repository: AppRepository,
-    val glucoseStatusProvider: GlucoseStatusProvider,
-    val bgQualityCheck: BgQualityCheck
+    private val activePlugin: ActivePlugin,
+    private val iobCobCalculator: IobCobCalculator,
+    private val hardLimits: HardLimits,
+    private val profiler: Profiler,
+    private val sp: SP,
+    private val dateUtil: DateUtil,
+    private val repository: AppRepository,
+    private val glucoseStatusProvider: GlucoseStatusProvider,
+    private val bgQualityCheck: BgQualityCheck,
+    private val tddCalculator: TddCalculator
 ) : PluginBase(
     PluginDescription()
         .mainType(PluginType.APS)
@@ -70,6 +72,14 @@ class OpenAPSSMBPlugin @Inject constructor(
         .setDefault(),
     aapsLogger, rh, injector
 ), APS, Constraints {
+
+    // DynamicISF specific
+    var tdd1D : Double? = null
+    var tdd7D : Double? = null
+    var tddLast24H : Double? = null
+    var tddLast4H : Double? = null
+    var tddLast8to4H : Double? = null
+    var dynIsfEnabled : Constraint<Boolean> = Constraint(false)
 
     // last values
     override var lastAPSRun: Long = 0
@@ -193,10 +203,23 @@ class OpenAPSSMBPlugin @Inject constructor(
             constraintChecker.isUAMEnabled(it)
             inputConstraints.copyReasons(it)
         }
+        dynIsfEnabled = Constraint(true).also {
+            constraintChecker.isDynIsfModeEnabled(it)
+            inputConstraints.copyReasons(it)
+        }
         val flatBGsDetected = bgQualityCheck.state == BgQualityCheck.State.FLAT
         profiler.log(LTag.APS, "detectSensitivityAndCarbAbsorption()", startPart)
         profiler.log(LTag.APS, "SMB data gathering", start)
         start = System.currentTimeMillis()
+
+        // DynamicISF specific
+        // without these values DynISF doesn't work properly
+        // Current implementation is fallback to SMB if TDD history is not available. Thus calculated here
+        tdd1D = tddCalculator.averageTDD(tddCalculator.calculate(1, allowMissingDays = false))?.totalAmount
+        tdd7D = tddCalculator.averageTDD(tddCalculator.calculate(7, allowMissingDays = false))?.totalAmount
+        tddLast24H = tddCalculator.calculateDaily(-24, 0)?.totalAmount
+        tddLast4H = tddCalculator.calculateDaily(-4, 0)?.totalAmount
+        tddLast8to4H = tddCalculator.calculateDaily(-8, -4)?.totalAmount
 
         provideDetermineBasalAdapter().also { determineBasalAdapterSMBJS ->
             determineBasalAdapterSMBJS.setData(
@@ -210,7 +233,12 @@ class OpenAPSSMBPlugin @Inject constructor(
                 smbAllowed.value(),
                 uam.value(),
                 advancedFiltering.value(),
-                flatBGsDetected
+                flatBGsDetected,
+                tdd1D = tdd1D,
+                tdd7D = tdd7D,
+                tddLast24H = tddLast24H,
+                tddLast4H = tddLast4H,
+                tddLast8to4H = tddLast8to4H
             )
             val now = System.currentTimeMillis()
             val determineBasalResultSMB = determineBasalAdapterSMBJS.invoke()
@@ -243,7 +271,7 @@ class OpenAPSSMBPlugin @Inject constructor(
 
     override fun applyMaxIOBConstraints(maxIob: Constraint<Double>): Constraint<Double> {
         if (isEnabled()) {
-            val maxIobPref: Double = sp.getDouble(info.nightscout.plugins.aps.R.string.key_openapssmb_max_iob, 3.0)
+            val maxIobPref: Double = sp.getDouble(R.string.key_openapssmb_max_iob, 3.0)
             maxIob.setIfSmaller(aapsLogger, maxIobPref, rh.gs(R.string.limiting_iob, maxIobPref, rh.gs(R.string.maxvalueinpreferences)), this)
             maxIob.setIfSmaller(aapsLogger, hardLimits.maxIobSMB(), rh.gs(R.string.limiting_iob, hardLimits.maxIobSMB(), rh.gs(R.string.hardlimit)), this)
         }

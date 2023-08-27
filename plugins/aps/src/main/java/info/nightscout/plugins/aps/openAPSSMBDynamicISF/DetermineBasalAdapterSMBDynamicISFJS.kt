@@ -39,6 +39,7 @@ import org.mozilla.javascript.Undefined
 import java.io.IOException
 import java.lang.reflect.InvocationTargetException
 import java.nio.charset.StandardCharsets
+import java.security.InvalidParameterException
 import javax.inject.Inject
 import kotlin.math.ln
 
@@ -184,8 +185,19 @@ var getIsfByProfile = function (bg, profile) {
         microBolusAllowed: Boolean,
         uamAllowed: Boolean,
         advancedFiltering: Boolean,
-        flatBGsDetected: Boolean
+        flatBGsDetected: Boolean,
+        tdd1D: Double?,
+        tdd7D: Double?,
+        tddLast24H: Double?,
+        tddLast4H: Double?,
+        tddLast8to4H: Double?
     ) {
+        tdd1D ?: throw InvalidParameterException()
+        tdd7D ?: throw InvalidParameterException()
+        tddLast24H ?: throw InvalidParameterException()
+        tddLast4H ?: throw InvalidParameterException()
+        tddLast8to4H ?: throw InvalidParameterException()
+
         val pump = activePlugin.activePump
         val pumpBolusStep = pump.pumpDescription.bolusStep
         this.profile.put("max_iob", maxIob)

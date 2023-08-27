@@ -11,6 +11,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.text.toSpanned
+import androidx.core.view.MenuCompat
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -113,7 +114,7 @@ class NSClientFragment : DaggerFragment(), MenuProvider, PluginFragment {
         menu.add(Menu.FIRST, ID_MENU_RESTART, 0, rh.gs(R.string.restart)).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
         menu.add(Menu.FIRST, ID_MENU_SEND_NOW, 0, rh.gs(R.string.deliver_now)).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
         menu.add(Menu.FIRST, ID_MENU_FULL_SYNC, 0, rh.gs(R.string.full_sync)).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
-        menu.setGroupDividerEnabled(true)
+        MenuCompat.setGroupDividerEnabled(menu, true)
     }
 
     override fun onMenuItemSelected(item: MenuItem): Boolean =
@@ -122,7 +123,7 @@ class NSClientFragment : DaggerFragment(), MenuProvider, PluginFragment {
                 nsClientPlugin?.listLog?.let {
                     synchronized(it) {
                         it.clear()
-                        _binding?.recyclerview?.swapAdapter(RecyclerViewAdapter(it), true)
+                        updateLog()
                     }
                 }
                 true
@@ -210,6 +211,7 @@ class NSClientFragment : DaggerFragment(), MenuProvider, PluginFragment {
             .subscribe({ updateStatus() }, fabricPrivacy::logException)
         updateStatus()
         updateQueue()
+        updateLog()
     }
 
     @Synchronized
@@ -230,6 +232,9 @@ class NSClientFragment : DaggerFragment(), MenuProvider, PluginFragment {
         binding.status.text = nsClientPlugin?.status
     }
 
+    private fun updateLog() {
+        _binding?.recyclerview?.swapAdapter(RecyclerViewAdapter(nsClientPlugin?.listLog ?: arrayListOf()), true)
+    }
     private inner class RecyclerViewAdapter(private var logList: List<EventNSClientNewLog>) : RecyclerView.Adapter<RecyclerViewAdapter.NsClientLogViewHolder>() {
 
         override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): NsClientLogViewHolder =

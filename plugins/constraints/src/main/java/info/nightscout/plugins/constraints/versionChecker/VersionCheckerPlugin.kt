@@ -43,8 +43,8 @@ class VersionCheckerPlugin @Inject constructor(
 ), Constraints {
 
     enum class GracePeriod(val warning: Long, val old: Long, val veryOld: Long) {
-        RELEASE(1825, 3650, 5475),
-        RC(1, 7, 14)
+        RELEASE(30, 60, 90),
+        RC(2, 7, 14)
     }
 
     private val gracePeriod: GracePeriod
@@ -67,7 +67,7 @@ class VersionCheckerPlugin @Inject constructor(
 
         checkWarning()
         versionCheckerUtils.triggerCheckVersion()
-        if (isOldVersion(gracePeriod.veryOld.daysToMillis()))
+        if (lastCheckOlderThan(gracePeriod.veryOld.daysToMillis()))
             value.set(aapsLogger, false, rh.gs(R.string.very_old_version), this)
         val endDate = sp.getLong(rh.gs(info.nightscout.core.utils.R.string.key_app_expiration) + "_" + config.VERSION_NAME, 0)
         if (endDate != 0L && dateUtil.now() > endDate)
@@ -76,7 +76,7 @@ class VersionCheckerPlugin @Inject constructor(
     }
 
     override fun applyMaxIOBConstraints(maxIob: Constraint<Double>): Constraint<Double> =
-        if (isOldVersion(gracePeriod.old.daysToMillis()))
+        if (lastCheckOlderThan(gracePeriod.old.daysToMillis()))
             maxIob.set(aapsLogger, 0.0, rh.gs(R.string.old_version), this)
         else
             maxIob
@@ -84,19 +84,19 @@ class VersionCheckerPlugin @Inject constructor(
     private fun checkWarning() {
         val now = dateUtil.now()
 
-        if (!sp.contains(R.string.key_last_versionchecker_plugin_warning)) {
-            sp.putLong(R.string.key_last_versionchecker_plugin_warning, now)
+        if (!sp.contains(R.string.key_last_versionchecker_plugin_warning_timestamp)) {
+            sp.putLong(R.string.key_last_versionchecker_plugin_warning_timestamp, now)
             return
         }
 
-        if (isOldVersion(gracePeriod.warning.daysToMillis()) && shouldWarnAgain()) {
+        if (lastCheckOlderThan(gracePeriod.warning.daysToMillis()) && shouldWarnAgain()) {
             // store last notification time
-            sp.putLong(R.string.key_last_versionchecker_plugin_warning, now)
+            sp.putLong(R.string.key_last_versionchecker_plugin_warning_timestamp, now)
 
             //notify
             val message = rh.gs(
                 R.string.new_version_warning,
-                ((now - sp.getLong(R.string.key_last_time_this_version_detected_as_ok, now)) / 1L.daysToMillis().toDouble()).roundToInt(),
+                ((now - sp.getLong(R.string.key_last_successful_version_check_timestamp, now)) / 1L.daysToMillis().toDouble()).roundToInt(),
                 gracePeriod.old,
                 gracePeriod.veryOld
             )
@@ -106,7 +106,7 @@ class VersionCheckerPlugin @Inject constructor(
         val endDate = sp.getLong(rh.gs(info.nightscout.core.utils.R.string.key_app_expiration) + "_" + config.VERSION_NAME, 0)
         if (endDate != 0L && dateUtil.now() > endDate && shouldWarnAgain()) {
             // store last notification time
-            sp.putLong(R.string.key_last_versionchecker_plugin_warning, now)
+            sp.putLong(R.string.key_last_versionchecker_plugin_warning_timestamp, now)
 
             //notify
             uiInteraction.addNotification(Notification.VERSION_EXPIRE, rh.gs(R.string.application_expired), Notification.URGENT)
@@ -114,9 +114,9 @@ class VersionCheckerPlugin @Inject constructor(
     }
 
     private fun shouldWarnAgain() =
-        dateUtil.now() > sp.getLong(R.string.key_last_versionchecker_plugin_warning, 0) + WARN_EVERY
+        dateUtil.now() > sp.getLong(R.string.key_last_versionchecker_plugin_warning_timestamp, 0) + WARN_EVERY
 
-    private fun isOldVersion(gracePeriod: Long): Boolean {
+    private fun lastCheckOlderThan(gracePeriod: Long): Boolean {
         val byPass = sp.getBoolean(R.string.key_bypass_old_version_check, false);
         if (byPass)
             return false;

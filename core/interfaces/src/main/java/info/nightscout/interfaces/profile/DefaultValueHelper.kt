@@ -9,7 +9,6 @@ interface DefaultValueHelper {
      */
     fun determineEatingSoonTT(): Double
     fun determineEatingSoonTTDuration(): Int
-    fun determineEatingNowTTDuration(): Int
 
     /**
      * returns the configured Activity TempTarget, if this is set to 0, the Default-Value is returned.

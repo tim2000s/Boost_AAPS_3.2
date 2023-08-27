@@ -20,6 +20,7 @@ import dagger.android.AndroidInjection
 import info.nightscout.androidaps.R
 import info.nightscout.androidaps.data.RawDisplayData
 import info.nightscout.androidaps.events.EventWearPreferenceChange
+import info.nightscout.androidaps.heartrate.HeartRateListener
 import info.nightscout.androidaps.interaction.menus.MainMenuActivity
 import info.nightscout.androidaps.interaction.utils.Persistence
 import info.nightscout.androidaps.interaction.utils.WearUtil
@@ -77,12 +78,18 @@ abstract class BaseWatchFace : WatchFace() {
     var gridColor = Color.WHITE
     var basalBackgroundColor = Color.BLUE
     var basalCenterColor = Color.BLUE
+    var carbColor = Color.GREEN
     private var bolusColor = Color.MAGENTA
     private var lowResMode = false
     private var layoutSet = false
     var bIsRound = false
     var dividerMatchesBg = false
     var pointSize = 2
+    var enableSecond = false
+    var detailedIob = false
+    var externalStatus = ""
+    val showSecond: Boolean
+        get() = enableSecond && currentWatchMode == WatchMode.INTERACTIVE
 
     // Tapping times
     private var sgvTapTime: Long = 0
@@ -99,6 +106,7 @@ abstract class BaseWatchFace : WatchFace() {
 
     private var mLastSvg = ""
     private var mLastDirection = ""
+    private var heartRateListener: HeartRateListener? = null
 
     override fun onCreate() {
         // Not derived from DaggerService, do injection here
@@ -115,6 +123,7 @@ abstract class BaseWatchFace : WatchFace() {
             .subscribe { event: EventWearPreferenceChange ->
                 simpleUi.updatePreferences()
                 if (event.changedKey != null && event.changedKey == "delta_granularity") rxBus.send(EventWearToMobile(ActionResendData("BaseWatchFace:onSharedPreferenceChanged")))
+                if (event.changedKey == getString(R.string.key_heart_rate_sampling)) updateHeartRateListener()
                 if (layoutSet) setDataFields()
                 invalidate()
             }
@@ -139,11 +148,26 @@ abstract class BaseWatchFace : WatchFace() {
         layoutView = binding.root
         performViewSetup()
         rxBus.send(EventWearToMobile(ActionResendData("BaseWatchFace::onCreate")))
+        updateHeartRateListener()
     }
 
     private fun forceUpdate() {
         setDataFields()
         invalidate()
+    }
+
+    private fun updateHeartRateListener() {
+        if (sp.getBoolean(R.string.key_heart_rate_sampling, false)) {
+            if (heartRateListener == null) {
+                heartRateListener = HeartRateListener(
+                    this, aapsLogger, aapsSchedulers).also { hrl -> disposable += hrl }
+            }
+        } else {
+            heartRateListener?.let { hrl ->
+                disposable.remove(hrl)
+                heartRateListener = null
+            }
+        }
     }
 
     override fun onTapCommand(tapType: Int, x: Int, y: Int, eventTime: Long) {
@@ -232,7 +256,7 @@ abstract class BaseWatchFace : WatchFace() {
     }
 
     override fun getInteractiveModeUpdateRate(): Long {
-        return 60 * 1000L // Only call onTimeChanged every 60 seconds
+        return if (showSecond) 1000L else 60 * 1000L // Only call onTimeChanged every 60 seconds
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -253,6 +277,8 @@ abstract class BaseWatchFace : WatchFace() {
             missedReadingAlert()
             checkVibrateHourly(oldTime, newTime)
             if (!simpleUi.isEnabled(currentWatchMode)) setDataFields()
+        } else if (layoutSet && !simpleUi.isEnabled(currentWatchMode) && showSecond && newTime.hasSecondChanged(oldTime)) {
+            setSecond()
         }
     }
 
@@ -270,23 +296,26 @@ abstract class BaseWatchFace : WatchFace() {
 
     @SuppressLint("SetTextI18n")
     open fun setDataFields() {
+        detailedIob = sp.getBoolean(R.string.key_show_detailed_iob, false)
+        val showBgi = sp.getBoolean(R.string.key_show_bgi, false)
+        val detailedDelta = sp.getBoolean(R.string.key_show_detailed_delta, false)
         setDateAndTime()
         binding.sgv?.text = singleBg.sgvString
         binding.sgv?.visibility = sp.getBoolean(R.string.key_show_bg, true).toVisibilityKeepSpace()
         strikeThroughSgvIfNeeded()
         binding.direction?.text = "${singleBg.slopeArrow}\uFE0E"
         binding.direction?.visibility = sp.getBoolean(R.string.key_show_direction, true).toVisibility()
-        binding.delta?.text = singleBg.delta
+        binding.delta?.text = if (detailedDelta) singleBg.deltaDetailed else singleBg.delta
         binding.delta?.visibility = sp.getBoolean(R.string.key_show_delta, true).toVisibility()
-        binding.avgDelta?.text = singleBg.avgDelta
+        binding.avgDelta?.text = if (detailedDelta) singleBg.avgDeltaDetailed else singleBg.avgDelta
         binding.avgDelta?.visibility = sp.getBoolean(R.string.key_show_avg_delta, true).toVisibility()
         binding.cob1?.visibility = sp.getBoolean(R.string.key_show_cob, true).toVisibility()
         binding.cob2?.text = status.cob
         binding.cob2?.visibility = sp.getBoolean(R.string.key_show_cob, true).toVisibility()
         binding.iob1?.visibility = sp.getBoolean(R.string.key_show_iob, true).toVisibility()
         binding.iob2?.visibility = sp.getBoolean(R.string.key_show_iob, true).toVisibility()
-        binding.iob1?.text = if (status.detailedIob) status.iobSum else getString(R.string.activity_IOB)
-        binding.iob2?.text = if (status.detailedIob) status.iobDetail else status.iobSum
+        binding.iob1?.text = if (detailedIob) status.iobSum else getString(R.string.activity_IOB)
+        binding.iob2?.text = if (detailedIob) status.iobDetail else status.iobSum
         binding.timestamp.visibility = sp.getBoolean(R.string.key_show_ago, true).toVisibility()
         binding.timestamp.text = readingAge(if (binding.AAPSv2 != null) true else sp.getBoolean(R.string.key_show_external_status, true))
         binding.uploaderBattery?.visibility = sp.getBoolean(R.string.key_show_uploader_battery, true).toVisibility()
@@ -301,8 +330,15 @@ abstract class BaseWatchFace : WatchFace() {
         binding.basalRate?.text = status.currentBasal
         binding.basalRate?.visibility = sp.getBoolean(R.string.key_show_temp_basal, true).toVisibility()
         binding.bgi?.text = status.bgi
-        binding.bgi?.visibility = status.showBgi.toVisibility()
-        binding.status?.text = status.externalStatus
+        binding.bgi?.visibility = showBgi.toVisibility()
+        val iobString =
+            if (detailedIob) "${status.iobSum} ${status.iobDetail}"
+            else status.iobSum + getString(R.string.units_short)
+        externalStatus = if (showBgi)
+            "${status.externalStatus} ${iobString} ${status.bgi}"
+        else
+            "${status.externalStatus} ${iobString}"
+        binding.status?.text = externalStatus
         binding.status?.visibility = sp.getBoolean(R.string.key_show_external_status, true).toVisibility()
         binding.loop?.visibility = sp.getBoolean(R.string.key_show_external_status, true).toVisibility()
         if (status.openApsStatus != -1L) {
@@ -340,9 +376,20 @@ abstract class BaseWatchFace : WatchFace() {
         binding.month?.text = dateUtil.monthString()
         binding.timePeriod?.visibility = android.text.format.DateFormat.is24HourFormat(this).not().toVisibility()
         binding.timePeriod?.text = dateUtil.amPm()
+        if (showSecond)
+            setSecond()
     }
 
-    private fun setColor() {
+    open fun setSecond() {
+        binding.time?.text = if(binding.timePeriod == null) dateUtil.timeString() else dateUtil.hourString() + ":" + dateUtil.minuteString() + if (showSecond) ":" + dateUtil.secondString() else ""
+        binding.second?.text = dateUtil.secondString()
+    }
+
+    open fun updateSecondVisibility() {
+        binding.second?.visibility = showSecond.toVisibility()
+    }
+
+    fun setColor() {
         dividerMatchesBg = sp.getBoolean(R.string.key_match_divider, false)
         when {
             lowResMode                             -> setColorLowRes()
@@ -360,9 +407,12 @@ abstract class BaseWatchFace : WatchFace() {
     }
 
     override fun onWatchModeChanged(watchMode: WatchMode) {
+        updateSecondVisibility()    // will show second if enabledSecond and Interactive mode, hide in other situation
+        setSecond()                 // will remove second from main date and time if not in Interactive mode
         lowResMode = isLowRes(watchMode)
         if (simpleUi.isEnabled(currentWatchMode)) simpleUi.setAntiAlias(currentWatchMode)
-        else setDataFields()
+        else
+            setDataFields()
         invalidate()
     }
 
@@ -391,12 +441,12 @@ abstract class BaseWatchFace : WatchFace() {
                 if (lowResMode)
                     BgGraphBuilder(
                         sp, dateUtil, graphData.entries, treatmentData.predictions, treatmentData.temps, treatmentData.basals, treatmentData.boluses, pointSize,
-                        midColor, gridColor, basalBackgroundColor, basalCenterColor, bolusColor, Color.GREEN, timeframe
+                        midColor, gridColor, basalBackgroundColor, basalCenterColor, bolusColor, carbColor, timeframe
                     )
                 else
                     BgGraphBuilder(
                         sp, dateUtil, graphData.entries, treatmentData.predictions, treatmentData.temps, treatmentData.basals, treatmentData.boluses,
-                        pointSize, highColor, lowColor, midColor, gridColor, basalBackgroundColor, basalCenterColor, bolusColor, Color.GREEN, timeframe
+                        pointSize, highColor, lowColor, midColor, gridColor, basalBackgroundColor, basalCenterColor, bolusColor, carbColor, timeframe
                     )
             binding.chart?.lineChartData = bgGraphBuilder.lineData()
             binding.chart?.isViewportCalculationEnabled = true

@@ -12,7 +12,7 @@ import android.view.View
 import android.view.WindowManager
 import com.google.common.primitives.Ints.min
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
-import dagger.android.support.DaggerAppCompatActivity
+import info.nightscout.core.ui.activities.TranslatedDaggerAppCompatActivity
 import info.nightscout.core.ui.dialogs.OKDialog
 import info.nightscout.core.ui.toast.ToastUtils
 import info.nightscout.core.utils.fabric.FabricPrivacy
@@ -28,7 +28,7 @@ import info.nightscout.shared.interfaces.ResourceHelper
 import net.glxn.qrgen.android.QRCode
 import javax.inject.Inject
 
-class SmsCommunicatorOtpActivity : DaggerAppCompatActivity() {
+class SmsCommunicatorOtpActivity : TranslatedDaggerAppCompatActivity() {
 
     @Inject lateinit var fabricPrivacy: FabricPrivacy
     @Inject lateinit var smsCommunicator: SmsCommunicator
@@ -44,6 +44,10 @@ class SmsCommunicatorOtpActivity : DaggerAppCompatActivity() {
 
         binding = SmscommunicatorActivityOtpBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        title = rh.gs(R.string.smscommunicator_tab_otp_label)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
 
         binding.otpVerifyEdit.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable) {

@@ -121,11 +121,7 @@
     <string name="sms_wrong_tbr_duration">TBR duration must be a multiple of %1$d minutes and greater than 0.</string>
     <string name="a11y_otp_qr_code">QR Code for setup one time password</string>
 
-    <string name="xdrip_status_detailed_iob_title">Show detailed IOB</string>
-    <string name="xdrip_status_detailed_iob_summary">Break down IOB into bolus and basal IOB on the watchface</string>
     <string name="disabled_loop">Loop Disabled</string>
-    <string name="xdrip_status_show_bgi_title">Show BGI</string>
-    <string name="xdrip_status_show_bgi_summary">Add BGI to status line</string>
 
     <!-- Food-->
     <string name="food_short">Food</string>
@@ -165,7 +161,7 @@
     <string name="error_in_basal_values">Error in basal values</string>
     <string name="error_in_target_values">Error in target values</string>
     <string name="error_in_isf_values">Error in ISF values</string>
-    <string name="profile_name_contains_dot">Profile name contains dots.\nThis is not supported by NS.\nProfile is not uploaded to NS.</string>
+    <string name="profile_name_contains_dot">Some of profile names contains dots.\nThis is not supported by NS.\nProfiles will not be uploaded to NS.</string>
     <string name="invalid_profile_not_accepted">Invalid profile %1$s not accepted from NS</string>
     <string name="view">View</string>
     <string name="errors">Errors</string>
@@ -288,6 +284,7 @@
     <string name="show_tbr_as_percent">Show TBR as percentage</string>
     <string name="overview_show_notes_field_in_dialogs_title">Show notes field in treatment dialogs</string>
     <string name="deliverpartofboluswizard">Bolus wizard performs calculation but only this part of calculated insulin is delivered. Useful with SMB algorithm.</string>
+    <string name="deliver_part_of_boluswizard_reset_time">Deliver full bolus (100%) if glycemia is older than</string>
     <string name="enable_bolus_advisor">Enable bolus advisor</string>
     <string name="enable_bolus_advisor_summary">Use reminder to start eating later instead of wizard result during high glycemia ("pre-bolus")</string>
     <string name="enablesuperbolus">Enable superbolus in wizard</string>
@@ -303,6 +300,7 @@
 
     <string name="overview_show_predictions">Predictions</string>
     <string name="overview_show_treatments">Treatments</string>
+    <string name="overview_show_heartRate">Heart Rate</string>
     <string name="overview_show_deviation_slope">Deviation slope</string>
     <string name="overview_show_activity">Activity</string>
     <string name="overview_show_bgi">Blood Glucose Impact</string>
@@ -320,6 +318,7 @@
     <string name="abs_insulin_shortname">ABS</string>
     <string name="devslope_shortname">DEVSLOPE</string>
     <string name="treatments_shortname">TREAT</string>
+    <string name="heartRate_shortname">HR</string>
     <string name="sensitivity_shortname">SENS</string>
     <string name="graph_scale">Graph scale</string>
     <string name="graph_menu_divider_header">Graph</string>
@@ -364,14 +363,24 @@
     <string name="wear_wizard_settings_summary">Calculations included in the Wizard result:</string>
     <string name="wear_display_settings">Display Settings</string>
     <string name="wear_general_settings">General Settings</string>
-    <string name="wear_detailed_delta_title">Show detailed delta</string>
-    <string name="wear_detailed_delta_summary">Show delta with one more decimal place</string>
     <string name="wear_notifysmb_title">Notify on SMB</string>
     <string name="wear_notifysmb_summary">Show SMB on the watch like a standard bolus.</string>
     <string name="wear_predictions_summary">Show the predictions on the watchface.</string>
     <string name="wear_predictions_title">Predictions</string>
+    <string name="wear_custom_watchface_settings">Custom Watchface Settings</string>
+    <string name="wear_custom_watchface_authorization_title">Custom Watchface Authorization</string>
+    <string name="wear_custom_watchface_authorization_summary">Authorize loaded custom watchface to change and lock some watch display settings to suit watchface design</string>
+    <string name="wear_custom_watchface">Custom Watchface: %1$s</string>
+    <string name="wear_load_watchface">Load Watchface</string>
+    <string name="wear_infos_watchface">Infos Watchface</string>
+    <string name="wear_export_watchface">Export template</string>
+    <string name="wear_new_custom_watchface_exported">Custom watchface template exported</string>
     <string name="resend_all_data">Resend All Data</string>
     <string name="open_settings_on_wear">Open Settings on Wear</string>
+    <string name="cwf_infos_pref_locked">List of prefs locked by the Watchface</string>
+    <string name="cwf_infos_pref_required">List of prefs required for the Watchface</string>
+    <string name="cwf_infos_view_title">List of fields included into the Watchface</string>
+
 
     <!--    PersistentNotification-->
     <string name="ongoingnotificaction" translatable="false">Ongoing Notification</string>
@@ -382,7 +391,7 @@
     <string name="grams_short">g</string>
     <string name="hour_short">h</string>
     <string name="no_active_profile">No active profile switch!</string>
-    <string name="profile_message">Profile:\n\nTimeshift: %1$\nPercentage: %2$d%%\"</string>
+    <string name="profile_message">Profile:\n\nTimeshift: %1$d\nPercentage: %2$d%%\"</string>
     <string name="key_wear_predictions" translatable="false">wear_predictions</string>
     <string name="tdd_line">%1$.2fU %1$.0f%%</string>
     <string name="no_profile">No profile loaded</string>
@@ -404,12 +413,5 @@
     <string name="default_range">DEFAULT RANGE</string>
     <string name="target">target</string>
     <string name="rate_duration">Rate: %1$.2fU/h (%2$.2f%%) \nDuration %3$d min</string>
-
-    <!-- Tsunami Data Smoothing -->
-    <string name="key_use_data_smoothing" translatable="false">use_data_smoothing</string>
-    <string name="use_data_smoothing_summary" translatable="false">Smooth and display incoming sensor data in the main chart. Recommended if your glucose source does not smooth sensor readings by itself and you would like to enable SMB always.</string>
-    <string name="use_data_smoothing_title" translatable="false">Smooth incoming glucose values</string>
-    <string name="internal_smoothing_enabled">Smoothing of incoming sensor readings is enabled.</string>
-    <!-- Tsunami Data Smoothing end-->
 
 </resources>

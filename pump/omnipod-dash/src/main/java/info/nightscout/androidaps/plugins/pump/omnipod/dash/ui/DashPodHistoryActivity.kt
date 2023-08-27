@@ -11,7 +11,6 @@ import android.widget.Spinner
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import dagger.android.support.DaggerAppCompatActivity
 import info.nightscout.androidaps.plugins.pump.omnipod.common.definition.OmnipodCommandType
 import info.nightscout.androidaps.plugins.pump.omnipod.dash.R
 import info.nightscout.androidaps.plugins.pump.omnipod.dash.history.DashHistory
@@ -21,6 +20,7 @@ import info.nightscout.androidaps.plugins.pump.omnipod.dash.history.data.History
 import info.nightscout.androidaps.plugins.pump.omnipod.dash.history.data.InitialResult
 import info.nightscout.androidaps.plugins.pump.omnipod.dash.history.data.ResolvedResult
 import info.nightscout.androidaps.plugins.pump.omnipod.dash.history.data.TempBasalRecord
+import info.nightscout.core.ui.activities.TranslatedDaggerAppCompatActivity
 import info.nightscout.core.utils.DateTimeUtil
 import info.nightscout.interfaces.pump.defs.PumpType
 import info.nightscout.pump.common.defs.PumpHistoryEntryGroup
@@ -33,7 +33,7 @@ import java.util.Calendar
 import java.util.GregorianCalendar
 import javax.inject.Inject
 
-class DashPodHistoryActivity : DaggerAppCompatActivity() {
+class DashPodHistoryActivity : TranslatedDaggerAppCompatActivity() {
 
     @Inject lateinit var dashHistory: DashHistory
     @Inject lateinit var aapsSchedulers: AapsSchedulers
@@ -44,11 +44,12 @@ class DashPodHistoryActivity : DaggerAppCompatActivity() {
     private var statusView: TextView? = null
     private var recyclerView: RecyclerView? = null
     private var linearLayoutManager: LinearLayoutManager? = null
-    private val fullHistoryList: MutableList<HistoryRecord> = ArrayList<HistoryRecord>()
-    private val filteredHistoryList: MutableList<HistoryRecord> = ArrayList<HistoryRecord>()
+    private val fullHistoryList: MutableList<HistoryRecord> = ArrayList()
+    private val filteredHistoryList: MutableList<HistoryRecord> = ArrayList()
     private var recyclerViewAdapter: RecyclerViewAdapter? = null
     private var manualChange = false
     private var typeListFull: List<TypeList>? = null
+    private var selectedGroup: PumpHistoryEntryGroup = PumpHistoryEntryGroup.All
 
     private fun prepareData() {
         val gc = GregorianCalendar()
@@ -147,6 +148,10 @@ class DashPodHistoryActivity : DaggerAppCompatActivity() {
         setContentView(R.layout.omnipod_dash_pod_history_activity)
         prepareData()
 
+        title = rh.gs(info.nightscout.androidaps.plugins.pump.omnipod.common.R.string.omnipod_common_pod_management_button_pod_history)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
+
         recyclerView = findViewById(R.id.omnipod_history_recyclerview)
         recyclerViewAdapter = RecyclerViewAdapter(filteredHistoryList)
         linearLayoutManager = LinearLayoutManager(this)
@@ -213,11 +218,12 @@ class DashPodHistoryActivity : DaggerAppCompatActivity() {
                 holder.timeView.text = DateTimeUtil.toStringFromTimeInMillis(it.displayTimestamp())
                 setValue(it, holder.valueView)
                 setType(it, holder.typeView)
+                setAmount(it, holder.amountView)
             }
         }
 
-        private fun setTextViewColor(check_result: Boolean, textview: TextView, record: HistoryRecord) {
-            if (check_result && !record.isSuccess()) {
+        private fun setTextViewColor(checkResult: Boolean, textview: TextView, record: HistoryRecord) {
+            if (checkResult && !record.isSuccess()) {
                 // Record says not success
                 textview.setTextColor(rh.gac(textview.context, info.nightscout.core.ui.R.attr.omniYellowColor))
                 return
@@ -257,7 +263,7 @@ class DashPodHistoryActivity : DaggerAppCompatActivity() {
         private fun setType(record: HistoryRecord, typeView: TextView) {
             typeView.text = rh.gs(record.commandType.resourceId)
             // Set some color, include result
-            setTextViewColor(check_result = true, typeView, record)
+            setTextViewColor(checkResult = true, typeView, record)
         }
 
         private fun setValue(historyEntry: HistoryRecord, valueView: TextView) {
@@ -294,7 +300,13 @@ class DashPodHistoryActivity : DaggerAppCompatActivity() {
                     ""
             }
             // Set some color
-            setTextViewColor(check_result = false, valueView, historyEntry)
+            setTextViewColor(checkResult = false, valueView, historyEntry)
+        }
+
+        private fun setAmount(historyEntry: HistoryRecord, amountView: TextView) {
+            amountView.text = historyEntry.totalAmountDelivered?.let { rh.gs(R.string.omnipod_common_history_total_delivered, it) }
+            // Set some color
+            setTextViewColor(checkResult = false, amountView, historyEntry)
         }
 
         override fun getItemCount(): Int {
@@ -306,6 +318,7 @@ class DashPodHistoryActivity : DaggerAppCompatActivity() {
             val timeView: TextView = itemView.findViewById(R.id.omnipod_history_time)
             val typeView: TextView = itemView.findViewById(R.id.omnipod_history_source)
             val valueView: TextView = itemView.findViewById(R.id.omnipod_history_description)
+            val amountView: TextView = itemView.findViewById(R.id.omnipod_history_amount)
         }
     }
 
@@ -325,7 +338,6 @@ class DashPodHistoryActivity : DaggerAppCompatActivity() {
 
     companion object {
 
-        private var selectedGroup: PumpHistoryEntryGroup = PumpHistoryEntryGroup.All
         const val DAYS_TO_DISPLAY = 5
     }
 }

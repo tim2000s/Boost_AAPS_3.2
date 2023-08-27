@@ -1,8 +1,11 @@
 package info.nightscout.rx.weardata
 
 import info.nightscout.rx.events.Event
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.protobuf.ProtoBuf
+import org.joda.time.DateTime
 import java.util.Objects
 
 @Serializable
@@ -12,10 +15,17 @@ sealed class EventData : Event() {
 
     fun serialize() = Json.encodeToString(serializer(), this)
 
+    @ExperimentalSerializationApi
+    fun serializeByte() = ProtoBuf.encodeToByteArray(serializer(), this)
     companion object {
-
         fun deserialize(json: String) = try {
             Json.decodeFromString(serializer(), json)
+        } catch (ignored: Exception) {
+            Error(System.currentTimeMillis())
+        }
+        @ExperimentalSerializationApi
+        fun deserializeByte(byteArray: ByteArray) = try {
+            ProtoBuf.decodeFromByteArray(serializer(), byteArray)
         } catch (ignored: Exception) {
             Error(System.currentTimeMillis())
         }
@@ -91,6 +101,16 @@ sealed class EventData : Event() {
     data class ActionQuickWizardPreCheck(val guid: String) : EventData()
 
     @Serializable
+    data class ActionHeartRate(
+        val duration: Long,
+        val timestamp: Long,
+        val beatsPerMinute: Double,
+        val device: String): EventData() {
+        override fun toString() =
+            "HR ${beatsPerMinute.toInt()} at ${DateTime(timestamp)} for ${duration / 1000.0}sec $device"
+    }
+
+    @Serializable
     data class ActionTempTargetPreCheck(
         val command: TempTargetCommand,
         val isMgdl: Boolean = true, val duration: Int = 0, val low: Double = 0.0, val high: Double = 0.0 // manual
@@ -132,6 +152,12 @@ sealed class EventData : Event() {
     data class CancelNotification(val timeStamp: Long) : EventData()
 
     @Serializable
+    data class ActionGetCustomWatchface(
+        val customWatchface: ActionSetCustomWatchface,
+        val exportFile: Boolean = false
+    ) : EventData()
+
+    @Serializable
     data class ActionPing(val timeStamp: Long) : EventData()
 
     @Serializable
@@ -147,7 +173,9 @@ sealed class EventData : Event() {
         val glucoseUnits: String = "-",
         val slopeArrow: String = "--",
         val delta: String = "--",
+        val deltaDetailed: String = "--",
         val avgDelta: String = "--",
+        val avgDeltaDetailed: String = "--",
         val sgvLevel: Long = 0,
         val sgv: Double,
         val high: Double, // highLine
@@ -217,14 +245,12 @@ sealed class EventData : Event() {
         val externalStatus: String,
         val iobSum: String,
         val iobDetail: String,
-        val detailedIob: Boolean,
         val cob: String,
         val currentBasal: String,
         val battery: String,
         val rigBattery: String,
         val openApsStatus: Long,
         val bgi: String,
-        val showBgi: Boolean,
         val batteryLevel: Int
     ) : EventData()
 
@@ -256,6 +282,16 @@ sealed class EventData : Event() {
             val validTo: Int
         ) : EventData()
     }
+    @Serializable
+    data class ActionSetCustomWatchface(
+        val customWatchfaceData: CwfData
+    ) : EventData()
+
+    @Serializable
+    data class ActionrequestCustomWatchface(val exportFile: Boolean) : EventData()
+
+    @Serializable
+    data class ActionrequestSetDefaultWatchface(val timeStamp: Long) : EventData()
 
     @Serializable
     data class ActionProfileSwitchOpenActivity(val timeShift: Int, val percentage: Int) : EventData()

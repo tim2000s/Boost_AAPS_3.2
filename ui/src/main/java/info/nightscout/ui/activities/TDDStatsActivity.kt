@@ -14,7 +14,7 @@ import android.widget.EditText
 import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.TextView
-import dagger.android.support.DaggerAppCompatActivity
+import info.nightscout.core.ui.activities.TranslatedDaggerAppCompatActivity
 import info.nightscout.core.utils.fabric.FabricPrivacy
 import info.nightscout.database.entities.TotalDailyDose
 import info.nightscout.database.impl.AppRepository
@@ -43,7 +43,7 @@ import javax.inject.Inject
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class TDDStatsActivity : DaggerAppCompatActivity() {
+class TDDStatsActivity : TranslatedDaggerAppCompatActivity() {
 
     @Inject lateinit var sp: SP
     @Inject lateinit var profileFunction: ProfileFunction
@@ -69,6 +69,10 @@ class TDDStatsActivity : DaggerAppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityTddStatsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        title = rh.gs(info.nightscout.core.ui.R.string.tdd)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
 
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
         binding.connectionStatus.visibility = View.GONE

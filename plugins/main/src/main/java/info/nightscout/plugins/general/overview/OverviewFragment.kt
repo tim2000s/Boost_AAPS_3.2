@@ -38,7 +38,6 @@ import info.nightscout.core.ui.elements.SingleClickButton
 import info.nightscout.core.ui.toast.ToastUtils
 import info.nightscout.core.utils.fabric.FabricPrivacy
 import info.nightscout.core.wizard.QuickWizard
-import info.nightscout.database.entities.TemporaryTarget
 import info.nightscout.database.entities.UserEntry.Action
 import info.nightscout.database.entities.UserEntry.Sources
 import info.nightscout.database.entities.interfaces.end
@@ -189,7 +188,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         smallHeight = screenHeight <= Constants.SMALL_HEIGHT
         val landscape = screenHeight < screenWidth
 
-        skinProvider.activeSkin().preProcessLandscapeOverviewLayout(dm, binding, landscape, rh.gb(info.nightscout.shared.R.bool.isTablet), smallHeight)
+        skinProvider.activeSkin().preProcessLandscapeOverviewLayout(binding, landscape, rh.gb(info.nightscout.shared.R.bool.isTablet), smallHeight)
         binding.nsclientCard.visibility = config.NSCLIENT.toVisibility()
 
         binding.notifications.setHasFixedSize(false)
@@ -226,7 +225,6 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         binding.buttonsLayout.cgmButton.setOnClickListener(this)
         binding.buttonsLayout.insulinButton.setOnClickListener(this)
         binding.buttonsLayout.carbsButton.setOnClickListener(this)
-        binding.buttonsLayout.enButton.setOnClickListener(this)
         binding.buttonsLayout.quickWizardButton.setOnClickListener(this)
         binding.buttonsLayout.quickWizardButton.setOnLongClickListener(this)
         binding.infoLayout.apsMode.setOnClickListener(this)
@@ -337,6 +335,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
     }
 
     fun refreshAll() {
+        if (!config.appInitialized) return
         runOnUiThread {
             _binding ?: return@runOnUiThread
             updateTime()
@@ -387,11 +386,6 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     ProtectionCheck.Protection.BOLUS,
                     UIRunnable { if (isAdded) uiInteraction.runCarbsDialog(childFragmentManager) })
 
-                R.id.en_button        -> protectionCheck.queryProtection(
-                    activity,
-                    ProtectionCheck.Protection.BOLUS,
-                    UIRunnable { if (isAdded) uiInteraction.runENTempTargetDialog(childFragmentManager) })
-
                 R.id.temp_target         -> protectionCheck.queryProtection(
                     activity,
                     ProtectionCheck.Protection.BOLUS,
@@ -430,7 +424,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                             }
                                 ?: ToastUtils.infoToast(activity, rh.gs(R.string.dexcom_app_not_installed))
                         } catch (e: ActivityNotFoundException) {
-                            ToastUtils.infoToast(activity, rh.gs(R.string.dexcom_app_not_installed))
+                            ToastUtils.infoToast(activity, rh.gs(R.string.dexcom_app_not_detected))
                         }
                     }
                 }
@@ -581,8 +575,6 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                 && sp.getBoolean(R.string.key_show_wizard_button, true)).toVisibility()
             binding.buttonsLayout.insulinButton.visibility = (!loop.isDisconnected && pump.isInitialized() && !pump.isSuspended() && profile != null
                 && sp.getBoolean(R.string.key_show_insulin_button, true)).toVisibility()
-            binding.buttonsLayout.enButton.visibility = (!loop.isDisconnected && pump.isInitialized() && !pump.isSuspended() && profile != null
-                && sp.getBoolean(R.string.key_eatingnow_showbutton, false)).toVisibility()
 
             // **** Calibration & CGM buttons ****
             val xDripIsBgSource = xDrip.isEnabled()
@@ -850,11 +842,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     if (it.value.originalPercentage != 100 || it.value.originalTimeshift != 0L || it.value.originalDuration != 0L)
                         info.nightscout.core.ui.R.attr.ribbonWarningColor
                     else info.nightscout.core.ui.R.attr.ribbonDefaultColor
-                } else if (it is ProfileSealed.PS) {
-                    info.nightscout.core.ui.R.attr.ribbonDefaultColor
-                } else {
-                    info.nightscout.core.ui.R.attr.ribbonDefaultColor
-                }
+                 } else info.nightscout.core.ui.R.attr.ribbonDefaultColor
             } ?: info.nightscout.core.ui.R.attr.ribbonCriticalColor
 
             val profileTextColor = profile?.let {
@@ -862,11 +850,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     if (it.value.originalPercentage != 100 || it.value.originalTimeshift != 0L || it.value.originalDuration != 0L)
                         info.nightscout.core.ui.R.attr.ribbonTextWarningColor
                     else info.nightscout.core.ui.R.attr.ribbonTextDefaultColor
-                } else if (it is ProfileSealed.PS) {
-                    info.nightscout.core.ui.R.attr.ribbonTextDefaultColor
-                } else {
-                    info.nightscout.core.ui.R.attr.ribbonTextDefaultColor
-                }
+                } else info.nightscout.core.ui.R.attr.ribbonTextDefaultColor
             } ?: info.nightscout.core.ui.R.attr.ribbonTextDefaultColor
             setRibbon(binding.activeProfile, profileTextColor, profileBackgroundColor, profileFunction.getProfileNameWithRemainingTime())
         }
@@ -908,14 +892,12 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         binding.statusLightsLayout.apply {
             cannulaOrPatch.setImageResource(if (isPatchPump) info.nightscout.core.main.R.drawable.ic_patch_pump_outline else R.drawable.ic_cp_age_cannula)
             cannulaOrPatch.contentDescription = rh.gs(if (isPatchPump) R.string.statuslights_patch_pump_age else R.string.statuslights_cannula_age)
-            cannulaOrPatch.scaleX = if (isPatchPump) 1.4f else 2f
-            cannulaOrPatch.scaleY = cannulaOrPatch.scaleX
             insulinAge.visibility = isPatchPump.not().toVisibility()
             batteryLayout.visibility = (!isPatchPump || pump.pumpDescription.useHardwareLink).toVisibility()
             pbAge.visibility = (pump.pumpDescription.isBatteryReplaceable || pump.isBatteryChangeLoggingEnabled()).toVisibility()
             val useBatteryLevel = (pump.model() == PumpType.OMNIPOD_EROS)
                 || (pump.model() != PumpType.ACCU_CHEK_COMBO && pump.model() != PumpType.OMNIPOD_DASH)
-            batteryLevel.visibility = useBatteryLevel.toVisibility()
+            pbLevel.visibility = useBatteryLevel.toVisibility()
             statusLightsLayout.visibility = (sp.getBoolean(R.string.key_show_statuslights, true) || config.NSCLIENT).toVisibility()
         }
         statusLightHandler.updateStatusLights(
@@ -926,14 +908,14 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             binding.statusLightsLayout.sensorAge,
             null,
             binding.statusLightsLayout.pbAge,
-            binding.statusLightsLayout.batteryLevel
+            binding.statusLightsLayout.pbLevel
         )
     }
 
     private fun updateIobCob() {
         val iobText = overviewData.iobText(iobCobCalculator)
         val iobDialogText = overviewData.iobDialogText(iobCobCalculator)
-        val displayText = overviewData.cobInfo(iobCobCalculator).displayText(rh, dateUtil, config.isEngineeringMode())
+        val displayText = overviewData.cobInfo(iobCobCalculator).displayText(rh)
         val lastCarbsTime = overviewData.lastCarbsTime
         runOnUiThread {
             _binding ?: return@runOnUiThread
@@ -948,7 +930,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                 if (constraintsProcessed.carbsReq > 0) {
                     //only display carbsreq when carbs have not been entered recently
                     if (lastCarbsTime < lastRun.lastAPSRun) {
-                        cobText += " | " + constraintsProcessed.carbsReq + " " + rh.gs(info.nightscout.core.ui.R.string.required)
+                        cobText += "\n" + constraintsProcessed.carbsReq + " " + rh.gs(info.nightscout.core.ui.R.string.required)
                     }
                     if (carbAnimation?.isRunning == false)
                         carbAnimation?.start()
@@ -965,8 +947,6 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
     fun updateTemporaryTarget() {
         val units = profileFunction.getUnits()
         val tempTarget = overviewData.temporaryTarget
-        val ENTTtext = if (tempTarget?.reason == TemporaryTarget.Reason.EATING_NOW) "EATING NOW " else ""
-
         runOnUiThread {
             _binding ?: return@runOnUiThread
             if (tempTarget != null) {
@@ -974,7 +954,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     binding.tempTarget,
                     info.nightscout.core.ui.R.attr.ribbonTextWarningColor,
                     info.nightscout.core.ui.R.attr.ribbonWarningColor,
-                    ENTTtext + Profile.toTargetRangeString(tempTarget.lowTarget, tempTarget.highTarget, GlucoseUnit.MGDL, units) + " " + dateUtil.untilString(tempTarget.end, rh)
+                    Profile.toTargetRangeString(tempTarget.lowTarget, tempTarget.highTarget, GlucoseUnit.MGDL, units) + " " + dateUtil.untilString(tempTarget.end, rh)
                 )
             } else {
                 // If the target is not the same as set in the profile then oref has overridden it
@@ -1051,6 +1031,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             var useRatioForScale = false
             var useDSForScale = false
             var useBGIForScale = false
+            var useHRForScale = false
             when {
                 menuChartSettings[g + 1][OverviewMenus.CharType.ABS.ordinal]      -> useABSForScale = true
                 menuChartSettings[g + 1][OverviewMenus.CharType.IOB.ordinal]      -> useIobForScale = true
@@ -1059,6 +1040,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                 menuChartSettings[g + 1][OverviewMenus.CharType.BGI.ordinal]      -> useBGIForScale = true
                 menuChartSettings[g + 1][OverviewMenus.CharType.SEN.ordinal]      -> useRatioForScale = true
                 menuChartSettings[g + 1][OverviewMenus.CharType.DEVSLOPE.ordinal] -> useDSForScale = true
+                menuChartSettings[g + 1][OverviewMenus.CharType.HR.ordinal]       -> useHRForScale = true
             }
             val alignDevBgiScale = menuChartSettings[g + 1][OverviewMenus.CharType.DEV.ordinal] && menuChartSettings[g + 1][OverviewMenus.CharType.BGI.ordinal]
 
@@ -1073,6 +1055,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                 if (useDSForScale) 1.0 else 0.8,
                 useRatioForScale
             )
+            if (menuChartSettings[g + 1][OverviewMenus.CharType.HR.ordinal]) secondGraphData.addHeartRate(useHRForScale, if (useHRForScale) 1.0 else 0.8)
 
             // set manual x bounds to have nice steps
             secondGraphData.formatAxis(overviewData.fromTime, overviewData.endTime)
@@ -1088,7 +1071,8 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     menuChartSettings[g + 1][OverviewMenus.CharType.DEV.ordinal] ||
                     menuChartSettings[g + 1][OverviewMenus.CharType.BGI.ordinal] ||
                     menuChartSettings[g + 1][OverviewMenus.CharType.SEN.ordinal] ||
-                    menuChartSettings[g + 1][OverviewMenus.CharType.DEVSLOPE.ordinal]
+                    menuChartSettings[g + 1][OverviewMenus.CharType.DEVSLOPE.ordinal] ||
+                    menuChartSettings[g + 1][OverviewMenus.CharType.HR.ordinal]
                 ).toVisibility()
             secondaryGraphsData[g].performUpdate()
         }
@@ -1102,19 +1086,18 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
     private fun updateSensitivity() {
         _binding ?: return
-
-        if (constraintChecker.isAutosensModeEnabled().value()) {
+        val lastAutosensData = overviewData.lastAutosensData(iobCobCalculator)
+        if (constraintChecker.isAutosensModeEnabled().value() || !(config.NSCLIENT && lastAutosensData == null)) {
             binding.infoLayout.sensitivityIcon.setImageResource(info.nightscout.core.main.R.drawable.ic_swap_vert_black_48dp_green)
-            binding.infoLayout.sensitivity.visibility = View.VISIBLE
-            binding.infoLayout.sensitivity.text = overviewData.lastAutosensData(iobCobCalculator)?.let { autosensData ->
-                String.format(Locale.ENGLISH, "%.0f%%", autosensData.autosensResult.ratio * 100)
-            } ?: ""
-        }
-        else {
+        } else {
             binding.infoLayout.sensitivityIcon.setImageResource(info.nightscout.core.main.R.drawable.ic_x_swap_vert)
-            binding.infoLayout.sensitivity.visibility = View.GONE
         }
 
+        binding.infoLayout.sensitivity.text =
+           lastAutosensData?.let {
+                String.format(Locale.ENGLISH, "%.0f%%", it.autosensResult.ratio * 100)
+            } ?: ""
+        // Show variable sensitivity
         val profile = profileFunction.getProfile()
         val request = loop.lastRun?.request
         val isfMgdl = profile?.getIsfMgdl()
@@ -1123,7 +1106,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             else if (config.NSCLIENT) JsonHelper.safeGetDouble(processedDeviceStatusData.getAPSResult(injector).json, "variable_sens")
             else 0.0
 
-        if (variableSens != 0.0 && isfMgdl != null) {
+        if (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null) {
             binding.infoLayout.variableSensitivity.text =
                 String.format(
                     Locale.getDefault(), "%1$.1f→%2$.1f",
@@ -1133,7 +1116,6 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             binding.infoLayout.variableSensitivity.visibility = View.VISIBLE
         } else binding.infoLayout.variableSensitivity.visibility = View.GONE
     }
-
 
     private fun updatePumpStatus() {
         _binding ?: return

@@ -139,7 +139,7 @@
     <string name="none"><![CDATA[<ninguno>]]></string>
     <string name="remove_label">ELIMINAR</string>
     <string name="activate_profile">ACTIVAR PERFIL</string>
-    <string name="reset">reestablecer</string>
+    <string name="reset">restablecer</string>
     <string name="profileswitch_ismissing">Falta el Cambio de Perfil. Haga un Cambio de Perfil o presione \"Activar perfil\" en el PerfilLocal.</string>
     <string name="profile">Perfil</string>
     <string name="select_for_removal">Selecciona para eliminar</string>
@@ -164,6 +164,7 @@
     <string name="isf_short">ISF</string>
     <string name="canceling_tbr_failed">Error cancelando la basal temporal</string>
     <string name="canceling_eb_failed">Error cancelando el bolo extendido</string>
+    <string name="virtualpump_uploadstatus_title">Subir estado de la bomba a NS o Tidepool</string>
     <string name="suspendloop_label">Desactiva/suspende el bucle</string>
     <string name="iob_label">Insulina a bordo (IOB)</string>
     <!--    Protection-->
@@ -375,6 +376,9 @@
     <string name="carbs_g">CARBOHIDRATOS %1$d g</string>
     <string name="extended_bolus_u_min">BOLO EXTENDIDO %1$.2f U %2$d min</string>
     <string name="load_events">CARGAR EVENTOS</string>
+    <string name="clear_alarms">BORRAR ALARMAS</string>
+    <string name="deactivate">DESACTIVAR</string>
+    <string name="update_time">ACTUALIZAR HORA</string>
     <string name="load_history">CARGAR HISTORIAL %1$d</string>
     <string name="load_tdds">CARGAR TDDs</string>
     <string name="set_profile">ESTABLECER PERFIL</string>
@@ -420,6 +424,7 @@
     <string name="autotune_ic_warning">Autotune sólo funciona con un único valor de IC. Tu perfil tiene %1$d valores. El valor promedio es %2$.2fg/U</string>
     <string name="autotune_isf_warning">Autotune sólo funciona con un único valor de ISF. Tu perfil tiene %1$d valores. El valor promedio es %2$.1f%3$s/U</string>
     <string name="autotune_error">Error en los datos de entrada, intenta ejecutar de nuevo autotune o reducir el número de días</string>
+    <string name="autotune_error_more_days">Error en los datos de entrada, aumenta el número de días</string>
     <string name="autotune_warning_during_run">Cálculo de autototune iniciado, por favor ten paciencia</string>
     <string name="autotune_warning_after_run">¡Comprueba los resultados cuidadosamente antes de usarlos!</string>
     <string name="autotune_partial_result">Resultado parcial día %1$d / %2$d afinado</string>
@@ -452,6 +457,7 @@
     <string name="cobvsiob">COB vs IOB</string>
     <string name="slowabsorptiondetected"><![CDATA[<font color=\'%1$s\'>¡Se ha detectado una absorción lenta de carbohidratos: %2$d%% de tiempo. Comprueba de nuevo el cálculo. Los COB se pueden sobrestimar, por lo que se podría administrar más insulina de la cuenta!</font>]]></string>
     <string name="partialboluswizard">Administrar esta parte del resultado del asistente de bolos [%]</string>
+    <string name="partialboluswizard_reset_time">Antiguo umbral de tiempo de glucemia [min]</string>
     <string name="bolus_constraint_applied_warn">Restricción de bolo aplicada: %1$.2f U a %2$.2f U</string>
     <string name="bolus_recorded_only">El bolo sólo se anotará (no será entregado por la bomba)</string>
     <string name="advisoralarm">Ejecutar alarma cuando sea hora de comer</string>

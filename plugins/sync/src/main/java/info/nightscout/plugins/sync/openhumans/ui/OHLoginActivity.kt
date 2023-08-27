@@ -3,9 +3,9 @@ package info.nightscout.plugins.sync.openhumans.ui
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.view.MenuItem
 import android.view.View
 import android.widget.CheckBox
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.view.ViewCompat
@@ -15,13 +15,13 @@ import androidx.core.view.updatePadding
 import androidx.core.widget.NestedScrollView
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
-import dagger.android.support.DaggerAppCompatActivity
+import info.nightscout.core.ui.activities.TranslatedDaggerAppCompatActivity
+import info.nightscout.plugins.sync.R
 import info.nightscout.plugins.sync.di.AuthUrl
 import info.nightscout.plugins.sync.di.ViewModelFactory
-import info.nightscout.plugins.sync.R
 import javax.inject.Inject
 
-class OHLoginActivity : DaggerAppCompatActivity() {
+class OHLoginActivity : TranslatedDaggerAppCompatActivity() {
 
     @Inject
     internal lateinit var viewModelFactory: ViewModelFactory
@@ -94,6 +94,11 @@ class OHLoginActivity : DaggerAppCompatActivity() {
         if (code != null) {
             viewModel.submitBearerToken(code)
         }
+        onBackPressedDispatcher.addCallback(this, object: OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (!viewModel.goBack()) finish()
+            }
+        })
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -103,21 +108,4 @@ class OHLoginActivity : DaggerAppCompatActivity() {
             viewModel.submitBearerToken(code)
         }
     }
-
-    override fun onBackPressed() {
-        if (!viewModel.goBack()) {
-            @Suppress("DEPRECATION")
-            super.onBackPressed()
-        }
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean =
-        if (item.itemId == android.R.id.home) {
-            @Suppress("DEPRECATION")
-            onBackPressed()
-            true
-        } else {
-            super.onOptionsItemSelected(item)
-        }
-
 }

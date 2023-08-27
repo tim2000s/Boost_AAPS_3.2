@@ -18,6 +18,8 @@ class ConfigImpl @Inject constructor(
     override val SUPPORTED_NS_VERSION = 150000 // 15.0.0
     override val APS = BuildConfig.FLAVOR == "full"
     override val NSCLIENT = BuildConfig.FLAVOR == "aapsclient" || BuildConfig.FLAVOR == "aapsclient2"
+    override val NSCLIENT1 = BuildConfig.FLAVOR == "aapsclient"
+    override val NSCLIENT2 = BuildConfig.FLAVOR == "aapsclient2"
     override val PUMPCONTROL = BuildConfig.FLAVOR == "pumpcontrol"
     override val PUMPDRIVERS = BuildConfig.FLAVOR == "full" || BuildConfig.FLAVOR == "pumpcontrol"
     override val FLAVOR = BuildConfig.FLAVOR
@@ -33,6 +35,8 @@ class ConfigImpl @Inject constructor(
         Build.MANUFACTURER + " " + Build.MODEL + " (" + Build.DEVICE + ")"
     override val appName: Int = R.string.app_name
 
+    override var appInitialized: Boolean = false
+
     private var devBranch = false
     private var engineeringMode = false
     private var unfinishedMode = false
@@ -44,6 +48,8 @@ class ConfigImpl @Inject constructor(
         engineeringMode = engineeringModeSemaphore.exists() && engineeringModeSemaphore.isFile
         unfinishedMode = unfinishedModeSemaphore.exists() && unfinishedModeSemaphore.isFile
         devBranch = BuildConfig.VERSION.contains("-") || BuildConfig.VERSION.matches(Regex(".*[a-zA-Z]+.*"))
+        if (BuildConfig.VERSION.contains("-beta") || BuildConfig.VERSION.contains("-rc"))
+            devBranch = false
     }
 
     override fun isEngineeringModeOrRelease(): Boolean =

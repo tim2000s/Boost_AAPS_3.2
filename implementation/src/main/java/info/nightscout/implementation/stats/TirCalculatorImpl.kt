@@ -8,7 +8,6 @@ import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.TableLayout
 import android.widget.TextView
-import info.nightscout.database.entities.TotalDailyDose
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.interfaces.Constants
 import info.nightscout.interfaces.profile.Profile

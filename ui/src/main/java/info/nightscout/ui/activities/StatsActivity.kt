@@ -5,7 +5,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
 import android.widget.TextView
-import dagger.android.support.DaggerAppCompatActivity
+import info.nightscout.core.ui.activities.TranslatedDaggerAppCompatActivity
 import info.nightscout.core.ui.dialogs.OKDialog
 import info.nightscout.core.utils.fabric.FabricPrivacy
 import info.nightscout.database.entities.UserEntry.Action
@@ -25,7 +25,7 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import javax.inject.Inject
 
-class StatsActivity : DaggerAppCompatActivity() {
+class StatsActivity : TranslatedDaggerAppCompatActivity() {
 
     @Inject lateinit var tddCalculator: TddCalculator
     @Inject lateinit var tirCalculator: TirCalculator
@@ -46,6 +46,10 @@ class StatsActivity : DaggerAppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityStatsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        title = rh.gs(R.string.statistics)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
 
         binding.tdds.addView(TextView(this).apply { text = getString(info.nightscout.core.ui.R.string.tdd) + ": " + rh.gs(R.string.calculation_in_progress) })
         binding.tir.addView(TextView(this).apply { text = getString(info.nightscout.core.ui.R.string.tir) + ": " + rh.gs(R.string.calculation_in_progress) })
@@ -80,7 +84,6 @@ class StatsActivity : DaggerAppCompatActivity() {
                            binding.activity.addView(it)
                        }, fabricPrivacy::logException)
 
-        binding.close.setOnClickListener { finish() }
         binding.resetActivity.setOnClickListener {
             OKDialog.showConfirmation(this, rh.gs(R.string.do_you_want_reset_stats)) {
                 uel.log(Action.STAT_RESET, Sources.Stats)

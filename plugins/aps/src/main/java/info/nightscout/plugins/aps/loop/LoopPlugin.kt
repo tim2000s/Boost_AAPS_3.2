@@ -219,7 +219,7 @@ class LoopPlugin @Inject constructor(
         val start = dateUtil.now()
         while (start + T.mins(maxMinutes).msecs() > dateUtil.now()) {
             if (commandQueue.size() == 0 && commandQueue.performing() == null) return true
-            SystemClock.sleep(100)
+            SystemClock.sleep(1000)
         }
         return false
     }
@@ -248,10 +248,16 @@ class LoopPlugin @Inject constructor(
                 return
             }
 
+            if (!isEmptyQueue()) {
+                aapsLogger.debug(LTag.APS, rh.gs(info.nightscout.core.ui.R.string.pump_busy))
+                rxBus.send(EventLoopSetLastRunGui(rh.gs(info.nightscout.core.ui.R.string.pump_busy)))
+                return
+            }
+
             // Check if pump info is loaded
             if (pump.baseBasalRate < 0.01) return
             val usedAPS = activePlugin.activeAPS
-            if ((usedAPS as PluginBase).isEnabled()) {
+            if (usedAPS.isEnabled()) {
                 usedAPS.invoke(initiator, tempBasalFallback)
                 apsResult = usedAPS.lastAPSResult
 
@@ -267,12 +273,6 @@ class LoopPlugin @Inject constructor(
             // Check if we have any result
             if (apsResult == null) {
                 rxBus.send(EventLoopSetLastRunGui(rh.gs(R.string.no_aps_selected)))
-                return
-            }
-
-            if (!isEmptyQueue()) {
-                aapsLogger.debug(LTag.APS, rh.gs(info.nightscout.core.ui.R.string.pump_busy))
-                rxBus.send(EventLoopSetLastRunGui(rh.gs(info.nightscout.core.ui.R.string.pump_busy)))
                 return
             }
 
@@ -449,9 +449,9 @@ class LoopPlugin @Inject constructor(
                                         lastRun.tbrSetByPump = result
                                         lastRun.lastTBRRequest = lastRun.lastAPSRun
                                         lastRun.lastTBREnact = dateUtil.now()
-                                        // deliverAt is used to prevent executing too old SMB request (older than 1 min)
-                                        // executing TBR may take some time thus give more time to SMB
-                                        resultAfterConstraints.deliverAt = lastRun.lastTBREnact
+                                    // deliverAt is used to prevent executing too old SMB request (older than 1 min)
+                                    // executing TBR may take some time thus give more time to SMB
+                                    resultAfterConstraints.deliverAt = lastRun.lastTBREnact
                                         rxBus.send(EventLoopUpdateGui())
                                         applySMBRequest(resultAfterConstraints, object : Callback() {
                                             override fun run() {
@@ -461,7 +461,7 @@ class LoopPlugin @Inject constructor(
                                                     lastRun.lastSMBRequest = lastRun.lastAPSRun
                                                     lastRun.lastSMBEnact = dateUtil.now()
                                                 } else {
-                                                    handler.postDelayed({ invoke("tempBasalFallback", allowNotification, true) }, 1000)
+                                                handler.postDelayed({ invoke("tempBasalFallback", allowNotification, true) }, 1000)
                                                 }
                                                 rxBus.send(EventLoopUpdateGui())
                                             }

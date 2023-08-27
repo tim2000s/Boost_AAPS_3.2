@@ -65,7 +65,6 @@ data class TemporaryTarget(
         HYPOGLYCEMIA("Hypo"),
         ACTIVITY("Activity"),
         EATING_SOON("Eating Soon"),
-        EATING_NOW("Eating Now"),
         AUTOMATION("Automation"),
         WEAR("Wear")
         ;
