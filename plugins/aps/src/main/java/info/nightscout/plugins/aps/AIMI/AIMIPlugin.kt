@@ -21,6 +21,7 @@ import info.nightscout.interfaces.plugin.ActivePlugin
 import info.nightscout.interfaces.plugin.PluginType
 import info.nightscout.interfaces.profile.ProfileFunction
 import info.nightscout.interfaces.profiling.Profiler
+import info.nightscout.interfaces.stats.TddCalculator
 import info.nightscout.interfaces.utils.HardLimits
 import info.nightscout.interfaces.utils.Round
 import info.nightscout.plugins.aps.R
@@ -55,7 +56,8 @@ class AIMIPlugin @Inject constructor(
     dateUtil: DateUtil,
     repository: AppRepository,
     glucoseStatusProvider: GlucoseStatusProvider,
-    bgQualityCheck: BgQualityCheck
+    bgQualityCheck: BgQualityCheck,
+    tddCalculator: TddCalculator
 ) : OpenAPSSMBPlugin(
     injector,
     aapsLogger,
@@ -72,7 +74,8 @@ class AIMIPlugin @Inject constructor(
     dateUtil,
     repository,
     glucoseStatusProvider,
-    bgQualityCheck
+    bgQualityCheck,
+    tddCalculator
 ) {
     init {
         pluginDescription
@@ -191,6 +194,7 @@ class AIMIPlugin @Inject constructor(
         } else {
             lastAutosensResult.sensResult = "autosens disabled"
         }
+        val flatBGsDetected = bgQualityCheck.state == BgQualityCheck.State.FLAT
         val iobArray = iobCobCalculator.calculateIobArrayForSMB(lastAutosensResult, AIMIDefaults.exercise_mode, AIMIDefaults.half_basal_exercise_target, isTempTarget)
         profiler.log(LTag.APS, "calculateIobArrayInDia()", startPart)
         startPart = System.currentTimeMillis()
@@ -222,7 +226,12 @@ class AIMIPlugin @Inject constructor(
                 smbAllowed.value(),
                 uam.value(),
                 advancedFiltering.value(),
-                activePlugin.activeBgSource.javaClass.simpleName == "DexcomPlugin")
+                flatBGsDetected,
+                tdd1D,
+                tdd7D,
+                tddLast24H,
+                tddLast4H,
+                tddLast8to4H)
             val now = System.currentTimeMillis()
             val determineBasalResultUAM = determineBasalAdapterUAMJS.invoke()
             profiler.log(LTag.APS, "SMB calculation", start)

@@ -1,4 +1,4 @@
-package info.nightscout.androidaps.plugins.aps.openAPSSMB
+package info.nightscout.plugins.aps.openAPSSMB
 
 import dagger.android.HasAndroidInjector
 import info.nightscout.plugins.aps.APSResultObject

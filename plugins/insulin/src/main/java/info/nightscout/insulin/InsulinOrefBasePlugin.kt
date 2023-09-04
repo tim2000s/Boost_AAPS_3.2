@@ -37,7 +37,7 @@ abstract class InsulinOrefBasePlugin(
     val profileFunction: ProfileFunction,
     val rxBus: RxBus,
     aapsLogger: AAPSLogger,
-    config: Config,
+    val config: Config,
     val hardLimits: HardLimits,
     val uiInteraction: UiInteraction
 ) : PluginBase(

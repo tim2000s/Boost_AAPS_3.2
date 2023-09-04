@@ -5,6 +5,7 @@ import dagger.android.ContributesAndroidInjector
 import info.nightscout.core.validators.DefaultEditTextValidator
 import info.nightscout.core.validators.EditTextValidator
 import info.nightscout.core.validators.ValidatingEditTextPreference
+import info.nightscout.core.validators.LoopVariantPreference
 
 @Module
 @Suppress("unused")
@@ -13,4 +14,5 @@ abstract class ValidatorsModule {
     @ContributesAndroidInjector abstract fun defaultEditTextValidatorInjector(): DefaultEditTextValidator
     @ContributesAndroidInjector abstract fun editTextValidatorInjector(): EditTextValidator
     @ContributesAndroidInjector abstract fun validatingEditTextPreferenceInjector(): ValidatingEditTextPreference
+    @ContributesAndroidInjector abstract fun loopVariantPreferenceInjector(): LoopVariantPreference
 }

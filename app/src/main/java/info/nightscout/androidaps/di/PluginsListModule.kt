@@ -17,6 +17,8 @@ import info.nightscout.automation.AutomationPlugin
 import info.nightscout.configuration.configBuilder.ConfigBuilderPlugin
 import info.nightscout.configuration.maintenance.MaintenancePlugin
 import info.nightscout.insulin.InsulinLyumjevPlugin
+import info.nightscout.insulin.InsulinLyumjevU100PDPlugin
+import info.nightscout.insulin.InsulinLyumjevU200PDPlugin
 import info.nightscout.insulin.InsulinOrefFreePeakPlugin
 import info.nightscout.insulin.InsulinOrefRapidActingPlugin
 import info.nightscout.insulin.InsulinOrefUltraRapidActingPlugin
@@ -25,6 +27,9 @@ import info.nightscout.plugins.aps.loop.LoopPlugin
 import info.nightscout.plugins.aps.openAPSAMA.OpenAPSAMAPlugin
 import info.nightscout.plugins.aps.openAPSSMB.OpenAPSSMBPlugin
 import info.nightscout.plugins.aps.openAPSSMBDynamicISF.OpenAPSSMBDynamicISFPlugin
+import info.nightscout.plugins.aps.AIMI.AIMIPlugin
+import info.nightscout.plugins.aps.Boost.BoostPlugin
+import info.nightscout.plugins.aps.EN.ENPlugin
 import info.nightscout.plugins.constraints.bgQualityCheck.BgQualityCheckPlugin
 import info.nightscout.plugins.constraints.objectives.ObjectivesPlugin
 import info.nightscout.plugins.constraints.safety.SafetyPlugin
@@ -112,6 +117,18 @@ abstract class PluginsListModule {
     @AllConfigs
     @IntoMap
     @IntKey(42)
+    abstract fun bindInsulinLyumjevU100PDPlugin(plugin: InsulinLyumjevU100PDPlugin): PluginBase
+
+    @Binds
+    @AllConfigs
+    @IntoMap
+    @IntKey(44)
+    abstract fun bindInsulinLyumjevU200PDPlugin(plugin: InsulinLyumjevU200PDPlugin): PluginBase
+
+    @Binds
+    @AllConfigs
+    @IntoMap
+    @IntKey(46)
     abstract fun bindInsulinLyumjevPlugin(plugin: InsulinLyumjevPlugin): PluginBase
 
     @Binds
@@ -244,6 +261,24 @@ abstract class PluginsListModule {
     @APS
     @IntoMap
     @IntKey(222)
+    abstract fun bindOpenAPSAIMIPlugin(plugin: AIMIPlugin): PluginBase
+
+    @Binds
+    @APS
+    @IntoMap
+    @IntKey(224)
+    abstract fun bindOpenAPSBoostPlugin(plugin: BoostPlugin): PluginBase
+
+    @Binds
+    @APS
+    @IntoMap
+    @IntKey(226)
+    abstract fun bindOpenAPSENPlugin(plugin: ENPlugin): PluginBase
+
+    @Binds
+    @APS
+    @IntoMap
+    @IntKey(228)
     abstract fun bindOpenAPSSMBAutoISFPlugin(plugin: OpenAPSSMBDynamicISFPlugin): PluginBase
 
     @Binds

@@ -21,6 +21,7 @@ import info.nightscout.interfaces.plugin.ActivePlugin
 import info.nightscout.interfaces.plugin.PluginType
 import info.nightscout.interfaces.profile.ProfileFunction
 import info.nightscout.interfaces.profiling.Profiler
+import info.nightscout.interfaces.stats.TddCalculator
 import info.nightscout.interfaces.utils.HardLimits
 import info.nightscout.interfaces.utils.Round
 import info.nightscout.plugins.aps.R
@@ -55,7 +56,8 @@ class ENPlugin @Inject constructor(
     dateUtil: DateUtil,
     repository: AppRepository,
     glucoseStatusProvider: GlucoseStatusProvider,
-    bgQualityCheck: BgQualityCheck
+    bgQualityCheck: BgQualityCheck,
+    tddCalculator: TddCalculator
 ) : OpenAPSSMBPlugin(
     injector,
     aapsLogger,
@@ -72,7 +74,8 @@ class ENPlugin @Inject constructor(
     dateUtil,
     repository,
     glucoseStatusProvider,
-    bgQualityCheck
+    bgQualityCheck,
+    tddCalculator
 ) {
     init{
         pluginDescription
@@ -207,6 +210,7 @@ class ENPlugin @Inject constructor(
             constraintChecker.isUAMEnabled(it)
             inputConstraints.copyReasons(it)
         }
+        val flatBGsDetected = bgQualityCheck.state == BgQualityCheck.State.FLAT
         profiler.log(LTag.APS, "detectSensitivityAndCarbAbsorption()", startPart)
         profiler.log(LTag.APS, "SMB data gathering", start)
         start = System.currentTimeMillis()
@@ -223,7 +227,12 @@ class ENPlugin @Inject constructor(
                 smbAllowed.value(),
                 uam.value(),
                 advancedFiltering.value(),
-                activePlugin.activeBgSource.javaClass.simpleName == "DexcomPlugin"
+                flatBGsDetected,
+                tdd1D,
+                tdd7D,
+                tddLast24H,
+                tddLast4H,
+                tddLast8to4H
             )
             val now = System.currentTimeMillis()
             val determineBasalResultEN = determineBasalAdapterENJS.invoke()

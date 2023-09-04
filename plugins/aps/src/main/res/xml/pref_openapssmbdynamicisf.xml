@@ -8,7 +8,7 @@
         android:title="@string/openapssmb"
         app:initialExpandedChildrenCount="0">
 
-        <info.nightscout.androidaps.plugins.aps.loop.LoopVariantPreference
+        <info.nightscout.core.validators.LoopVariantPreference
             android:title="@string/DynISF_variant"
             android:defaultValue="default"
             android:selectable="true"
@@ -268,7 +268,7 @@
                 validate:floatminNumber="0.1"
                 validate:testType="floatNumericRange" />
 
-            <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+            <info.nightscout.core.validators.ValidatingEditTextPreference
                 android:defaultValue="0.5"
                 android:dialogMessage="@string/openapsama_smb_delivery_ratio_min_summary"
                 android:digits="0123456789.,"
@@ -282,7 +282,7 @@
                 validate:floatminNumber="0.5"
                 validate:testType="floatNumericRange" />
 
-            <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+            <info.nightscout.core.validators.ValidatingEditTextPreference
                 android:defaultValue="0.5"
                 android:dialogMessage="@string/openapsama_smb_delivery_ratio_max_summary"
                 android:digits="0123456789.,"
@@ -296,7 +296,7 @@
                 validate:floatminNumber="0.5"
                 validate:testType="floatNumericRange" />
 
-            <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+            <info.nightscout.core.validators.ValidatingEditTextPreference
                 android:defaultValue="0"
                 android:dialogMessage="@string/openapsama_smb_delivery_ratio_bg_range_summary"
                 android:digits="0123456789.,"

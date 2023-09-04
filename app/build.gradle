@@ -102,6 +102,10 @@ def allCommitted = { ->
     return stringBuilder.toString().isEmpty()
 }
 
+def appCenterKey = { ->
+    return System.getenv("APPCENTER_KEY") ? System.getenv("APPCENTER_KEY").toString() : ""
+}
+
 android {
 
     namespace 'info.nightscout.androidaps'
@@ -112,7 +116,7 @@ android {
         versionCode 1500
         version "3.2.0-dev-k"
         buildConfigField "String", "VERSION", '"' + version + '"'
-        buildConfigField "String", "BUILDVERSION", '"' + generateGitBuild() + '-' + generateDate() + '"'
+        buildConfigField "String", "BUILDVERSION", '"' + generateGitBuild() + '-' + generateDate() + '-custom"'
         buildConfigField "String", "REMOTE", '"' + generateGitRemote() + '"'
         buildConfigField "String", "HEAD", '"' + generateGitBuild() + '"'
         buildConfigField "String", "COMMITTED", '"' + allCommitted() + '"'
@@ -168,6 +172,16 @@ android {
     dataBinding {   //Deleting it causes a binding error
         enabled = true
     }
+
+//    applicationVariants.all { variant ->
+//        variant.outputs.all { output ->
+//            def flavor = variant.productFlavors[0].name
+//            if (flavor == "full") flavor = "aaps"
+//            def date = new Date().format('yyMMdd')
+//            def fileName = "$flavor-$version-custom-$date"
+//            outputFileName = new File(fileName + ".apk")
+//        }
+//    }
 }
 
 allprojects {
@@ -236,6 +250,10 @@ dependencies {
     // MainApp
     api "com.uber.rxdogtag2:rxdogtag:2.0.2"
 
+    def appCenterSdkVersion = '4.3.1'
+    implementation "com.microsoft.appcenter:appcenter-analytics:${appCenterSdkVersion}"
+    implementation "com.microsoft.appcenter:appcenter-crashes:${appCenterSdkVersion}"
+
 }
 
 apply from: "${project.rootDir}/core/main/test_dependencies.gradle"
@@ -281,7 +299,7 @@ printf('--------------\n')
 if (isMaster() && !gitAvailable()) {
     throw new GradleException('GIT system is not available. On Windows try to run Android Studio as an Administrator. Check if GIT is installed and Studio have permissions to use it')
 }
-if (isMaster() && !allCommitted()) {
+/*if (isMaster() && !allCommitted()) {
     throw new GradleException('There are uncommitted changes. Clone sources again as described in wiki and do not allow gradle update')
-}
+}*/
 

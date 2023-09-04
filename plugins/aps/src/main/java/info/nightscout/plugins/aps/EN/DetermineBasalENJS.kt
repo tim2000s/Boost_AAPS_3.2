@@ -72,7 +72,7 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
     private var microBolusAllowed = false
     private var smbAlwaysAllowed = false
     private var currentTime: Long = 0
-    private var saveCgmSource = false
+    private var flatBGsDetected = false
 
     override var currentTempParam: String? = null
     override var iobDataParam: String? = null
@@ -82,7 +82,7 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
     override var scriptDebug = ""
 
     @Suppress("SpellCheckingInspection")
-    override operator fun invoke(): APSResultObject? {
+    override operator fun invoke(): DetermineBasalResultSMB? {
         aapsLogger.debug(LTag.APS, ">>> Invoking determine_basal <<<")
         aapsLogger.debug(LTag.APS, "Glucose status: " + mGlucoseStatus.toString().also { glucoseStatusParam = it })
         aapsLogger.debug(LTag.APS, "IOB data:       " + iobData.toString().also { iobDataParam = it })
@@ -94,7 +94,7 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         aapsLogger.debug(LTag.APS, "MicroBolusAllowed:  $microBolusAllowed")
         aapsLogger.debug(LTag.APS, "SMBAlwaysAllowed:  $smbAlwaysAllowed")
         aapsLogger.debug(LTag.APS, "CurrentTime: $currentTime")
-        aapsLogger.debug(LTag.APS, "isSaveCgmSource: $saveCgmSource")
+        aapsLogger.debug(LTag.APS, "flatBGsDetected: $flatBGsDetected")
         var determineBasalResultEN: DetermineBasalResultSMB? = null
         val rhino = Context.enter()
         val scope: Scriptable = rhino.initStandardObjects()
@@ -135,7 +135,7 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
                     java.lang.Boolean.valueOf(microBolusAllowed),
                     makeParam(null, rhino, scope),  // reservoir data as undefined
                     java.lang.Long.valueOf(currentTime),
-                    java.lang.Boolean.valueOf(saveCgmSource)
+                    java.lang.Boolean.valueOf(flatBGsDetected)
                 )
                 val jsResult = determineBasalObj.call(rhino, scope, scope, params) as NativeObject
                 scriptDebug = LoggerCallback.scriptDebug
@@ -190,7 +190,12 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         microBolusAllowed: Boolean,
         uamAllowed: Boolean,
         advancedFiltering: Boolean,
-        isSaveCgmSource: Boolean
+        flatBGsDetected: Boolean,
+        tdd1D: Double?,
+        tdd7D: Double?,
+        tddLast24H: Double?,
+        tddLast4H: Double?,
+        tddLast8to4H: Double?
     ) {
         val now = System.currentTimeMillis()
         val pump = activePlugin.activePump
@@ -529,7 +534,7 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         this.microBolusAllowed = microBolusAllowed
         smbAlwaysAllowed = advancedFiltering
         currentTime = now
-        saveCgmSource = isSaveCgmSource
+        this.flatBGsDetected = flatBGsDetected
     }
 
     private fun makeParam(jsonObject: JSONObject?, rhino: Context, scope: Scriptable): Any {

@@ -45,21 +45,21 @@ import kotlin.math.floor
 class OpenAPSSMBPlugin @Inject constructor(
     injector: HasAndroidInjector,
     aapsLogger: AAPSLogger,
-    private val rxBus: RxBus,
-    private val constraintChecker: Constraints,
+    protected val rxBus: RxBus,
+    protected val constraintChecker: Constraints,
     rh: ResourceHelper,
-    private val profileFunction: ProfileFunction,
+    protected val profileFunction: ProfileFunction,
     val context: Context,
-    private val activePlugin: ActivePlugin,
-    private val iobCobCalculator: IobCobCalculator,
-    private val hardLimits: HardLimits,
-    private val profiler: Profiler,
-    private val sp: SP,
-    private val dateUtil: DateUtil,
-    private val repository: AppRepository,
-    private val glucoseStatusProvider: GlucoseStatusProvider,
-    private val bgQualityCheck: BgQualityCheck,
-    private val tddCalculator: TddCalculator
+    protected val activePlugin: ActivePlugin,
+    protected val iobCobCalculator: IobCobCalculator,
+    protected val hardLimits: HardLimits,
+    protected val profiler: Profiler,
+    protected val sp: SP,
+    protected val dateUtil: DateUtil,
+    protected val repository: AppRepository,
+    protected val glucoseStatusProvider: GlucoseStatusProvider,
+    protected val bgQualityCheck: BgQualityCheck,
+    protected val tddCalculator: TddCalculator
 ) : PluginBase(
     PluginDescription()
         .mainType(PluginType.APS)

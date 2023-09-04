@@ -3,6 +3,7 @@ package info.nightscout.plugins.aps.openAPSSMBDynamicISF
 import android.content.Context
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.annotations.OpenForTesting
+import info.nightscout.plugins.aps.openAPSSMB.DetermineBasalAdapterSMBJS
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.interfaces.aps.DetermineBasalAdapter
 import info.nightscout.interfaces.bgQualityCheck.BgQualityCheck
@@ -15,7 +16,6 @@ import info.nightscout.interfaces.profiling.Profiler
 import info.nightscout.interfaces.stats.TddCalculator
 import info.nightscout.interfaces.utils.HardLimits
 import info.nightscout.plugins.aps.R
-import info.nightscout.plugins.aps.openAPSSMB.DetermineBasalAdapterSMBJS
 import info.nightscout.plugins.aps.openAPSSMB.OpenAPSSMBPlugin
 import info.nightscout.plugins.aps.utils.ScriptReader
 import info.nightscout.rx.bus.RxBus

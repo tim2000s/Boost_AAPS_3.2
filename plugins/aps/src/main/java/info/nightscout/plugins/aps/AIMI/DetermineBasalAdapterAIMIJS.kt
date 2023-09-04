@@ -50,6 +50,7 @@ import org.mozilla.javascript.Undefined
 import java.io.IOException
 import java.lang.reflect.InvocationTargetException
 import java.nio.charset.StandardCharsets
+import java.security.InvalidParameterException
 import javax.inject.Inject
 import kotlin.math.ln
 
@@ -77,7 +78,7 @@ class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader:
     private var microBolusAllowed = false
     private var smbAlwaysAllowed = false
     private var currentTime: Long = 0
-    private var saveCgmSource = false
+    private var flatBGsDetected = false
     private val millsToThePast = T.hours(1).msecs()
     private var lastBolusNormalTimecount: Long = 0
     private var lastBolusSMBcount: Long = 0
@@ -105,7 +106,7 @@ class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader:
         aapsLogger.debug(LTag.APS, "MicroBolusAllowed:  $microBolusAllowed")
         aapsLogger.debug(LTag.APS, "SMBAlwaysAllowed:  $smbAlwaysAllowed")
         aapsLogger.debug(LTag.APS, "CurrentTime: $currentTime")
-        aapsLogger.debug(LTag.APS, "isSaveCgmSource: $saveCgmSource")
+        aapsLogger.debug(LTag.APS, "flatBGsDetected: $flatBGsDetected")
         var determineBasalResultUAM: DetermineBasalResultSMB? = null
         val rhino = Context.enter()
         val scope: Scriptable = rhino.initStandardObjects()
@@ -145,7 +146,7 @@ class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader:
                     java.lang.Boolean.valueOf(microBolusAllowed),
                     makeParam(null, rhino, scope),  // reservoir data as undefined
                     java.lang.Long.valueOf(currentTime),
-                    java.lang.Boolean.valueOf(saveCgmSource)
+                    java.lang.Boolean.valueOf(flatBGsDetected)
                 )
                 val jsResult = determineBasalObj.call(rhino, scope, scope, params) as NativeObject
                 scriptDebug = LoggerCallback.scriptDebug
@@ -200,8 +201,19 @@ class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader:
         microBolusAllowed: Boolean,
         uamAllowed: Boolean,
         advancedFiltering: Boolean,
-        isSaveCgmSource: Boolean
+        flatBGsDetected: Boolean,
+        tdd1D: Double?,
+        tdd7D: Double?,
+        tddLast24H: Double?,
+        tddLast4H: Double?,
+        tddLast8to4H: Double?
     ) {
+        tdd1D ?: throw InvalidParameterException()
+        tdd7D ?: throw InvalidParameterException()
+        tddLast24H ?: throw InvalidParameterException()
+        tddLast4H ?: throw InvalidParameterException()
+        tddLast8to4H ?: throw InvalidParameterException()
+
         val pump = activePlugin.activePump
         val pumpBolusStep = pump.pumpDescription.bolusStep
         this.profile.put("max_iob", maxIob)
@@ -352,11 +364,6 @@ class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader:
         val lastHourTIRAbove = lastHourTIR.abovePct()
         val lastHourTIRLow = lastHourTIR.belowPct()
         val last2HourTIRAbove = tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(2, 1,80.0, 180.0)).abovePct()
-        val tdd1D = tddCalculator.averageTDD(tddCalculator.calculate(1, false))?.totalAmount
-        val tdd7D = tddCalculator.averageTDD(tddCalculator.calculate(7, false))?.totalAmount
-        val tddLast24H = tddCalculator.calculateDaily(-24, 0)?.totalAmount ?: 0.0
-        val tddLast4H = tddCalculator.calculateDaily(-4, 0)?.totalAmount ?: 0.0
-        val tddLast8to4H = tddCalculator.calculateDaily(-8, -4)?.totalAmount ?: 0.0
         val tddLast24to23H = tddCalculator.calculateDaily(-24, -23)?.totalAmount ?: 0.0
         val tddLast48to47H = tddCalculator.calculateDaily(-48, -47)?.totalAmount ?: 0.0
         val tddLast72to71H = tddCalculator.calculateDaily(-72, -71)?.totalAmount ?: 0.0
@@ -364,14 +371,13 @@ class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader:
         val tddlastHaverage = (tddLast24to23H+tddLast48to47H+tddLast72to71H+tddLast96to95H)/4
 
         val tddWeightedFromLast8H = ((1.4 * tddLast4H) + (0.6 * tddLast8to4H)) * 3
-        var tdd =
-            if (tdd1D != null && tdd7D != null && lastHourTIRLow > 0 && tdd7D != 0.0) ((tddWeightedFromLast8H * 0.33) + (tdd7D * 0.34) + (tdd1D * 0.33)) * 0.85
-            else if (tdd1D != null && tdd7D != null && tdd7D != 0.0 && lastHourTIRAbove > 0 && last2HourTIRAbove > 0) ((tddWeightedFromLast8H * 0.33) + (tdd7D * 0.34) + (tdd1D * 0.33)) * 1.15
-            else if (tdd1D != null && tdd7D != null && tdd7D != 0.0) (tddWeightedFromLast8H * 0.33) + (tdd7D * 0.34) + (tdd1D * 0.33)
+        val tdd =
+            if (lastHourTIRLow > 0 && tdd7D != 0.0) ((tddWeightedFromLast8H * 0.33) + (tdd7D * 0.34) + (tdd1D * 0.33)) * 0.85
+            else if (tdd7D != 0.0 && lastHourTIRAbove > 0 && last2HourTIRAbove > 0) ((tddWeightedFromLast8H * 0.33) + (tdd7D * 0.34) + (tdd1D * 0.33)) * 1.15
+            else if (tdd7D != 0.0) (tddWeightedFromLast8H * 0.33) + (tdd7D * 0.34) + (tdd1D * 0.33)
             else tddWeightedFromLast8H
 
-
-        val aimisensitivity = if (tdd7D!= null && tdd7D != 0.0) tddLast24H / tdd7D else 1
+        val aimisensitivity = if (tdd7D != 0.0) tddLast24H / tdd7D else 1
 
         val insulinDivisor = when {
             insulin.peak >= 35 -> 55 // lyumjev peak: 45
@@ -410,7 +416,7 @@ class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader:
         this.microBolusAllowed = microBolusAllowed
         smbAlwaysAllowed = advancedFiltering
         currentTime = now
-        saveCgmSource = isSaveCgmSource
+        this.flatBGsDetected = flatBGsDetected
     }
 
     private fun makeParam(jsonObject: JSONObject?, rhino: Context, scope: Scriptable): Any {

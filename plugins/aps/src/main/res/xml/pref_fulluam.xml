@@ -7,7 +7,7 @@
         android:title="AIMI Variant Preferences"
         app:initialExpandedChildrenCount="0">
 
-        <info.nightscout.androidaps.plugins.aps.loop.LoopVariantPreference
+        <info.nightscout.core.validators.LoopVariantPreference
             android:title="@string/aimi_variant_title"
             android:defaultValue="default"
             android:selectable="true"
@@ -20,7 +20,7 @@
         android:title="AIMI B30 Preferences"
         app:initialExpandedChildrenCount="0">
 
-        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+        <info.nightscout.core.validators.ValidatingEditTextPreference
             android:defaultValue="150"
             android:dialogMessage="If BG is bigger than this value, B30 (basal 500% during 30 minutes) will not running"
             android:inputType="numberDecimal"
@@ -30,7 +30,7 @@
             validate:floatminNumber="0"
             validate:testType="bgRange" />
 
-        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+        <info.nightscout.core.validators.ValidatingEditTextPreference
             android:defaultValue="6"
             android:dialogMessage="If delta is bigger than this value, B30 (basal 500% during 30 minutes) will not running"
             android:inputType="numberDecimal"
@@ -40,7 +40,7 @@
             validate:floatminNumber="0"
             validate:testType="floatNumericRange" />
 
-        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+        <info.nightscout.core.validators.ValidatingEditTextPreference
             android:defaultValue="20"
             android:dialogMessage="b30 duration is the duration in minutes of the first basal action after the manual bolus (> iTime_Starting_Bolus)"
             android:inputType="numberDecimal"
@@ -56,7 +56,7 @@
             android:title="meal low carbs"
             android:summary="meal low carbs with proteins and lipids. this option will force b30" />
 
-        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+        <info.nightscout.core.validators.ValidatingEditTextPreference
             android:defaultValue="60"
             android:dialogMessage="with meal low carbs enable, this value define how many time after the bolus started iTime you want to force B30"
             android:inputType="numberDecimal"
@@ -66,7 +66,7 @@
             validate:floatminNumber="0"
             validate:testType="floatNumericRange" />
 
-        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+        <info.nightscout.core.validators.ValidatingEditTextPreference
             android:defaultValue="60"
             android:dialogMessage="with meal low carbs enable, this value define the duration of the B30 for proteins and lipids"
             android:inputType="numberDecimal"
@@ -76,7 +76,7 @@
             validate:floatminNumber="0"
             validate:testType="floatNumericRange" />
 
-        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+        <info.nightscout.core.validators.ValidatingEditTextPreference
             android:defaultValue="300"
             android:dialogMessage="with meal low carbs enable, this value define the % of the B30 for proteins and lipids"
             android:inputType="numberDecimal"
@@ -93,7 +93,7 @@
         android:key="@string/key_fulluam_settings"
         android:title="@string/fulluam">
 
-        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+        <info.nightscout.core.validators.ValidatingEditTextPreference
             android:defaultValue="1"
             android:dialogMessage="@string/openapsma_max_basal_summary"
             android:inputType="numberDecimal"
@@ -103,7 +103,7 @@
             validate:floatminNumber="0.1"
             validate:testType="floatNumericRange" />
 
-        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+        <info.nightscout.core.validators.ValidatingEditTextPreference
             android:defaultValue="3"
             android:dialogMessage="@string/openapssmb_max_iob_summary"
             android:inputType="numberDecimal"
@@ -113,7 +113,7 @@
             validate:floatminNumber="0"
             validate:testType="floatNumericRange" />
 
-        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+        <info.nightscout.core.validators.ValidatingEditTextPreference
             android:defaultValue="180"
             android:dialogMessage="@string/iTime_summary"
             android:inputType="numberDecimal"
@@ -125,7 +125,7 @@
 
 
 
-        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+        <info.nightscout.core.validators.ValidatingEditTextPreference
             android:defaultValue="2"
             android:dialogMessage="@string/iTime_Starting_Bolus_summary"
             android:inputType="numberDecimal"
@@ -135,7 +135,7 @@
             validate:floatminNumber="0"
             validate:testType="floatNumericRange" />
 
-        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+        <info.nightscout.core.validators.ValidatingEditTextPreference
             android:defaultValue="150"
             android:dependency="@string/key_use_AimiUAM"
             android:dialogMessage="Value in % of increase the basal profile to determine the value of MaxSmb size with AIMI_UAM. If this SMB is send, the interval with the next SMB will be 20 minutes."
@@ -210,7 +210,7 @@
             android:summary="Disable B30 if Breakfast Light is enable. In this case you will not get 500% basal after the first 20 minutes"
             android:title="AIMI UAM BreakFast Light/Night B30 disable" />
 
-        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+        <info.nightscout.core.validators.ValidatingEditTextPreference
             android:defaultValue="6"
             android:dependency="@string/key_use_AimiUAM"
             android:dialogMessage="Enter AIMI UAM Light Breakfast start time in 24h e.g. 6AM is 6"
@@ -221,7 +221,7 @@
             validate:minNumber="0"
             validate:testType="numericRange" />
 
-        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+        <info.nightscout.core.validators.ValidatingEditTextPreference
             android:defaultValue="10"
             android:dependency="@string/key_use_AimiUAM"
             android:dialogMessage="Enter AIMI UAM Light Breakfast end time in 24h e.g. 5AM is 10"
@@ -267,7 +267,7 @@
             android:summary="@string/enable_smb_after_carbs_summary"
             android:title="@string/enable_smb_after_carbs" />
 
-        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+        <info.nightscout.core.validators.ValidatingEditTextPreference
             android:defaultValue="3"
             android:digits="0123456789"
             android:inputType="number"
@@ -280,7 +280,7 @@
             validate:minNumber="1"
             validate:testType="numericRange" />
 
-        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+        <info.nightscout.core.validators.ValidatingEditTextPreference
             android:defaultValue="30"
             android:digits="0123456789"
             android:entries="@array/smbMaxMinutes"
@@ -292,7 +292,7 @@
             validate:minNumber="15"
             validate:testType="numericRange" />
 
-        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+        <info.nightscout.core.validators.ValidatingEditTextPreference
             android:defaultValue="30"
             android:dialogMessage="@string/uam_smb_max_minutes"
             android:digits="0123456789"
@@ -340,7 +340,7 @@
             android:summary="@string/low_temptarget_lowers_sensitivity_summary"
             android:title="@string/low_temptarget_lowers_sensitivity_title" />
 
-        <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+        <info.nightscout.core.validators.ValidatingEditTextPreference
             android:defaultValue="1"
             android:dialogMessage="@string/carbs_req_threshold_summary"
             android:digits="0123456789"
@@ -371,7 +371,7 @@
                 android:summary="@string/always_use_short_avg_summary"
                 android:title="@string/always_use_short_avg" />
 
-            <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+            <info.nightscout.core.validators.ValidatingEditTextPreference
                 android:defaultValue="3"
                 android:dialogMessage="@string/openapsama_max_daily_safety_multiplier_summary"
                 android:digits="0123456789.,"
@@ -384,7 +384,7 @@
                 validate:minNumber="1"
                 validate:testType="numericRange" />
 
-            <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+            <info.nightscout.core.validators.ValidatingEditTextPreference
                 android:defaultValue="4"
                 android:dialogMessage="@string/openapsama_current_basal_safety_multiplier_summary"
                 android:digits="0123456789.,"
@@ -398,7 +398,7 @@
                 validate:floatminNumber="1"
                 validate:testType="floatNumericRange" />
 
-            <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+            <info.nightscout.core.validators.ValidatingEditTextPreference
                 android:defaultValue="0.5"
                 android:dialogMessage="@string/openapsama_smb_delivery_ratio_summary"
                 android:digits="0123456789.,"
@@ -412,7 +412,7 @@
                 validate:floatminNumber="0.1"
                 validate:testType="floatNumericRange" />
 
-            <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+            <info.nightscout.core.validators.ValidatingEditTextPreference
                 android:defaultValue="0.5"
                 android:dialogMessage="@string/openapsama_smb_delivery_ratio_min_summary"
                 android:digits="0123456789.,"
@@ -426,7 +426,7 @@
                 validate:floatminNumber="0.1"
                 validate:testType="floatNumericRange" />
 
-            <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+            <info.nightscout.core.validators.ValidatingEditTextPreference
                 android:defaultValue="0.7"
                 android:dialogMessage="@string/openapsama_smb_delivery_ratio_max_summary"
                 android:digits="0123456789.,"
@@ -440,7 +440,7 @@
                 validate:floatminNumber="0.1"
                 validate:testType="floatNumericRange" />
 
-            <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+            <info.nightscout.core.validators.ValidatingEditTextPreference
                 android:defaultValue="40"
                 android:dialogMessage="@string/openapsama_smb_delivery_ratio_bg_range_summary"
                 android:digits="0123456789.,"
@@ -454,7 +454,7 @@
                 validate:floatminNumber="0"
                 validate:testType="floatNumericRange" />
 
-            <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+            <info.nightscout.core.validators.ValidatingEditTextPreference
                 android:defaultValue="1"
                 android:dialogMessage="@string/openapsama_smb_max_range_extension_summary"
                 android:digits="0123456789.,"
