@@ -1,7 +1,6 @@
 package info.nightscout.plugins.sync.nsShared
 
-import info.nightscout.androidaps.annotations.OpenForTesting
-import info.nightscout.core.extensions.foodFromJson
+import info.nightscout.annotations.OpenForTesting
 import info.nightscout.database.entities.Food
 import info.nightscout.database.entities.GlucoseValue
 import info.nightscout.database.transactions.TransactionGlucoseValue
@@ -16,7 +15,19 @@ import info.nightscout.interfaces.profile.ProfileSource
 import info.nightscout.interfaces.source.NSClientSource
 import info.nightscout.interfaces.utils.JsonHelper
 import info.nightscout.plugins.sync.R
-import info.nightscout.plugins.sync.nsclientV3.extensions.*
+import info.nightscout.plugins.sync.nsclient.extensions.fromJson
+import info.nightscout.plugins.sync.nsclientV3.extensions.toBolus
+import info.nightscout.plugins.sync.nsclientV3.extensions.toBolusCalculatorResult
+import info.nightscout.plugins.sync.nsclientV3.extensions.toCarbs
+import info.nightscout.plugins.sync.nsclientV3.extensions.toEffectiveProfileSwitch
+import info.nightscout.plugins.sync.nsclientV3.extensions.toExtendedBolus
+import info.nightscout.plugins.sync.nsclientV3.extensions.toFood
+import info.nightscout.plugins.sync.nsclientV3.extensions.toOfflineEvent
+import info.nightscout.plugins.sync.nsclientV3.extensions.toProfileSwitch
+import info.nightscout.plugins.sync.nsclientV3.extensions.toTemporaryBasal
+import info.nightscout.plugins.sync.nsclientV3.extensions.toTemporaryTarget
+import info.nightscout.plugins.sync.nsclientV3.extensions.toTherapyEvent
+import info.nightscout.plugins.sync.nsclientV3.extensions.toTransactionGlucoseValue
 import info.nightscout.rx.bus.RxBus
 import info.nightscout.rx.events.EventDismissNotification
 import info.nightscout.rx.events.EventNSClientNewLog
@@ -24,7 +35,17 @@ import info.nightscout.rx.logging.AAPSLogger
 import info.nightscout.rx.logging.LTag
 import info.nightscout.sdk.localmodel.entry.NSSgvV3
 import info.nightscout.sdk.localmodel.food.NSFood
-import info.nightscout.sdk.localmodel.treatment.*
+import info.nightscout.sdk.localmodel.treatment.NSBolus
+import info.nightscout.sdk.localmodel.treatment.NSBolusWizard
+import info.nightscout.sdk.localmodel.treatment.NSCarbs
+import info.nightscout.sdk.localmodel.treatment.NSEffectiveProfileSwitch
+import info.nightscout.sdk.localmodel.treatment.NSExtendedBolus
+import info.nightscout.sdk.localmodel.treatment.NSOfflineEvent
+import info.nightscout.sdk.localmodel.treatment.NSProfileSwitch
+import info.nightscout.sdk.localmodel.treatment.NSTemporaryBasal
+import info.nightscout.sdk.localmodel.treatment.NSTemporaryTarget
+import info.nightscout.sdk.localmodel.treatment.NSTherapyEvent
+import info.nightscout.sdk.localmodel.treatment.NSTreatment
 import info.nightscout.shared.sharedPreferences.SP
 import info.nightscout.shared.utils.DateUtil
 import info.nightscout.shared.utils.T
@@ -199,7 +220,7 @@ class NsIncomingDataProcessor @Inject constructor(
                         }
 
                         else     -> {
-                            val food = foodFromJson(jsonFood)
+                            val food = Food.fromJson(jsonFood)
                             if (food != null) foods += food
                             else aapsLogger.error(LTag.DATABASE, "Error parsing food", jsonFood.toString())
                         }
@@ -222,9 +243,9 @@ class NsIncomingDataProcessor @Inject constructor(
             val createdAt = store.getStartDate()
             val lastLocalChange = sp.getLong(info.nightscout.core.utils.R.string.key_local_profile_last_change, 0)
             aapsLogger.debug(LTag.PROFILE, "Received profileStore: createdAt: $createdAt Local last modification: $lastLocalChange")
-            @Suppress("LiftReturnOrAssignment")
-            if (createdAt > lastLocalChange || createdAt % 1000 == 0L) {// whole second means edited in NS
+            if (createdAt > lastLocalChange || createdAt % 1000 == 0L) { // whole second means edited in NS
                 profileSource.loadFromStore(store)
+                activePlugin.activeNsClient?.dataSyncSelector?.profileReceived(store.getStartDate())
                 aapsLogger.debug(LTag.PROFILE, "Received profileStore: $profileJson")
             }
         }

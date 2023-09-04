@@ -76,4 +76,6 @@ data class TemporaryTarget(
                 ?: CUSTOM
         }
     }
+
+    companion object
 }

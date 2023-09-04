@@ -114,7 +114,7 @@ android {
     defaultConfig {
         multiDexEnabled true
         versionCode 1500
-        version "3.2.0-dev-k"
+        version "3.2.0-dev-l"
         buildConfigField "String", "VERSION", '"' + version + '"'
         buildConfigField "String", "BUILDVERSION", '"' + generateGitBuild() + '-' + generateDate() + '-custom"'
         buildConfigField "String", "REMOTE", '"' + generateGitRemote() + '"'
@@ -238,6 +238,8 @@ dependencies {
     implementation project(':pump:rileylink')
     implementation project(':pump:virtual')
     implementation project(':workflow')
+
+    testImplementation project(':app-wear-shared:shared-tests')
 
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 

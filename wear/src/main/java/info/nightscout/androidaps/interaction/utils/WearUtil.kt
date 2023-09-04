@@ -2,7 +2,7 @@ package info.nightscout.androidaps.interaction.utils
 
 import android.content.Context
 import android.os.PowerManager
-import info.nightscout.androidaps.annotations.OpenForTesting
+import info.nightscout.annotations.OpenForTesting
 import info.nightscout.rx.logging.AAPSLogger
 import info.nightscout.rx.logging.LTag
 
@@ -44,7 +44,7 @@ open class WearUtil @Inject constructor(
     // return true if below rate limit
     @Synchronized fun isBelowRateLimit(named: String, onceForSeconds: Int): Boolean {
         // check if over limit
-        if (rateLimits.containsKey(named) && timestamp() - rateLimits[named]!! < onceForSeconds * 1000) {
+        if (rateLimits.containsKey(named) && timestamp() - rateLimits.getValue(named) < onceForSeconds * 1000) {
             aapsLogger.debug(LTag.WEAR, "$named rate limited to one for $onceForSeconds seconds")
             return false
         }

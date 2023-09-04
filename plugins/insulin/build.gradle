@@ -24,4 +24,7 @@ dependencies {
     implementation project(':core:utils')
     implementation project(':core:validators')
     implementation project(':database:entities')
+
+    testImplementation project(':app-wear-shared:shared-tests')
+    testImplementation project(':core:main')
 }
