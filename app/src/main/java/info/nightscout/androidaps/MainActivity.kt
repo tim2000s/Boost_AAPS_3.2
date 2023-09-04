@@ -32,6 +32,9 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.microsoft.appcenter.AppCenter
+import com.microsoft.appcenter.analytics.Analytics
+import com.microsoft.appcenter.crashes.Crashes
 import com.joanzapata.iconify.Iconify
 import com.joanzapata.iconify.fonts.FontAwesomeModule
 import info.nightscout.androidaps.activities.HistoryBrowseActivity
@@ -123,6 +126,14 @@ class MainActivity : DaggerAppCompatActivityWithResult() {
         actionBarDrawerToggle = ActionBarDrawerToggle(this, binding.mainDrawerLayout, R.string.open_navigation, R.string.close_navigation).also {
             binding.mainDrawerLayout.addDrawerListener(it)
             it.syncState()
+        }
+
+        if (BuildConfig.APPCENTER_KEY != "" && !BuildConfig.DEBUG) {
+            AppCenter.start(
+                application, BuildConfig.APPCENTER_KEY,
+                Analytics::class.java, Crashes::class.java
+            )
+            Analytics.setTransmissionInterval(1800)
         }
 
         // initialize screen wake lock

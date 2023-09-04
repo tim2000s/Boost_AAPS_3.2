@@ -12,7 +12,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.SystemClock
 import androidx.core.app.NotificationCompat
-// import com.microsoft.appcenter.analytics.Analytics
+import com.microsoft.appcenter.analytics.Analytics
 import dagger.android.HasAndroidInjector
 import info.nightscout.annotations.OpenForTesting
 import info.nightscout.core.events.EventNewNotification
@@ -261,13 +261,13 @@ class LoopPlugin @Inject constructor(
                 usedAPS.invoke(initiator, tempBasalFallback)
                 apsResult = usedAPS.lastAPSResult
 
-                // Analytics.isEnabled().thenAccept {
-                //     if(it) {
-                //         val properties: MutableMap<String, String> = HashMap()
-                //         properties["APSPlugin"] = usedAPS::class.java.simpleName
-                //         Analytics.trackEvent("Loop", properties)
-                //     }
-                // }
+                Analytics.isEnabled().thenAccept {
+                    if(it) {
+                        val properties: MutableMap<String, String> = HashMap()
+                        properties["APSPlugin"] = usedAPS::class.java.simpleName
+                        Analytics.trackEvent("Loop", properties)
+                    }
+                }
             }
 
             // Check if we have any result
@@ -459,7 +459,7 @@ class LoopPlugin @Inject constructor(
                                         lastRun.lastTBREnact = dateUtil.now()
                                     // deliverAt is used to prevent executing too old SMB request (older than 1 min)
                                     // executing TBR may take some time thus give more time to SMB
-                                    resultAfterConstraints.deliverAt = lastRun.lastTBREnact
+                                        resultAfterConstraints.deliverAt = lastRun.lastTBREnact
                                         rxBus.send(EventLoopUpdateGui())
                                         applySMBRequest(resultAfterConstraints, object : Callback() {
                                             override fun run() {

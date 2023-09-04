@@ -120,7 +120,7 @@ android {
         buildConfigField "String", "REMOTE", '"' + generateGitRemote() + '"'
         buildConfigField "String", "HEAD", '"' + generateGitBuild() + '"'
         buildConfigField "String", "COMMITTED", '"' + allCommitted() + '"'
-
+        buildConfigField "String", "APPCENTER_KEY", '"' + appCenterKey() + '"'
     }
 
     flavorDimensions = ["standard"]
@@ -173,15 +173,15 @@ android {
         enabled = true
     }
 
-//    applicationVariants.all { variant ->
-//        variant.outputs.all { output ->
-//            def flavor = variant.productFlavors[0].name
-//            if (flavor == "full") flavor = "aaps"
-//            def date = new Date().format('yyMMdd')
-//            def fileName = "$flavor-$version-custom-$date"
-//            outputFileName = new File(fileName + ".apk")
-//        }
-//    }
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def flavor = variant.productFlavors[0].name
+            if (flavor == "full") flavor = "aaps"
+            def date = new Date().format('yyMMdd')
+            def fileName = "$flavor-$version-custom-$date"
+            outputFileName = new File(fileName + ".apk")
+        }
+    }
 }
 
 allprojects {
@@ -255,7 +255,6 @@ dependencies {
     def appCenterSdkVersion = '4.3.1'
     implementation "com.microsoft.appcenter:appcenter-analytics:${appCenterSdkVersion}"
     implementation "com.microsoft.appcenter:appcenter-crashes:${appCenterSdkVersion}"
-
 }
 
 apply from: "${project.rootDir}/core/main/test_dependencies.gradle"
