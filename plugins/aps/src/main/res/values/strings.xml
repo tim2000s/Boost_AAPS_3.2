@@ -316,7 +316,7 @@
     <string name="openapsama_boost_bolus">Boost bolus in iu</string>
     <string name="key_openapsama_boost_scale" translatable="false">Boost scale value</string>
     <string name="key_openapsama_boost_scale_factor" translatable="false">Percent scale factor for Boost</string>
-    <string name="openapsama_boost_scale_factor">Max percentage scale applied to Boostu</string>
+    <string name="openapsama_boost_scale_factor">Max percentage scale applied to Boost</string>
     <string name="openapsama_boost_scale_factor_title">Percent scale factor</string>
     <string name="openapsama_boost_scale_factor_summary">Default value: 200\nThis is the maximum scale factor that Boost can use when increasing SMB sizes at lower glucose levels before returning to standrd settings at 180 or 10.</string>
     <string name="openapsama_boost_start">Boost start time in hours</string>
@@ -334,8 +334,66 @@
     <string name="openapsama_boost_end_summary">Default value: 8\nThis is the end time for the period in which boost is active (24 hours).</string>
     <string name="openapsama_boost_end_title">UAM Boost end time</string>
     <string name="openapsama_boost_max_iob_title">UAM Boost max IOB</string>
-    <string name="enableBoostPercentScale">Enable Boost perfentage scaling</string>
+    <string name="enableBoostPercentScale">Enable Boost percentage scaling</string>
     <string name="enableBoostPercentScale_summary">Enable boost scaling when glucose is between 108 mg/dl and 180 mg/dl. Starts at 150% of insulinRequired and stops at user entered Boost Percentage Required. Only activates when the difference between delta and short average delta is increasing.</string>
     <string name="enableCircadianISF">Enable Circadian ISF</string>
     <string name="enableCircadianISF_summary">Enables the circadian ISF model</string>
+    <string name="key_enableSensBGCap" translatable="false">Reduce effect of DynamicISF at higher BG</string>
+    <string name="enableSensBGCap">Enable reduced ISF scaling above 210mg/dl / 11.7 mmol/l</string>
+    <string name="enableSensBGCap_summary">Allows DynamicISF to start to reduce the ISF rate of reduction at 11.7mmol 210mg/dl</string>
+    <string name="key_allowBoost_with_high_temptarget" translatable="false">enableBoost_with_high_temptarget</string>
+    <string name="enableBoostwithhightemptarget">Enable Boost with high temp targets</string>
+    <string name="enableBoostwithhightemptarget_summary">Enable Boost when there is high temp target active (exercise, above 100 mg/dl or 5.5 mmol/l)</string>
+    <string name="key_Boost_settings" translatable="false">Boost_settings</string>
+    <string name="advancedsettings_title" translatable="false">Advanced settings</string>
+    <string name="key_stepcount_settings" translatable="false">Stepcount_settings</string>
+    <string name="Stepcount_settings_title">Stepcount Settings</string>
+    <string name="key_activity_settings" translatable="false">Activity_settings</string>
+    <string name="activity_settings_title">Activity Settings</string>
+    <string name="Stepcount_preference_summary">The following preferences adjust the settings for stepcount related variability.</string>
+    <string name="Activity_preference_summary">The following stepcount settings allow control over when activity is recognised, and how long adjustments are made to account for it. You will probably need to make changes from the defaults.</string>
+
+    <string name="key_inactivity_steps" translatable="false">Steps below which user is considered inactive</string>
+    <string name="inactivity_steps_summary">Default value: 500\nThis is the number of steps in an hour below which a user is considered inactive, and a profile percentage increase will be enacted.</string>
+    <string name="inactivity_steps_title">Inactivity Stepcount</string>
+    <string name="inactivity_steps">Stepcount below which a user is considered inactive</string>
+    <string name="key_inactivity_pct_inc" translatable="false">Profile percent increase for inactivity</string>
+    <string name="inactivity_pct_inc_summary">Default value: 130\nProfile percentage increase when inactivity detected.</string>
+    <string name="inactivity_pct_inc_title">Inactivity profile percent increase</string>
+    <string name="inactivity_pct_inc">Profile percent increase for inactivity</string>
+
+    <string name="key_sleep_in_hrs" translatable="false">Additional hours for sleep-in beyond boost start</string>
+    <string name="sleep_in_hrs_summary">Default value: 2\nAdditional hours allowed for sleep-in beyond Boost start time, disabling Boost for that period when no activity detected</string>
+    <string name="sleep_in_hrs_title">Sleep-in hours</string>
+    <string name="sleep_in_hrs">Hours beyond Boost start time to allow sleeping in when activity is not detected.</string>
+    <string name="key_sleep_in_steps" translatable="false">Steps in past 60 mins below which considered sleeping</string>
+    <string name="sleep_in_steps_summary">Default value: 250\nNumber of steps below which user is considered to be still sleeping after Boost start time</string>
+    <string name="sleep_in_steps_title">Sleep-in steps</string>
+    <string name="sleep_in_steps">Steps below which user is considered sleeping beyond Boost start time.</string>
+
+    <string name="key_activity_steps_5" translatable="false">Steps in last hour above which user is considered active</string>
+    <string name="activity_steps_5_summary">Default value: 420\nThis is the number of steps in the last 5 mins above which a user is considered active, and a profile percentage decrease will be enacted.</string>
+    <string name="activity_steps_5_title">Five minute stepcount</string>
+    <string name="activity_steps_5">Five minute stepcount above which a user is considered active</string>
+
+    <string name="key_activity_steps_30" translatable="false">Steps in last 30 mins above which user is considered active</string>
+    <string name="activity_steps_30_summary">Default value: 1200\nThis is the number of steps in the last 30 mins above which a user is considered active, and a profile percentage decrease will be enacted.</string>
+    <string name="activity_steps_30_title">30 min activity stepcount</string>
+    <string name="activity_steps_30">30 min stepcount above which a user is considered active</string>
+
+    <string name="key_activity_steps_60_" translatable="false">Steps in last hour above which user is considered active</string>
+    <string name="activity_steps_60_summary_">Default value: 1800\nThis is the number of steps in the last hour above which a user is considered active, and a profile percentage decrease will be enacted.</string>
+    <string name="activity_steps_60_title_">60 mins activity stepcount</string>
+    <string name="activity_steps_60_">Stepcount above which a user is considered active</string>
+
+    <string name="key_activity_hour_steps" translatable="false">"Steps in last hour to be considered active</string>string>
+    <string name="activity_hour_steps_summary">Default value: 1800\nNumber of steps that indicates user is active and causes profile percentage decrease.</string>
+    <string name="activity_hour_steps_title">One hour step count</string>
+    <string name="activity_hour_steps">Stepcount above which user is deemed active.</string>
+
+    <string name="key_activity_pct_inc" translatable="false">Profile percent decrease for activity</string>
+    <string name="activity_pct_inc_summary">Default value: 80\nProfile percentage decrease when activity detected.</string>
+    <string name="activity_pct_inc_title">Activity profile percent decrease</string>
+    <string name="activity_pct_inc">Profile percent decrease for activity</string>
+
 </resources>

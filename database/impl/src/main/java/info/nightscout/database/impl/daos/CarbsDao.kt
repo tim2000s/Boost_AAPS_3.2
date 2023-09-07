@@ -46,6 +46,9 @@ internal interface CarbsDao : TraceableDao<Carbs> {
     @Query("SELECT * FROM $TABLE_CARBS WHERE isValid = 1 AND timestamp + duration >= :timestamp AND referenceId IS NULL ORDER BY id DESC")
     fun getCarbsFromTimeExpandable(timestamp: Long): Single<List<Carbs>>
 
+    @Query("SELECT * FROM $TABLE_CARBS WHERE isValid = 1 AND timestamp >= :from AND timestamp <= :to AND referenceId IS NULL ORDER BY id DESC")
+    fun getCarbsFromTimeToTime(from: Long, to: Long): Single<List<Carbs>>
+
     @Query("SELECT * FROM $TABLE_CARBS WHERE isValid = 1 AND timestamp + duration > :from AND timestamp <= :to AND referenceId IS NULL ORDER BY id DESC")
     fun getCarbsFromTimeToTimeExpandable(from: Long, to: Long): Single<List<Carbs>>
 
