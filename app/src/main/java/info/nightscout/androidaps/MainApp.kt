@@ -41,6 +41,7 @@ import info.nightscout.interfaces.notifications.Notification
 import info.nightscout.interfaces.plugin.PluginBase
 import info.nightscout.interfaces.ui.UiInteraction
 import info.nightscout.interfaces.versionChecker.VersionCheckerUtils
+import info.nightscout.plugins.aps.Boost.StepService
 import info.nightscout.plugins.general.overview.notifications.NotificationStore
 import info.nightscout.plugins.general.themes.ThemeSwitcherPlugin
 import info.nightscout.rx.logging.AAPSLogger
@@ -165,6 +166,12 @@ class MainApp : DaggerApplication() {
             }
             handler.postDelayed(refreshWidget, 60000)
             config.appInitialized = true
+
+
+            val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+            val stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+            sensorManager.registerListener(StepService, stepSensor, SensorManager.SENSOR_DELAY_NORMAL)
+
         }
     }
 

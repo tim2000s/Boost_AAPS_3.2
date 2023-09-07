@@ -17,7 +17,6 @@ interface DefaultValueHelper {
      */
     fun determineActivityTT(): Double
     fun determineActivityTTDuration(): Int
-    fun determineEatingNowTTDuration() : Int
 
     /**
      * returns the configured Hypo TempTarget, if this is set to 0, the Default-Value is returned.

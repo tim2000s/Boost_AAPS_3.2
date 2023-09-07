@@ -333,7 +333,7 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
         this.profile.put("recentSteps15Minutes", StepService.getRecentStepCount15Min())
         this.profile.put("recentSteps30Minutes", StepService.getRecentStepCount30Min())
         this.profile.put("recentSteps60Minutes", StepService.getRecentStepCount60Min())
-        this.profile.put("recentSteps36hrs", StepService.getRecentStepCount36Hrs())
+        //this.profile.put("recentSteps36hrs", StepService.getRecentStepCount36Hrs())
 
         if (constraintChecker.isAutosensModeEnabled().value()) {
             autosensData.put("ratio", autosensDataRatio)
