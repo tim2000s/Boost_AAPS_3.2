@@ -49,7 +49,7 @@ android {
         minSdkVersion 25
         targetSdkVersion 29
         versionCode 2
-        versionName "1.0.3"
+        version "3.1.0.3"
         buildConfigField "String", "BUILDVERSION", generateGitBuild()
     }
 
@@ -81,6 +81,16 @@ android {
         }
     }
     namespace 'info.nightscout.androidaps'
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def flavor = variant.productFlavors[0].name
+            if (flavor == "full") flavor = "aaps"
+            def date = new Date().format('yyMMdd')
+            def fileName = "wear-$flavor-$version-custom-$date"
+            outputFileName = new File(fileName + ".apk")
+        }
+    }
 }
 
 allprojects {
