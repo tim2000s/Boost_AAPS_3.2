@@ -9,7 +9,7 @@
     <string name="key_danar_useextended" translatable="false">danar_useextended</string>
     <string name="key_eatingsoon_duration" translatable="false">eatingsoon_duration</string>
     <string name="key_eatingsoon_target" translatable="false">eatingsoon_target</string>
-    <string name="key_eatingnow_duration" translatable="false">key_eatingnow_enwindowminutes</string>
+    <string name="key_eatingnow_duration" translatable="false">eatingnow_duration</string>
     <string name="key_activity_duration" translatable="false">activity_duration</string>
     <string name="key_activity_target" translatable="false">activity_target</string>
     <string name="key_hypo_duration" translatable="false">hypo_duration</string>
