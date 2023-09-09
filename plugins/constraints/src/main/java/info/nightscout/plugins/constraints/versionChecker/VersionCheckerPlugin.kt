@@ -120,7 +120,7 @@ class VersionCheckerPlugin @Inject constructor(
         val byPass = sp.getBoolean(R.string.key_bypass_old_version_check, false);
         if (byPass)
             return false;
-        return dateUtil.now() > sp.getLong(R.string.key_last_time_this_version_detected_as_ok, 0) + gracePeriod
+        return dateUtil.now() > sp.getLong(R.string.key_last_successful_version_check_timestamp, 0) + gracePeriod
     }
 
     private fun Long.daysToMillis() = TimeUnit.DAYS.toMillis(this)
