@@ -28,6 +28,7 @@ import info.nightscout.ui.dialogs.BolusProgressDialog
 import info.nightscout.ui.dialogs.CalibrationDialog
 import info.nightscout.ui.dialogs.CarbsDialog
 import info.nightscout.ui.dialogs.CareDialog
+import info.nightscout.ui.dialogs.ENTempTargetDialog
 import info.nightscout.ui.dialogs.ExtendedBolusDialog
 import info.nightscout.ui.dialogs.FillDialog
 import info.nightscout.ui.dialogs.InsulinDialog
@@ -124,6 +125,11 @@ class UiInteractionImpl @Inject constructor(
     override fun runTempTargetDialog(fragmentManager: FragmentManager) {
         TempTargetDialog()
             .show(fragmentManager, "TempTargetDialog")
+    }
+
+    override fun runENTempTargetDialog(fragmentManager: FragmentManager) {
+        ENTempTargetDialog()
+            .show(fragmentManager, "ENTempTargetDialog")
     }
 
     override fun runExtendedBolusDialog(fragmentManager: FragmentManager) {

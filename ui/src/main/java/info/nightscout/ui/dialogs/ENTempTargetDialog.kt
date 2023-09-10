@@ -32,6 +32,7 @@ import info.nightscout.database.ValueWrapper
 import info.nightscout.database.impl.transactions.CancelCurrentTemporaryTargetIfAnyTransaction
 import info.nightscout.database.impl.transactions.InsertAndCancelCurrentTemporaryTargetTransaction
 import info.nightscout.interfaces.utils.HtmlHelper
+import info.nightscout.shared.interfaces.ProfileUtil
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import java.text.DecimalFormat
@@ -44,6 +45,7 @@ class ENTempTargetDialog : DialogFragmentWithDate() {
     @Inject lateinit var constraintChecker: Constraints
     @Inject lateinit var rh: ResourceHelper
     @Inject lateinit var profileFunction: ProfileFunction
+    @Inject lateinit var profileUtil: ProfileUtil
     @Inject lateinit var defaultValueHelper: DefaultValueHelper
     @Inject lateinit var uel: UserEntryLogger
     @Inject lateinit var repository: AppRepository
@@ -78,7 +80,7 @@ class ENTempTargetDialog : DialogFragmentWithDate() {
         binding.units.text = if (units == GlucoseUnit.MMOL) rh.gs(info.nightscout.core.ui.R.string.mmol) else rh.gs(R.string.mgdl)
 
         // set the Eating Now defaults
-        val enTT = Profile.toCurrentUnits(units, profileFunction.getProfile()!!.getTargetMgdl())
+        val enTT = profileUtil.valueInCurrentUnitsDetect(profileFunction.getProfile()!!.getTargetMgdl())
 
         binding.duration.setParams(savedInstanceState?.getDouble("duration")
             ?: 0.0, 0.0, Constants.MAX_ENTT_DURATION, 10.0, DecimalFormat("0"), false, binding.okcancel.ok)
@@ -179,7 +181,7 @@ class ENTempTargetDialog : DialogFragmentWithDate() {
         val duration = binding.duration.value.toInt()
         if (target != 0.0 && duration != 0) {
             actions.add(rh.gs(R.string.reason) + ": " + reason)
-            actions.add(rh.gs(R.string.target_label) + ": " + Profile.toCurrentUnitsString(profileFunction, target) + " " + rh.gs(unitResId))
+            actions.add(rh.gs(R.string.target_label) + ": " + profileUtil.stringInCurrentUnitsDetect(target) + " " + rh.gs(unitResId))
             actions.add(rh.gs(R.string.duration) + ": " + rh.gs(R.string.format_mins, duration))
         } else {
             actions.add(rh.gs(R.string.stoptemptarget))
@@ -217,8 +219,8 @@ class ENTempTargetDialog : DialogFragmentWithDate() {
                             rh.gs(R.string.hypo)       -> TemporaryTarget.Reason.HYPOGLYCEMIA
                             else                            -> TemporaryTarget.Reason.CUSTOM
                         },
-                        lowTarget = Profile.toMgdl(target, profileFunction.getUnits()),
-                        highTarget = Profile.toMgdl(target, profileFunction.getUnits())
+                        lowTarget = profileUtil.convertToMgdl(target, profileFunction.getUnits()),
+                        highTarget = profileUtil.convertToMgdl(target, profileFunction.getUnits())
                     )
                     ).subscribe({ result ->
                         result.inserted.forEach { aapsLogger.debug(LTag.DATABASE, "Inserted temp target $it") }

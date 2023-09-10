@@ -87,7 +87,7 @@
             android:drawableTop="@drawable/ic_target_eatingsoon"
             android:ellipsize="end"
             android:singleLine="true"
-            android:text="EATING NOW"
+            android:text="@string/overview_en_label"
             android:textColor="?attr/icBolusCarbsColor"
             app:iconPadding="-4dp" />
 
