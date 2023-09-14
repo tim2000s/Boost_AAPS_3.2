@@ -15,8 +15,7 @@ import info.nightscout.interfaces.iob.MealData
 import info.nightscout.interfaces.plugin.ActivePlugin
 import info.nightscout.interfaces.profile.Profile
 import info.nightscout.interfaces.profile.ProfileFunction
-import info.nightscout.interfaces.stats.TddCalculator
-import info.nightscout.interfaces.utils.Round
+import info.nightscout.interfaces.stats.IsfCalculator
 import info.nightscout.plugins.aps.R
 import info.nightscout.plugins.aps.logger.LoggerCallback
 import info.nightscout.plugins.aps.openAPSSMB.DetermineBasalResultSMB
@@ -40,19 +39,17 @@ import org.mozilla.javascript.Undefined
 import java.io.IOException
 import java.lang.reflect.InvocationTargetException
 import java.nio.charset.StandardCharsets
-import java.security.InvalidParameterException
 import javax.inject.Inject
-import kotlin.math.ln
 
 class DetermineBasalAdapterSMBDynamicISFJS internal constructor(private val scriptReader: ScriptReader, private val injector: HasAndroidInjector) : DetermineBasalAdapter {
 
     @Inject lateinit var aapsLogger: AAPSLogger
     @Inject lateinit var sp: SP
     @Inject lateinit var profileFunction: ProfileFunction
-    @Inject lateinit var profileUtil: ProfileUtil
     @Inject lateinit var iobCobCalculator: IobCobCalculator
     @Inject lateinit var activePlugin: ActivePlugin
-    @Inject lateinit var tddCalculator: TddCalculator
+    @Inject lateinit var profileUtil: ProfileUtil
+    @Inject lateinit var isfCalculator: IsfCalculator
 
     private var profile = JSONObject()
     private var mGlucoseStatus = JSONObject()
@@ -187,19 +184,8 @@ var getIsfByProfile = function (bg, profile) {
         microBolusAllowed: Boolean,
         uamAllowed: Boolean,
         advancedFiltering: Boolean,
-        flatBGsDetected: Boolean,
-        tdd1D: Double?,
-        tdd7D: Double?,
-        tddLast24H: Double?,
-        tddLast4H: Double?,
-        tddLast8to4H: Double?
+        flatBGsDetected: Boolean
     ) {
-        tdd1D ?: throw InvalidParameterException()
-        tdd7D ?: throw InvalidParameterException()
-        tddLast24H ?: throw InvalidParameterException()
-        tddLast4H ?: throw InvalidParameterException()
-        tddLast8to4H ?: throw InvalidParameterException()
-
         val pump = activePlugin.activePump
         val pumpBolusStep = pump.pumpDescription.bolusStep
         this.profile.put("max_iob", maxIob)
@@ -253,10 +239,8 @@ var getIsfByProfile = function (bg, profile) {
         this.profile.put("current_basal", basalRate)
         this.profile.put("temptargetSet", tempTargetSet)
 
-        val autosens_max = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_openapsama_autosens_max, "1.2"))
-        val autosens_min = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_openapsama_autosens_min, "0.7"))
-        this.profile.put("autosens_max", autosens_max)
-        this.profile.put("autosens_min", autosens_min)
+        this.profile.put("autosens_max", SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_openapsama_autosens_max, "1.2")))
+        this.profile.put("autosens_min", SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_openapsama_autosens_min, "0.7")))
         //set the min SMB amount to be the amount set by the pump.
         if (profileFunction.getUnits() == GlucoseUnit.MMOL) {
             this.profile.put("out_units", "mmol/L")
@@ -294,51 +278,12 @@ var getIsfByProfile = function (bg, profile) {
             insulin.peak > 50 -> 65 // ultra rapid peak: 55
             else              -> 75 // rapid peak: 75
         }
-        val useTDD = sp.getBoolean(R.string.key_DynISFUseTDD, true)
-        val adjustSens = sp.getBoolean(R.string.key_adjust_sensitivity, false)
-        val dynISFvelocity = SafeParse.stringToDouble(sp.getString(R.string.key_DynISFVelocity, "100")) / 100.0
-        var sensNormalTarget = profile.getIsfMgdl()
-        var variableSensitivity = sensNormalTarget
+        val isf = isfCalculator.calculate(profile, insulinDivisor, glucoseStatus.glucose, tempTargetSet)
 
-        autosensData.put("ratio", 1.0)
+        autosensData.put("ratio", isf.ratio)
 
-        if (useTDD || adjustSens) {
-
-
-            if (useTDD) {
-                if (tddLast24H > 0 && tddLast4H > 0 && tddLast8to4H > 0) {
-                    val tddWeightedFromLast8H = ((1.4 * tddLast4H) + (0.6 * tddLast8to4H)) * 3
-                    var tdd =
-                        if (tdd1D > 0 && tdd7D > 0) (tddWeightedFromLast8H * 0.33) + (tdd7D * 0.34) + (tdd1D * 0.33)
-                        else tddWeightedFromLast8H
-
-                    val dynISFadjust = SafeParse.stringToDouble(sp.getString(R.string.key_DynISFAdjust, "100")) / 100.0
-                    tdd *= dynISFadjust
-
-                    sensNormalTarget = 1800 / (tdd * (ln((profile.getTargetMgdl() / insulinDivisor) + 1)))
-                    variableSensitivity = 1800 / (tdd * (ln((glucoseStatus.glucose / insulinDivisor) + 1)))
-                    this.profile.put("TDD", tdd)
-                }
-            }
-
-            if (adjustSens && tdd7D > 0 && tddLast24H > 0)
-                autosensData.put("ratio", Math.max(Math.min(tddLast24H / tdd7D, autosens_max), autosens_min ))
-        }
-
-        if (dynISFvelocity != 1.0) {
-            val sbg = ln((glucoseStatus.glucose / insulinDivisor) + 1)
-            val scaler = ln((profile.getTargetMgdl() / insulinDivisor) + 1) / sbg
-            variableSensitivity = sensNormalTarget * (1 - (1 - scaler) * dynISFvelocity)
-        }
-
-        sensNormalTarget = Round.roundTo(sensNormalTarget, 0.1)
-        variableSensitivity = Round.roundTo(variableSensitivity, 0.1)
-
+        isf.putTo(this.profile)
         this.profile.put("normalTarget", 99)
-        this.profile.put("dynISFvelocity", dynISFvelocity)
-        this.profile.put("sensNormalTarget", sensNormalTarget)
-        this.profile.put("variable_sens", variableSensitivity)
-        this.profile.put("insulinDivisor", insulinDivisor)
 
         this.microBolusAllowed = microBolusAllowed
         smbAlwaysAllowed = advancedFiltering

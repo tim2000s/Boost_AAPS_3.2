@@ -194,6 +194,7 @@
     <string name="loop_open_mode_min_change_summary" formatted="false">Open Loop will popup new change request only if change is bigger than this value in %. Default value is 20%</string>
     <string name="loop_swap_smbtbr_order">Swap SMB and TBR commands order</string>
     <string name="loop_swap_smbtbr_order_summary">On some systems TBR can be very slow and delay or even prevent SMB from being submitted. This change makes SMB command go first, but can result in potential dangerous situation in case of TBR fail or pump connection break.</string>
+    <string name="fallback_smb_no_tdd">Fallback to SMB. Not enough TDD data.</string>
 
     <!-- AIMI -->
     <string name="key_use_AimiUAM" translatable="false">key_use_AimiUAM</string>

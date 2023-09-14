@@ -44,8 +44,7 @@ class OpenAPSSMBDynamicISFPlugin @Inject constructor(
     dateUtil: DateUtil,
     repository: AppRepository,
     glucoseStatusProvider: GlucoseStatusProvider,
-    bgQualityCheck: BgQualityCheck,
-    tddCalculator: TddCalculator
+    bgQualityCheck: BgQualityCheck
 ) : OpenAPSSMBPlugin(
     injector,
     aapsLogger,
@@ -62,8 +61,7 @@ class OpenAPSSMBDynamicISFPlugin @Inject constructor(
     dateUtil,
     repository,
     glucoseStatusProvider,
-    bgQualityCheck,
-    tddCalculator
+    bgQualityCheck
 ) {
 
     init {
