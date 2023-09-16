@@ -563,6 +563,7 @@
     <string name="limitingpercentrate">Limiting max percent rate to %1$d%% because of %2$s</string>
     <string name="itmustbepositivevalue">it must be positive value</string>
     <string name="limitingbolus">Limiting bolus to %1$.1f U because of %2$s</string>
+    <string name="key_enableSMB_ignore" translatable="false">enableSMB_ignore</string>
 
     <!-- Locale -->
     <string name="key_language" translatable="false">language</string>
