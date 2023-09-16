@@ -42,8 +42,8 @@ import kotlin.math.floor
 open class OpenAPSSMBPlugin @Inject constructor(
     injector: HasAndroidInjector,
     aapsLogger: AAPSLogger,
-    private val rxBus: RxBus,
-    private val constraintChecker: Constraints,
+    protected val rxBus: RxBus,
+    protected val constraintChecker: Constraints,
     rh: ResourceHelper,
     protected val profileFunction: ProfileFunction,
     val context: Context,

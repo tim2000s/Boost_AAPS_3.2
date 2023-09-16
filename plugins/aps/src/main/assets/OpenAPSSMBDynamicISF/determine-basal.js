@@ -133,7 +133,7 @@ function determine_varSMBratio(profile, bg, target_bg)
     return new_SMB;
 }
 
-var determine_basal = function determine_basal(glucose_status, currenttemp, iob_data, profile, autosens_data, meal_data, tempBasalFunctions, microBolusAllowed, reservoir_data, currentTime, isSaveCgmSource) {
+var determine_basal = function determine_basal(glucose_status, currenttemp, iob_data, profile, autosens_data, meal_data, tempBasalFunctions, microBolusAllowed, reservoir_data, currentTime, flatBGsDetected) {
     var rT = {}; //short for requestedTemp
 
     var deliverAt = new Date();

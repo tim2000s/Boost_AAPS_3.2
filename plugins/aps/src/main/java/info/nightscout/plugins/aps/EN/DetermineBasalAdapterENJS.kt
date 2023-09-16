@@ -2,7 +2,6 @@ package info.nightscout.plugins.aps.EN
 
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.plugins.aps.EN.ENDefaults
-import info.nightscout.plugins.aps.APSResultObject
 import info.nightscout.core.extensions.convertedToAbsolute
 import info.nightscout.core.extensions.getPassedDurationToTimeInMinutes
 import info.nightscout.core.extensions.plannedRemainingMinutes
@@ -14,7 +13,6 @@ import info.nightscout.database.entities.TherapyEvent
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.interfaces.GlucoseUnit
 import info.nightscout.interfaces.aps.DetermineBasalAdapter
-import info.nightscout.interfaces.aps.SMBDefaults
 import info.nightscout.interfaces.constraints.Constraints
 import info.nightscout.interfaces.iob.GlucoseStatus
 import info.nightscout.interfaces.iob.IobCobCalculator
@@ -192,12 +190,7 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
         microBolusAllowed: Boolean,
         uamAllowed: Boolean,
         advancedFiltering: Boolean,
-        flatBGsDetected: Boolean,
-        tdd1D: Double?,
-        tdd7D: Double?,
-        tddLast24H: Double?,
-        tddLast4H: Double?,
-        tddLast8to4H: Double?
+        flatBGsDetected: Boolean
     ) {
         val now = System.currentTimeMillis()
         val pump = activePlugin.activePump

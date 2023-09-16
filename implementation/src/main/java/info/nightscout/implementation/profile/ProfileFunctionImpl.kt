@@ -165,6 +165,13 @@ class ProfileFunctionImpl @Inject constructor(
         )
     }
 
+    override fun buildCurrentProfileSwitch(durationInMinutes: Int, percentage: Int, timeShiftInHours: Int): ProfileSwitch? {
+        val time = dateUtil.now()
+        val profile = repository.getPermanentProfileSwitch(time) ?: return null
+        val profileStore = activePlugin.activeProfileSource.profile ?: return null
+        return buildProfileSwitch(profileStore, profile.profileName, durationInMinutes, percentage, 0, time) ?: return null
+    }
+
     override fun createProfileSwitch(profileStore: ProfileStore, profileName: String, durationInMinutes: Int, percentage: Int, timeShiftInHours: Int, timestamp: Long): Boolean {
         val ps = buildProfileSwitch(profileStore, profileName, durationInMinutes, percentage, timeShiftInHours, timestamp) ?: return false
         disposable += repository.runTransactionForResult(InsertOrUpdateProfileSwitch(ps))

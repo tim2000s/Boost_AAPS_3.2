@@ -56,8 +56,7 @@ class AIMIPlugin @Inject constructor(
     dateUtil: DateUtil,
     repository: AppRepository,
     glucoseStatusProvider: GlucoseStatusProvider,
-    bgQualityCheck: BgQualityCheck,
-    tddCalculator: TddCalculator
+    bgQualityCheck: BgQualityCheck
 ) : OpenAPSSMBPlugin(
     injector,
     aapsLogger,
@@ -74,8 +73,7 @@ class AIMIPlugin @Inject constructor(
     dateUtil,
     repository,
     glucoseStatusProvider,
-    bgQualityCheck,
-    tddCalculator
+    bgQualityCheck
 ) {
     init {
         pluginDescription
@@ -226,12 +224,7 @@ class AIMIPlugin @Inject constructor(
                 smbAllowed.value(),
                 uam.value(),
                 advancedFiltering.value(),
-                flatBGsDetected,
-                tdd1D,
-                tdd7D,
-                tddLast24H,
-                tddLast4H,
-                tddLast8to4H)
+                flatBGsDetected)
             val now = System.currentTimeMillis()
             val determineBasalResultUAM = determineBasalAdapterUAMJS.invoke()
             profiler.log(LTag.APS, "SMB calculation", start)

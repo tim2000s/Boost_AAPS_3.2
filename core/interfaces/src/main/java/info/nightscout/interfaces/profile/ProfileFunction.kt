@@ -67,6 +67,18 @@ interface ProfileFunction {
      */
     fun buildProfileSwitch(profileStore: ProfileStore, profileName: String, durationInMinutes:Int, percentage: Int, timeShiftInHours: Int, timestamp: Long): ProfileSwitch?
 
+
+    /**
+     * Build a new circadian profile switch request based on provided profile
+     *
+     * @param durationInMinutes
+     * @param percentage        100 = no modification
+     * @param timeShiftInHours  0 = no modification
+     * @param timestamp         expected time
+     * @return null if profile cannot be created from profile store
+     */
+    fun buildCurrentProfileSwitch(durationInMinutes:Int, percentage: Int, timeShiftInHours: Int): ProfileSwitch?
+
     /**
      * Create a new circadian profile switch request based on provided profile
      *

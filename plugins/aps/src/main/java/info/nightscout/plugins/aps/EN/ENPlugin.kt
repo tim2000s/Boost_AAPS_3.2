@@ -74,8 +74,7 @@ class ENPlugin @Inject constructor(
     dateUtil,
     repository,
     glucoseStatusProvider,
-    bgQualityCheck,
-    tddCalculator
+    bgQualityCheck
 ) {
     init{
         pluginDescription
@@ -227,12 +226,7 @@ class ENPlugin @Inject constructor(
                 smbAllowed.value(),
                 uam.value(),
                 advancedFiltering.value(),
-                flatBGsDetected,
-                tdd1D,
-                tdd7D,
-                tddLast24H,
-                tddLast4H,
-                tddLast8to4H
+                flatBGsDetected
             )
             val now = System.currentTimeMillis()
             val determineBasalResultEN = determineBasalAdapterENJS.invoke()

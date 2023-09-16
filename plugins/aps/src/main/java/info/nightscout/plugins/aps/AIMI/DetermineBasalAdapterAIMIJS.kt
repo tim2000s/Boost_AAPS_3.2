@@ -23,6 +23,7 @@ import info.nightscout.interfaces.iob.MealData
 import info.nightscout.interfaces.plugin.ActivePlugin
 import info.nightscout.interfaces.profile.Profile
 import info.nightscout.interfaces.profile.ProfileFunction
+import info.nightscout.interfaces.stats.IsfCalculator
 import info.nightscout.interfaces.stats.TddCalculator
 import info.nightscout.interfaces.stats.TirCalculator
 import info.nightscout.interfaces.utils.MidnightTime
@@ -66,7 +67,7 @@ class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader:
     // @Inject lateinit var dateUtil: DateUtil
     @Inject lateinit var tddCalculator: TddCalculator
     @Inject lateinit var tirCalculator: TirCalculator
-
+    @Inject lateinit var isfCalculator: IsfCalculator
 
 
     private var profile = JSONObject()
@@ -201,19 +202,8 @@ class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader:
         microBolusAllowed: Boolean,
         uamAllowed: Boolean,
         advancedFiltering: Boolean,
-        flatBGsDetected: Boolean,
-        tdd1D: Double?,
-        tdd7D: Double?,
-        tddLast24H: Double?,
-        tddLast4H: Double?,
-        tddLast8to4H: Double?
+        flatBGsDetected: Boolean
     ) {
-        tdd1D ?: throw InvalidParameterException()
-        tdd7D ?: throw InvalidParameterException()
-        tddLast24H ?: throw InvalidParameterException()
-        tddLast4H ?: throw InvalidParameterException()
-        tddLast8to4H ?: throw InvalidParameterException()
-
         val pump = activePlugin.activePump
         val pumpBolusStep = pump.pumpDescription.bolusStep
         this.profile.put("max_iob", maxIob)
@@ -360,6 +350,11 @@ class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader:
         this.mealData.put("lastBolusSMBUnits", lastBolusSMBUnits)
         this.mealData.put("lastBolusSMBTime", lastBolusSMBTime)
 
+        val tdd1D = tddCalculator.averageTDD(tddCalculator.calculate(1, allowMissingDays = false))?.totalAmount ?: 0.0
+        val tdd7D = tddCalculator.averageTDD(tddCalculator.calculate(7, allowMissingDays = false))?.totalAmount ?: 0.0
+        val tddLast24H = tddCalculator.calculateDaily(-24, 0)?.totalAmount ?: 0.0
+        val tddLast4H = tddCalculator.calculateDaily(-4, 0)?.totalAmount ?: 0.0
+        val tddLast8to4H = tddCalculator.calculateDaily(-8, -4)?.totalAmount ?: 0.0
         val lastHourTIR = tirCalculator.averageTIR(tirCalculator.calculateHoursPrior(1, 0,80.0, 180.0))
         val lastHourTIRAbove = lastHourTIR.abovePct()
         val lastHourTIRLow = lastHourTIR.belowPct()
@@ -384,10 +379,8 @@ class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader:
             insulin.peak > 45 -> 65 // ultra rapid peak: 55
             else              -> 75 // rapid peak: 75
         }
-        var variableSensitivity = 1800 / (tdd * (ln((glucoseStatus.glucose / insulinDivisor) + 1)))
-        variableSensitivity = Round.roundTo(variableSensitivity, 0.1)
+        isfCalculator.calculate(profile, insulinDivisor, glucoseStatus.glucose, tempTargetSet, this.profile)
 
-        this.profile.put("variable_sens", variableSensitivity)
         this.profile.put("lastHourTIRLow", lastHourTIRLow)
         this.profile.put("TDD", tdd)
         this.profile.put("lastHourTIRAbove", lastHourTIRAbove)

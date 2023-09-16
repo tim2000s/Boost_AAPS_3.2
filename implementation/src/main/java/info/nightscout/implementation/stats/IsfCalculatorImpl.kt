@@ -9,6 +9,7 @@ import info.nightscout.interfaces.stats.TddCalculator
 import info.nightscout.interfaces.utils.Round
 import info.nightscout.shared.SafeParse
 import info.nightscout.shared.sharedPreferences.SP
+import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.ln
@@ -19,14 +20,14 @@ class IsfCalculatorImpl @Inject constructor(
     private val sp: SP,
 ) : IsfCalculator {
 
-    override fun calculate(profile : Profile, insulinDivisor: Int, glucose: Double, isTempTarget: Boolean) : IsfCalculation {
+    override fun calculate(profile : Profile, insulinDivisor: Int, glucose: Double, isTempTarget: Boolean, profileJson: JSONObject?) : IsfCalculation {
 
         val autosensMax = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_openapsama_autosens_max, "1.2"))
         val autosensMin = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_openapsama_autosens_min, "0.7"))
         val dynIsfVelocity = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_dynamic_isf_velocity, "100")) / 100.0
         val bgCap = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_dynamic_isf_bg_cap, "210"))
+        val bgNormalTarget = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_dynamic_isf_normalTarget, "99"))
 
-        val bgNormalTarget = profile.getTargetMgdl()
         val highTemptargetRaisesSensitivity = sp.getBoolean(info.nightscout.core.utils.R.string.key_high_temptarget_raises_sensitivity, false)
         val lowTemptargetLowersSensitivity = sp.getBoolean(info.nightscout.core.utils.R.string.key_low_temptarget_lowers_sensitivity, false)
         val halfBasalTarget = SMBDefaults.half_basal_exercise_target
@@ -47,6 +48,8 @@ class IsfCalculatorImpl @Inject constructor(
 
         if (!useDynIsf)
             return IsfCalculation(
+                glucose,
+                glucose,
                 Round.roundTo(sensNormalTarget, 0.1),
                 Round.roundTo(variableSensitivity, 0.1),
                 Round.roundTo(ratio / globalScale, 0.1),
@@ -96,11 +99,26 @@ class IsfCalculatorImpl @Inject constructor(
         if (ratio == 1.0 && adjustSens && !useTDD)
             ratio = variableSensitivity / sensNormalTarget
 
-        return IsfCalculation(
+        ratio /= globalScale
+
+        val result = IsfCalculation(
+            glucose,
+            bgCurrent,
             Round.roundTo(sensNormalTarget, 0.1),
             Round.roundTo(variableSensitivity, 0.1),
-            Round.roundTo(ratio / globalScale, 0.1),
+            Round.roundTo(ratio, 0.1),
             insulinDivisor,
             dynIsfVelocity)
+
+        profileJson?.let { p ->
+            p.put("dynISFBgCapped", result.bgCapped)
+            p.put("dynISFvelocity", result.velocity)
+            p.put("sensNormalTarget", result.isfNormalTarget)
+            p.put("variable_sens", result.isf)
+            p.put("insulinDivisor", result.insulinDivisor)
+            p.put("dynISFSensBGCap", bgCap )
+            p.put("dynISFBgCapped", bgCurrent )
+        }
+        return result
     }
 }

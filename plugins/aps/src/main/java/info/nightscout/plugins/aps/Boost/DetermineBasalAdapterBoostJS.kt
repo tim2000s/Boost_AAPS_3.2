@@ -23,10 +23,7 @@ import info.nightscout.interfaces.iob.MealData
 import info.nightscout.interfaces.plugin.ActivePlugin
 import info.nightscout.interfaces.profile.Profile
 import info.nightscout.interfaces.profile.ProfileFunction
-import info.nightscout.interfaces.stats.TddCalculator
-import info.nightscout.interfaces.stats.TirCalculator
-import info.nightscout.interfaces.utils.MidnightTime
-import info.nightscout.interfaces.utils.Round
+import info.nightscout.interfaces.stats.IsfCalculator
 import info.nightscout.plugins.aps.R
 import info.nightscout.plugins.aps.logger.LoggerCallback
 import info.nightscout.plugins.aps.openAPSSMB.DetermineBasalResultSMB
@@ -59,41 +56,11 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
     @Inject lateinit var constraintChecker: Constraints
     @Inject lateinit var sp: SP
     @Inject lateinit var profileFunction: ProfileFunction
-    @Inject lateinit var profileUtil: ProfileUtil
     @Inject lateinit var iobCobCalculator: IobCobCalculator
     @Inject lateinit var activePlugin: ActivePlugin
-    @Inject lateinit var tddCalculator: TddCalculator
+    @Inject lateinit var profileUtil: ProfileUtil
+    @Inject lateinit var isfCalculator: IsfCalculator
 
-
-    private var iob = 0.0f
-    private var cob = 0.0f
-    private var lastCarbAgeMin: Int = 0
-    private var futureCarbs = 0.0f
-    private var tags0to60minAgo = ""
-    private var tags60to120minAgo = ""
-    private var tags120to180minAgo = ""
-    private var tags180to240minAgo = ""
-    private var bg = 0.0f
-    private var targetBg = 100.0f
-    private var delta = 0.0f
-    private var shortAvgDelta = 0.0f
-    private var longAvgDelta = 0.0f
-    private var accelerating_up = 0.0f
-    private var deccelerating_up = 0.0f
-    private var accelerating_down = 0.0f
-    private var deccelerating_down = 0.0f
-    private var stable = 0.0f
-    private var maxIob = 0.0f
-    private var maxSMB = 1.0f
-    private var lastbolusage: Long = 0
-    private var tdd7DaysPerHour = 0.0f
-    private var tdd2DaysPerHour = 0.0f
-    private var tddPerHour = 0.0f
-    private var tdd24HrsPerHour = 0.0f
-    private var tddlastHrs = 0.0f
-    private var tddDaily = 0.0f
-    private var hourOfDay: Int = 0
-    private var weekend: Int = 0
     private var profile = JSONObject()
     private var mGlucoseStatus = JSONObject()
     private var iobData: JSONArray? = null
@@ -104,26 +71,6 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
     private var smbAlwaysAllowed = false
     private var currentTime: Long = 0
     private var flatBGsDetected = false
-    private var lastBolusNormalTimecount: Long = 0
-    private var lastPBoluscount: Long = 0
-    private var extendedsmbCount: Long = 0
-    private var lastBolusSMBcount: Long = 0
-    private var SMBcount: Long = 0
-    private var MaxSMBcount: Long = 0
-    private var b30bolus: Long = 0
-    private var lastBolusNormalUnits = 0.0f
-    private var recentSteps5Minutes: Int = 0
-    private var recentSteps10Minutes: Int = 0
-    private var recentSteps15Minutes: Int = 0
-    private var recentSteps30Minutes: Int = 0
-    private var recentSteps60Minutes: Int = 0
-    private var recentSteps36hrs: Int = 0
-    private var now: Long = 0
-    private var modelai: Boolean = false
-    private var smbToGivetest: Double = 0.0
-    private var smbTopredict: Double = 0.0
-    private var variableSensitivity = 0.0f
-    private var saveCgmSource = true
 
     override var currentTempParam: String? = null
     override var iobDataParam: String? = null
@@ -163,6 +110,17 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
             rhino.evaluateString(scope, "var module = {\"parent\":Boolean(1)};", "JavaScript", 0, null)
             rhino.evaluateString(scope, "var round_basal = function round_basal(basal, profile) { return basal; };", "JavaScript", 0, null)
             rhino.evaluateString(scope, "require = function() {return round_basal;};", "JavaScript", 0, null)
+            rhino.evaluateString(scope,
+"""
+var getIsfByProfile = function (bg, profile, useCap) {
+    if (useCap) {
+        var cap = profile.dynISFSensBGCap;
+        if (bg > cap) bg = (cap + (bg - cap)/3);
+    }
+    var sens_BG = Math.log((bg / profile.insulinDivisor) + 1);
+    var scaler = Math.log((profile.normalTarget / profile.insulinDivisor) + 1) / sens_BG;
+    return profile.sensNormalTarget * (1 - (1 - scaler) * profile.dynISFvelocity);
+}""", "JavaScript", 0, null)
 
             //generate functions "determine_basal" and "setTempBasal"
             rhino.evaluateString(scope, readFile(LoopVariantPreference.getVariantFileName(sp, "Boost")), "JavaScript", 0, null)
@@ -240,29 +198,16 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
         microBolusAllowed: Boolean,
         uamAllowed: Boolean,
         advancedFiltering: Boolean,
-        flatBGsDetected: Boolean,
-        tdd1D: Double?,
-        tdd7D: Double?,
-        tddLast24H: Double?,
-        tddLast4H: Double?,
-        tddLast8to4H: Double?
+        flatBGsDetected: Boolean
     ) {
         val pump = activePlugin.activePump
         val pumpBolusStep = pump.pumpDescription.bolusStep
-
-        val insulin = activePlugin.activeInsulin
-        val insulinType = insulin.friendlyName
-        val insulinPeak: Int = insulin.peak
-
 
         this.profile.put("max_iob", maxIob)
         //mProfile.put("dia", profile.getDia());
         this.profile.put("type", "current")
         this.profile.put("max_daily_basal", profile.getMaxDailyBasal())
         this.profile.put("max_basal", maxBasal)
-        this.profile.put("min_bg", minBg)
-        this.profile.put("max_bg", maxBg)
-        this.profile.put("target_bg", targetBg)
         this.profile.put("carb_ratio", profile.getIc())
         this.profile.put("sens", profile.getIsfMgdl())
         this.profile.put("max_daily_safety_multiplier", sp.getInt(R.string.key_openapsama_max_daily_safety_multiplier, 3))
@@ -276,7 +221,6 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
         this.profile.put("high_temptarget_raises_sensitivity",sp.getBoolean(R.string.key_high_temptarget_raises_sensitivity,BoostDefaults.high_temptarget_raises_sensitivity))
         this.profile.put("low_temptarget_lowers_sensitivity",sp.getBoolean(R.string.key_low_temptarget_lowers_sensitivity,BoostDefaults.low_temptarget_lowers_sensitivity))
         this.profile.put("enableBoostPercentScale", sp.getBoolean(R.string.key_enable_boost_percent_scale, false))
-        this.profile.put("SensBGCap", sp.getBoolean(R.string.key_enableSensBGCap, false))
         this.profile.put("enableCircadianISF", sp.getBoolean(R.string.key_enableCircadianISF, false))
         //this.profile.put("low_temptarget_lowers_sensitivity", false)
 //**********************************************************************************************************************************************
@@ -307,8 +251,6 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
         this.profile.put("maxSMBBasalMinutes", sp.getInt(R.string.key_smb_max_minutes, BoostDefaults.maxSMBBasalMinutes))
         this.profile.put("maxUAMSMBBasalMinutes", sp.getInt(R.string.key_uam_smb_max_minutes, BoostDefaults.maxUAMSMBBasalMinutes))
         this.profile.put("DynISFAdjust",  SafeParse.stringToDouble(sp.getString(R.string.key_DynISFAdjust,"100")))
-        this.profile.put("insulinType", insulinType)
-        this.profile.put("insulinPeak", insulinPeak)
         this.profile.put("profilePercent",  if (profile is ProfileSealed.EPS) profile.value.originalPercentage else 100)
 
         //set the min SMB amount to be the amount set by the pump.
@@ -326,19 +268,13 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
 //MP: Boost_boluscap start
         this.profile.put("boost_bolus",SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_boost_bolus,"2.5")))
         this.profile.put("boost_percent_scale",SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_boost_scale_factor,"200")))
-        this.profile.put("boost_start",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_boost_start, "7.0")))
-        this.profile.put("boost_end",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_boost_end, "8.0")))
+        val boost_start = SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_boost_start, "7.0"))
+        val boost_end = SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_boost_end, "8.0"))
+        this.profile.put("boost_start", boost_start )
+        this.profile.put("boost_end", boost_end )
         this.profile.put("boost_maxIOB",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_boost_max_iob, "1.0")))
         this.profile.put("Boost_InsulinReq",  SafeParse.stringToDouble(sp.getString(R.string.key_boost_insulinreq,"50.0")))
         this.profile.put("boost_scale",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_boost_scale, "1.0")))
-        this.profile.put("inactivity_steps",SafeParse.stringToDouble(sp.getString(R.string.key_inactivity_steps,"400")))
-        this.profile.put("inactivity_pct",SafeParse.stringToDouble(sp.getString(R.string.key_inactivity_pct_inc,"130")))
-        this.profile.put("sleep_in_hrs",SafeParse.stringToDouble(sp.getString(R.string.key_sleep_in_hrs,"2")))
-        this.profile.put("sleep_in_steps",SafeParse.stringToDouble(sp.getString(R.string.key_sleep_in_steps,"250")))
-        this.profile.put("activity_steps_5",SafeParse.stringToDouble(sp.getString(R.string.key_activity_steps_5,"420")))
-        this.profile.put("activity_steps_30",SafeParse.stringToDouble(sp.getString(R.string.key_activity_steps_30,"1200")))
-        this.profile.put("activity_steps_60",SafeParse.stringToDouble(sp.getString(R.string.key_activity_hour_steps,"1800")))
-        this.profile.put("activity_pct",SafeParse.stringToDouble(sp.getString(R.string.key_activity_pct_inc,"80")))
         //this.profile.put("Boost_eventualBG",SafeParse.stringToDouble(sp.getString(R.string.key_Boost_eventualBG,"155")))
         //this.profile.put("W2_IOB_threshold",SafeParse.stringToDouble(sp.getString(R.string.key_w2_iob_threshold,"20")))
         //this.profile.put("Boost_hyperBG",SafeParse.stringToDouble(sp.getString(R.string.key_Boost_hyperBG,"220")));
@@ -373,32 +309,81 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
         this.mealData.put("lastBolusTime", mealData.lastBolusTime)
         this.mealData.put("lastCarbTime", mealData.lastCarbTime)
 
-        this.mealData.put("TDDAIMI1", tddCalculator.averageTDD(tddCalculator.calculate(1, false))?.totalAmount)
-        this.mealData.put("TDDAIMI7", tddCalculator.averageTDD(tddCalculator.calculate(7, false))?.totalAmount)
-        this.mealData.put("TDDLast4", tddCalculator.calculateDaily(-4, 0)?.totalAmount)
-        this.mealData.put("TDDLast8", tddCalculator.calculateDaily(-8, 0)?.totalAmount)
-        this.mealData.put("TDD4to8", tddCalculator.calculateDaily(-8, -4)?.totalAmount)
-        this.mealData.put("TDD24", tddCalculator.calculateDaily(-24, 0)?.totalAmount)
 
-        this.recentSteps5Minutes = StepService.getRecentStepCount5Min()
-        this.recentSteps10Minutes = StepService.getRecentStepCount10Min()
-        this.recentSteps15Minutes = StepService.getRecentStepCount15Min()
-        this.recentSteps30Minutes = StepService.getRecentStepCount30Min()
-        this.recentSteps60Minutes = StepService.getRecentStepCount60Min()
-        //this.recentSteps36hrs = StepService.getRecentStepCount36Hrs()
-
-        this.profile.put("recentSteps5Minutes", recentSteps5Minutes)
-        this.profile.put("recentSteps10Minutes", recentSteps10Minutes)
-        this.profile.put("recentSteps15Minutes", recentSteps15Minutes)
-        this.profile.put("recentSteps30Minutes", recentSteps30Minutes)
-        this.profile.put("recentSteps60Minutes", recentSteps60Minutes)
-        //this.profile.put("recentSteps36hrs", recentSteps36hrs)
-
-        if (constraintChecker.isAutosensModeEnabled().value()) {
-            autosensData.put("ratio", autosensDataRatio)
-        } else {
-            autosensData.put("ratio", 1.0)
+        val insulin = activePlugin.activeInsulin
+        val insulinPeak = when {
+            insulin.peak < 30   -> 30
+            insulin.peak > 75   -> 75
+            else                -> insulin.peak
         }
+        val insulinDivisor = when {
+            insulinPeak < 60    -> (90 - insulinPeak) + 30
+            else                -> (90 - insulinPeak) + 40
+        }
+
+        this.profile.put("insulinType", insulin.friendlyName)
+        this.profile.put("insulinPeak", insulinPeak)
+
+        val inactivity_steps = SafeParse.stringToDouble(sp.getString(R.string.key_inactivity_steps,"400"))
+        val inactivity_pct = SafeParse.stringToDouble(sp.getString(R.string.key_inactivity_pct_inc,"130"))
+        val sleep_in_hrs = SafeParse.stringToDouble(sp.getString(R.string.key_sleep_in_hrs,"2"))
+        val sleep_in_steps = SafeParse.stringToDouble(sp.getString(R.string.key_sleep_in_steps,"250"))
+        val activity_steps_5 = SafeParse.stringToDouble(sp.getString(R.string.key_activity_steps_5,"420"))
+        val activity_steps_30 = SafeParse.stringToDouble(sp.getString(R.string.key_activity_steps_30,"1200"))
+        val activity_steps_60 = SafeParse.stringToDouble(sp.getString(R.string.key_activity_hour_steps,"1800"))
+        val activity_pct = SafeParse.stringToDouble(sp.getString(R.string.key_activity_pct_inc,"80"))
+
+
+        val recentSteps5Minutes = StepService.getRecentStepCount5Min()
+        // val recentSteps10Minutes = StepService.getRecentStepCount10Min() // unused
+        val recentSteps15Minutes = StepService.getRecentStepCount15Min()
+        val recentSteps30Minutes = StepService.getRecentStepCount30Min()
+        val recentSteps60Minutes = StepService.getRecentStepCount60Min()
+
+        val activity = recentSteps5Minutes > activity_steps_5
+            || recentSteps30Minutes > activity_steps_30
+            || recentSteps60Minutes > activity_steps_60
+            || (recentSteps5Minutes < activity_steps_5 && recentSteps15Minutes > activity_steps_5)
+        var profileSwitch = 100.0 / if (profile is ProfileSealed.EPS) profile.value.originalPercentage else 100
+
+        val activityBgTarget = 150.0
+        var activityMinBg = minBg
+        var activityMaxBg = maxBg
+        var activityTargetBg = targetBg
+        val currentHour =  T.hours(now).hours()
+        if (profileSwitch == 1.0)
+        {
+            if (activity)
+            {
+                profileSwitch = activity_pct
+                activityMinBg = activityBgTarget
+                activityMaxBg = activityBgTarget
+                activityTargetBg = activityBgTarget
+            }
+            else if (recentSteps60Minutes < inactivity_steps
+                && currentHour > boost_start
+                && currentHour < boost_end
+                && !(currentHour < ( boost_start + sleep_in_hrs ) && recentSteps60Minutes < sleep_in_steps))
+            {
+                activityTargetBg = inactivity_pct
+            }
+        }
+        this.profile.put("min_bg", activityMinBg)
+        this.profile.put("max_bg", activityMaxBg)
+        this.profile.put("target_bg", activityTargetBg)
+
+        var effectiveProfile = profile
+        if (profileSwitch != 1.0)
+        {
+            val ps = profileFunction.buildCurrentProfileSwitch(0, SafeParse.stringToInt(sp.getString(R.string.key_activity_pct_inc,"80")), 0)
+            if (ps != null) effectiveProfile = ProfileSealed.PS(ps)
+        }
+
+        val isf = isfCalculator.calculate(effectiveProfile, insulinDivisor, glucoseStatus.glucose, tempTargetSet, this.profile)
+
+        autosensData.put("ratio", isf.ratio)
+        this.profile.put("normalTarget", 99)
+
         this.microBolusAllowed = microBolusAllowed
         smbAlwaysAllowed = advancedFiltering
         currentTime = now

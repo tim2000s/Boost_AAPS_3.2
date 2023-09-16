@@ -22,7 +22,6 @@ import info.nightscout.interfaces.plugin.ActivePlugin
 import info.nightscout.interfaces.plugin.PluginType
 import info.nightscout.interfaces.profile.ProfileFunction
 import info.nightscout.interfaces.profiling.Profiler
-import info.nightscout.interfaces.stats.TddCalculator
 import info.nightscout.interfaces.utils.HardLimits
 import info.nightscout.interfaces.utils.Round
 import info.nightscout.plugins.aps.R
@@ -58,7 +57,6 @@ class BoostPlugin @Inject constructor(
     repository: AppRepository,
     glucoseStatusProvider: GlucoseStatusProvider,
     bgQualityCheck: BgQualityCheck,
-    tddCalculator: TddCalculator,
     val config : Config
 ) : OpenAPSSMBPlugin(
     injector,
@@ -76,8 +74,7 @@ class BoostPlugin @Inject constructor(
     dateUtil,
     repository,
     glucoseStatusProvider,
-    bgQualityCheck,
-    tddCalculator
+    bgQualityCheck
 ) {
     init {
         pluginDescription
@@ -237,12 +234,7 @@ class BoostPlugin @Inject constructor(
                 smbAllowed.value(),
                 uam.value(),
                 advancedFiltering.value(),
-                flatBGsDetected,
-                tdd1D,
-                tdd7D,
-                tddLast24H,
-                tddLast4H,
-                tddLast8to4H
+                flatBGsDetected
             )
             val now = System.currentTimeMillis()
             val determineBasalResult = determineBasalAdapterBoostJS.invoke() as DetermineBasalResultSMB
