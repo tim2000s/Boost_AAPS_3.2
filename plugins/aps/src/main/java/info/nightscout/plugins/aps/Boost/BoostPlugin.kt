@@ -3,9 +3,10 @@ package info.nightscout.plugins.aps.Boost
 import android.content.Context
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
+import app.aaps.annotations.OpenForTesting
 import dagger.android.HasAndroidInjector
-import info.nightscout.annotations.OpenForTesting
 import info.nightscout.androidaps.plugins.aps.Boost.BoostDefaults
+import info.nightscout.core.constraints.ConstraintObject
 import info.nightscout.core.extensions.target
 import info.nightscout.core.utils.MidnightUtils
 import info.nightscout.database.ValueWrapper
@@ -15,7 +16,7 @@ import info.nightscout.interfaces.aps.AutosensResult
 import info.nightscout.interfaces.aps.DetermineBasalAdapter
 import info.nightscout.interfaces.bgQualityCheck.BgQualityCheck
 import info.nightscout.interfaces.constraints.Constraint
-import info.nightscout.interfaces.constraints.Constraints
+import info.nightscout.interfaces.constraints.ConstraintsChecker
 import info.nightscout.interfaces.iob.GlucoseStatusProvider
 import info.nightscout.interfaces.iob.IobCobCalculator
 import info.nightscout.interfaces.plugin.ActivePlugin
@@ -44,7 +45,7 @@ class BoostPlugin @Inject constructor(
     injector: HasAndroidInjector,
     aapsLogger: AAPSLogger,
     rxBus: RxBus,
-    constraintChecker: Constraints,
+    constraintChecker: ConstraintsChecker,
     rh: ResourceHelper,
     profileFunction: ProfileFunction,
     context: Context,
@@ -138,7 +139,7 @@ class BoostPlugin @Inject constructor(
             return
         }
 
-        val inputConstraints = Constraint(0.0) // fake. only for collecting all results
+        val inputConstraints = ConstraintObject(0.0, aapsLogger) // fake. only for collecting all results
         val maxBasal = constraintChecker.getMaxBasalAllowed(profile).also {
             inputConstraints.copyReasons(it)
         }.value()
@@ -205,15 +206,15 @@ class BoostPlugin @Inject constructor(
         val iobArray = iobCobCalculator.calculateIobArrayForSMB(lastAutosensResult, BoostDefaults.exercise_mode, BoostDefaults.half_basal_exercise_target, isTempTarget)
         profiler.log(LTag.APS, "calculateIobArrayInDia()", startPart)
         startPart = System.currentTimeMillis()
-        val smbAllowed = Constraint(!tempBasalFallback).also {
+        val smbAllowed = ConstraintObject(!tempBasalFallback, aapsLogger).also {
             constraintChecker.isSMBModeEnabled(it)
             inputConstraints.copyReasons(it)
         }
-        val advancedFiltering = Constraint(!tempBasalFallback).also {
+        val advancedFiltering = ConstraintObject(!tempBasalFallback, aapsLogger).also {
             constraintChecker.isAdvancedFilteringEnabled(it)
             inputConstraints.copyReasons(it)
         }
-        val uam = Constraint(true).also {
+        val uam = ConstraintObject(true, aapsLogger).also {
             constraintChecker.isUAMEnabled(it)
             inputConstraints.copyReasons(it)
         }
@@ -261,7 +262,7 @@ class BoostPlugin @Inject constructor(
     }
 
     override fun isSuperBolusEnabled(value: Constraint<Boolean>): Constraint<Boolean> {
-        value.set(aapsLogger, false)
+        value.set(false)
         return value
     }
 

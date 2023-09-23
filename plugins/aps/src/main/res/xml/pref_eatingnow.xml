@@ -51,7 +51,7 @@
 
         <SwitchPreference
             android:defaultValue="false"
-            android:key="@string/key_openapsama_use_autosens"
+            android:key="@string/key_use_autosens"
             android:summary="Restricted to maximum of 1 with dynamic ISF"
             android:title="@string/openapsama_use_autosens" />
 

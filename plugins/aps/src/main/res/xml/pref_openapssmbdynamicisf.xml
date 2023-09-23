@@ -35,11 +35,6 @@
             validate:floatminNumber="0"
             validate:testType="floatNumericRange" />
 
-        <SwitchPreference
-            android:defaultValue="false"
-            android:key="@string/key_openapsama_use_autosens"
-            android:title="@string/openapsama_use_autosens" />
-
         <info.nightscout.core.validators.ValidatingEditTextPreference
             android:defaultValue="65"
             android:inputType="numberDecimal"
