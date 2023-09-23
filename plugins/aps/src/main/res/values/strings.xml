@@ -52,8 +52,6 @@
     <string name="low_temptarget_lowers_sensitivity_summary"><![CDATA[Lower sensitivity for temptargets < 100]]></string>
     <string name="openapssmb">OpenAPS SMB</string>
     <string name="openaps_smb_dynamic_isf">Dynamic ISF</string>
-    <string name="fulluam">AIMI</string>
-    <string name="fulluam_shortname">AIMI</string>
     <string name="Boost">Boost</string>
     <string name="EN">Eating Now</string>
     <string name="smb_interval_summary">How frequently SMBs will be given in min</string>
@@ -74,7 +72,6 @@
     <string name="description_smb_dynamic_isf">Most recent algorithm for advanced users with dynamic/automatic ISF</string>
     <string name="description_EN">Eating Now bolusing method</string>
     <string name="description_Boost">Boost based accelerated bolusing</string>
-    <string name="description_fulluam">Automated Insulin Management Interface</string>
     <string name="openapsama_bolus_snooze_dia_divisor">Bolus snooze dia divisor</string>
 
     <string name="openapsma_run">Run now</string>
@@ -195,60 +192,6 @@
     <string name="loop_swap_smbtbr_order">Swap SMB and TBR commands order</string>
     <string name="loop_swap_smbtbr_order_summary">On some systems TBR can be very slow and delay or even prevent SMB from being submitted. This change makes SMB command go first, but can result in potential dangerous situation in case of TBR fail or pump connection break.</string>
     <string name="fallback_smb_no_tdd">Fallback to SMB. Not enough TDD data.</string>
-
-    <!-- AIMI -->
-    <string name="key_use_AimiUAM" translatable="false">key_use_AimiUAM</string>
-    <string name="key_use_AimiBreak" translatable="false">key_use_AimiBreak</string>
-    <string name="key_use_disable_b30_BFL" translatable="false">key_use_disable_b30_BFL</string>
-    <string name="key_use_AimiPower" translatable="false">key_use_AimiPower</string>
-    <string name="key_use_AimiUAM_ISF" translatable="false">key_use_AimiUAM_ISF</string>
-    <string name="key_use_LuymjevU200" translatable="false">key_use_LuymjevU200</string>
-    <string name="key_use_LuymjevU100" translatable="false">key_use_LuymjevU100</string>
-    <string name="key_use_Fiasp" translatable="false">key_use_Fiasp</string>
-    <string name="key_use_Ipen" translatable="false">key_use_Ipen</string>
-    <string name="key_use_Novorapid" translatable="false">key_use_Novorapid</string>
-    <string name="key_use_AIMI_COB" translatable="false">key_use_AIMI_COB</string>
-    <string name="key_use_AIMI_CAP" translatable="false">key_use_AIMI_CAP</string>
-    <string name="key_use_AIMI_SlowInsulin" translatable="false">key_use_AIMI_SlowInsulin</string>
-    <string name="key_use_AIMI_PBolus" translatable="false">key_use_AIMI_PBolus</string>
-    <string name="key_use_AIMI_BreakFastLight" translatable="false">key_use_AIMI_BreakfastLight</string>
-    <string name="key_AIMI_BreakFastLight_timeend">key_AIMI_BreakFastLight_timeend</string>
-    <string name="key_AIMI_BreakFastLight_timestart">key_AIMI_BreakFastLight_timestart</string>
-    <string name="key_use_AimiIgnoreCOB" translatable="false">key_use_AimiIgnoreCOB</string>
-    <string name="key_use_Aimiprotein" translatable="false">key_use_Aimiprotein</string>
-    <string name="key_use_AimiIOBpredBG" translatable="false">key_use_AimiIOBpredBG</string>
-
-    <string name="iTime">iTime</string>
-    <string name="iTimeSettings">iTime</string>
-    <string name="key_iTime" translatable="false">iTime</string>
-    <string name="iTime_title">iTime</string>
-    <string name="iTime_summary">iTime is the duration in minutes of the meal who authorize larger SMB. This variable was created to let child/teenager adapt this value</string>
-    <string name="key_UAM_InsulinReq" translatable="false">UAM_InsulinReq</string>
-    <string name="UAM_InsulinReq_title">AIMI iTime SMB Power %</string>
-    <string name="UAM_InsulinReq_summary">percentage of the AIMI response during the iTime duration</string>
-    <string name="disable_Libre_smb_restrictions">Filtering active for every sensor, Go SMB!</string>
-    <string name="key_iTime_MaxBolus_minutes" translatable="false">iTime_MaxBolus_minutes</string>
-    <string name="iTime_MaxBolus_minutes_title">iTime_MaxBolus_minutes</string>
-    <string name="iTime_MaxBolus_minutes_summary">iTime give a duration of the meal who allow larger smb and maxbolus. this variable give the higher maxbolus (basal * iTime_MaxBolus_minutes / 60)</string>
-    <string name="key_iTime_Bolus" translatable="false">iTime_Bolus</string>
-    <string name="iTime_Bolus_title">iTime_Bolus</string>
-    <string name="iTime_Bolus_summary">Automated Bolus at 28 minutes if delta > 2 if iTime Start with a manual bolus and 15 minutes if delta > 2 and iTime start with more than 30 carbs</string>
-    <string name="key_iTime_Starting_Bolus" translatable="false">iTime_Starting_Bolus</string>
-    <string name="key_iTime_B30_upperBG" translatable="false">iTime_b30_upperBG</string>
-    <string name="key_iTime_B30_upperdelta" translatable="false">iTime_b30_upperdelta</string>
-    <string name="key_iTime_B30_duration" translatable="false">iTime_b30_duration</string>
-    <string name="key_aimi_B30_proteinstart" translatable="false">aimi_B30_proteinstart</string>
-    <string name="key_aimi_B30_proteinduration" translatable="false">aimi_B30_proteinduration</string>
-    <string name="key_aimi_B30_proteinpercent" translatable="false">aimi_B30_proteinpercent</string>
-    <string name="iTime_Starting_Bolus_title">iTime_Starting_Bolus</string>
-    <string name="iTime_Starting_Bolus_summary">Value of the manual Bolus who will start iTime, like > iTime_Starting_Bolus</string>
-    <string name="key_aimi_variant" translatable="false">AIMI_variant</string>
-    <string name="aimi_variant_title">AIMI Variant</string>
-    <string name="key_fulluam_settings" translatable="false">fulluam_settings</string>
-    <string name="key_fulluam_max_iob" translatable="false">fulluam_max_iob</string>
-    <string name="fulluam_maxiob_title">Maximum total IOB AIMI can\'t go over [U]</string>
-    <string name="fulluam_maxiob_summary">This value is called Max IOB in AIMI context\nAIMI will not add more insulin if current IOB is greater than this value</string>
-    <!-- / AIMI -->
 
     <!-- Eating Now-->
     <string name="en_shortname">EN</string>

@@ -27,7 +27,6 @@ import info.nightscout.plugins.aps.loop.LoopPlugin
 import info.nightscout.plugins.aps.openAPSAMA.OpenAPSAMAPlugin
 import info.nightscout.plugins.aps.openAPSSMB.OpenAPSSMBPlugin
 import info.nightscout.plugins.aps.openAPSSMBDynamicISF.OpenAPSSMBDynamicISFPlugin
-import info.nightscout.plugins.aps.AIMI.AIMIPlugin
 import info.nightscout.plugins.aps.Boost.BoostPlugin
 import info.nightscout.plugins.aps.EN.ENPlugin
 import info.nightscout.plugins.constraints.bgQualityCheck.BgQualityCheckPlugin
@@ -256,12 +255,6 @@ abstract class PluginsListModule {
     @IntoMap
     @IntKey(220)
     abstract fun bindOpenAPSSMBPlugin(plugin: OpenAPSSMBPlugin): PluginBase
-
-    @Binds
-    @APS
-    @IntoMap
-    @IntKey(222)
-    abstract fun bindOpenAPSAIMIPlugin(plugin: AIMIPlugin): PluginBase
 
     @Binds
     @APS

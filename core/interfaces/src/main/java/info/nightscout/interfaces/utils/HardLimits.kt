@@ -13,9 +13,6 @@ interface HardLimits {
         val VERY_HARD_LIMIT_TEMP_MIN_BG = intArrayOf(72, 180)
         val VERY_HARD_LIMIT_TEMP_MAX_BG = intArrayOf(72, 270)
         val VERY_HARD_LIMIT_TEMP_TARGET_BG = intArrayOf(72, 200)
-        val VERY_HARD_LIMIT_MIN_BG_AIMI = doubleArrayOf(65.0, 180.0)
-        val VERY_HARD_LIMIT_MAX_BG_AIMI = doubleArrayOf(80.0, 200.0)
-        val VERY_HARD_LIMIT_TARGET_BG_AIMI = doubleArrayOf(65.0, 200.0)
         val MIN_DIA = doubleArrayOf(5.0, 5.0, 5.0, 5.0, 5.0)
         val MAX_DIA = doubleArrayOf(9.0, 9.0, 9.0, 9.0, 10.0)
         val MIN_IC = doubleArrayOf(2.0, 2.0, 2.0, 2.0, 0.3)
@@ -34,10 +31,8 @@ interface HardLimits {
     fun maxBolus(): Double
     fun maxIobAMA(): Double
     fun maxIobSMB(): Double
-    fun maxIobAimi(): Double
     fun maxBasal(): Double
     fun minDia(): Double
-    fun minDiaAimi(): Double
     fun maxDia(): Double
 
     fun minIC(): Double

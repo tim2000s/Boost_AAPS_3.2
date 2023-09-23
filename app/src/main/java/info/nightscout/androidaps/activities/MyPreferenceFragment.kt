@@ -40,7 +40,6 @@ import info.nightscout.plugins.aps.loop.LoopPlugin
 import info.nightscout.plugins.aps.openAPSAMA.OpenAPSAMAPlugin
 import info.nightscout.plugins.aps.openAPSSMB.OpenAPSSMBPlugin
 import info.nightscout.plugins.aps.openAPSSMBDynamicISF.OpenAPSSMBDynamicISFPlugin
-import info.nightscout.plugins.aps.AIMI.AIMIPlugin
 import info.nightscout.plugins.aps.Boost.BoostPlugin
 import info.nightscout.plugins.aps.EN.ENPlugin
 import info.nightscout.plugins.constraints.safety.SafetyPlugin
@@ -106,7 +105,6 @@ class MyPreferenceFragment : PreferenceFragmentCompat(), OnSharedPreferenceChang
     @Inject lateinit var openAPSAMAPlugin: OpenAPSAMAPlugin
     @Inject lateinit var openAPSSMBPlugin: OpenAPSSMBPlugin
     @Inject lateinit var openAPSSMBDynamicISFPlugin: OpenAPSSMBDynamicISFPlugin
-    @Inject lateinit var openAPSAIMIPlugin: AIMIPlugin
     @Inject lateinit var openAPSBoostPlugin: BoostPlugin
     @Inject lateinit var openAPSENPlugin: ENPlugin
     @Inject lateinit var safetyPlugin: SafetyPlugin
@@ -206,7 +204,6 @@ class MyPreferenceFragment : PreferenceFragmentCompat(), OnSharedPreferenceChang
             addPreferencesFromResourceIfEnabled(openAPSAMAPlugin, rootKey, config.APS)
             addPreferencesFromResourceIfEnabled(openAPSSMBPlugin, rootKey, config.APS)
             addPreferencesFromResourceIfEnabled(openAPSSMBDynamicISFPlugin, rootKey, config.APS)
-            addPreferencesFromResourceIfEnabled(openAPSAIMIPlugin, rootKey, config.APS)
             addPreferencesFromResourceIfEnabled(openAPSBoostPlugin, rootKey, config.APS)
             addPreferencesFromResourceIfEnabled(openAPSENPlugin, rootKey, config.APS)
             addPreferencesFromResourceIfEnabled(sensitivityAAPSPlugin, rootKey)
