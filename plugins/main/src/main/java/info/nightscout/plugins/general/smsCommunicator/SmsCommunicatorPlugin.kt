@@ -9,8 +9,9 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import app.aaps.annotations.OpenForTesting
 import dagger.android.HasAndroidInjector
-import info.nightscout.annotations.OpenForTesting
+import info.nightscout.core.constraints.ConstraintObject
 import info.nightscout.core.events.EventNewNotification
 import info.nightscout.core.iob.generateCOBString
 import info.nightscout.core.iob.round
@@ -34,8 +35,7 @@ import info.nightscout.interfaces.Constants
 import info.nightscout.interfaces.GlucoseUnit
 import info.nightscout.interfaces.XDripBroadcast
 import info.nightscout.interfaces.aps.Loop
-import info.nightscout.interfaces.constraints.Constraint
-import info.nightscout.interfaces.constraints.Constraints
+import info.nightscout.interfaces.constraints.ConstraintsChecker
 import info.nightscout.interfaces.iob.GlucoseStatusProvider
 import info.nightscout.interfaces.iob.IobCobCalculator
 import info.nightscout.interfaces.logging.UserEntryLogger
@@ -91,7 +91,7 @@ class SmsCommunicatorPlugin @Inject constructor(
     private val smsManager: SmsManager?,
     private val aapsSchedulers: AapsSchedulers,
     private val sp: SP,
-    private val constraintChecker: Constraints,
+    private val constraintChecker: ConstraintsChecker,
     private val rxBus: RxBus,
     private val profileFunction: ProfileFunction,
     private val profileUtil: ProfileUtil,
@@ -734,7 +734,7 @@ class SmsCommunicatorPlugin @Inject constructor(
             else if (tempBasalPct == 0 && divided[1] != "0%") sendSMS(Sms(receivedSms.phoneNumber, rh.gs(R.string.wrong_format)))
             else if (duration <= 0 || duration % durationStep != 0) sendSMS(Sms(receivedSms.phoneNumber, rh.gs(R.string.sms_wrong_tbr_duration, durationStep)))
             else {
-                tempBasalPct = constraintChecker.applyBasalPercentConstraints(Constraint(tempBasalPct), profile).value()
+                tempBasalPct = constraintChecker.applyBasalPercentConstraints(ConstraintObject(tempBasalPct, aapsLogger), profile).value()
                 val passCode = generatePassCode()
                 val reply = rh.gs(R.string.smscommunicator_basal_pct_reply_with_code, tempBasalPct, duration, passCode)
                 receivedSms.processed = true
@@ -789,7 +789,7 @@ class SmsCommunicatorPlugin @Inject constructor(
             else if (tempBasal == 0.0 && divided[1] != "0") sendSMS(Sms(receivedSms.phoneNumber, rh.gs(R.string.wrong_format)))
             else if (duration <= 0 || duration % durationStep != 0) sendSMS(Sms(receivedSms.phoneNumber, rh.gs(R.string.sms_wrong_tbr_duration, durationStep)))
             else {
-                tempBasal = constraintChecker.applyBasalConstraints(Constraint(tempBasal), profile).value()
+                tempBasal = constraintChecker.applyBasalConstraints(ConstraintObject(tempBasal, aapsLogger), profile).value()
                 val passCode = generatePassCode()
                 val reply = rh.gs(R.string.smscommunicator_basal_reply_with_code, tempBasal, duration, passCode)
                 receivedSms.processed = true
@@ -868,7 +868,7 @@ class SmsCommunicatorPlugin @Inject constructor(
         } else {
             var extended = SafeParse.stringToDouble(divided[1])
             val duration = SafeParse.stringToInt(divided[2])
-            extended = constraintChecker.applyExtendedBolusConstraints(Constraint(extended)).value()
+            extended = constraintChecker.applyExtendedBolusConstraints(ConstraintObject(extended, aapsLogger)).value()
             if (extended == 0.0 || duration == 0) sendSMS(Sms(receivedSms.phoneNumber, rh.gs(R.string.wrong_format)))
             else {
                 val passCode = generatePassCode()
@@ -924,7 +924,7 @@ class SmsCommunicatorPlugin @Inject constructor(
     private fun processBOLUS(divided: Array<String>, receivedSms: Sms) {
         var bolus = SafeParse.stringToDouble(divided[1])
         val isMeal = divided.size > 2 && divided[2].equals("MEAL", ignoreCase = true)
-        bolus = constraintChecker.applyBolusConstraints(Constraint(bolus)).value()
+        bolus = constraintChecker.applyBolusConstraints(ConstraintObject(bolus, aapsLogger)).value()
         if (divided.size == 3 && !isMeal) {
             sendSMS(Sms(receivedSms.phoneNumber, rh.gs(R.string.wrong_format)))
         } else if (bolus > 0.0) {
@@ -1037,7 +1037,7 @@ class SmsCommunicatorPlugin @Inject constructor(
                 return
             }
         }
-        grams = constraintChecker.applyCarbsConstraints(Constraint(grams)).value()
+        grams = constraintChecker.applyCarbsConstraints(ConstraintObject(grams, aapsLogger)).value()
         if (grams == 0) sendSMS(Sms(receivedSms.phoneNumber, rh.gs(R.string.wrong_format)))
         else {
             val passCode = generatePassCode()

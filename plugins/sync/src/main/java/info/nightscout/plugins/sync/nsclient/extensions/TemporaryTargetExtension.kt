@@ -1,17 +1,20 @@
 package info.nightscout.plugins.sync.nsclient.extensions
 
+import info.nightscout.core.utils.JsonHelper
 import info.nightscout.database.entities.TemporaryTarget
 import info.nightscout.interfaces.Constants
 import info.nightscout.interfaces.GlucoseUnit
-import info.nightscout.interfaces.utils.JsonHelper
 import info.nightscout.shared.interfaces.ProfileUtil
 import info.nightscout.shared.utils.DateUtil
 import info.nightscout.shared.utils.T
 import org.json.JSONObject
 
 fun TemporaryTarget.Companion.fromJson(jsonObject: JSONObject, profileUtil: ProfileUtil): TemporaryTarget? {
-    val units = GlucoseUnit.fromText(JsonHelper.safeGetString(jsonObject, "units", Constants.MGDL))
-    val timestamp = JsonHelper.safeGetLongAllowNull(jsonObject, "mills", null) ?: return null
+    val units = GlucoseUnit.fromText(JsonHelper.safeGetString(jsonObject, "units", GlucoseUnit.MGDL.asText))
+    val timestamp =
+        JsonHelper.safeGetLongAllowNull(jsonObject, "mills", null)
+            ?: JsonHelper.safeGetLongAllowNull(jsonObject, "date", null)
+            ?: return null
     val duration = JsonHelper.safeGetLongAllowNull(jsonObject, "duration", null) ?: return null
     val durationInMilliseconds = JsonHelper.safeGetLongAllowNull(jsonObject, "durationInMilliseconds")
     var low = JsonHelper.safeGetDouble(jsonObject, "targetBottom")
@@ -22,7 +25,9 @@ fun TemporaryTarget.Companion.fromJson(jsonObject: JSONObject, profileUtil: Prof
         ?: return null else ""
     // this string can be localized from NS, it will not work in this case CUSTOM will be used
     val reason = TemporaryTarget.Reason.fromString(reasonString)
-    val id = JsonHelper.safeGetStringAllowNull(jsonObject, "_id", null) ?: return null
+    val id = JsonHelper.safeGetStringAllowNull(jsonObject, "identifier", null)
+        ?: JsonHelper.safeGetStringAllowNull(jsonObject, "_id", null)
+        ?: return null
     val isValid = JsonHelper.safeGetBoolean(jsonObject, "isValid", true)
 
     if (timestamp == 0L) return null

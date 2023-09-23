@@ -1,19 +1,19 @@
 package info.nightscout.pump.virtual
 
+import app.aaps.shared.tests.TestBase
 import dagger.android.AndroidInjector
 import info.nightscout.core.utils.fabric.FabricPrivacy
 import info.nightscout.interfaces.Config
+import info.nightscout.interfaces.db.PersistenceLayer
 import info.nightscout.interfaces.iob.IobCobCalculator
 import info.nightscout.interfaces.nsclient.ProcessedDeviceStatusData
 import info.nightscout.interfaces.profile.ProfileFunction
 import info.nightscout.interfaces.pump.PumpSync
 import info.nightscout.interfaces.pump.defs.PumpType
 import info.nightscout.interfaces.queue.CommandQueue
-import info.nightscout.rx.bus.RxBus
 import info.nightscout.shared.interfaces.ResourceHelper
 import info.nightscout.shared.sharedPreferences.SP
 import info.nightscout.shared.utils.DateUtil
-import info.nightscout.sharedtests.TestBase
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -22,7 +22,6 @@ import org.mockito.Mockito.`when`
 
 class VirtualPumpPluginUTest : TestBase() {
 
-    private val rxBus = RxBus(aapsSchedulers, aapsLogger)
     @Mock lateinit var fabricPrivacy: FabricPrivacy
     @Mock lateinit var rh: ResourceHelper
     @Mock lateinit var sp: SP
@@ -33,6 +32,7 @@ class VirtualPumpPluginUTest : TestBase() {
     @Mock lateinit var pumpSync: PumpSync
     @Mock lateinit var config: Config
     @Mock lateinit var processedDeviceStatusData: ProcessedDeviceStatusData
+    @Mock lateinit var persistenceLayer: PersistenceLayer
 
     private lateinit var virtualPumpPlugin: VirtualPumpPlugin
 
@@ -41,7 +41,7 @@ class VirtualPumpPluginUTest : TestBase() {
         virtualPumpPlugin = VirtualPumpPlugin(
             { AndroidInjector { } },
             aapsLogger, rxBus, fabricPrivacy, rh, aapsSchedulers, sp, profileFunction, iobCobCalculator,
-            commandQueue, pumpSync, config, dateUtil, processedDeviceStatusData
+            commandQueue, pumpSync, config, dateUtil, processedDeviceStatusData, persistenceLayer
         )
     }
 

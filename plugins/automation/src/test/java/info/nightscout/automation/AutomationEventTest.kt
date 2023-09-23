@@ -1,5 +1,6 @@
 package info.nightscout.automation
 
+import app.aaps.shared.tests.TestBase
 import dagger.android.AndroidInjector
 import dagger.android.HasAndroidInjector
 import info.nightscout.automation.actions.Action
@@ -10,9 +11,7 @@ import info.nightscout.automation.triggers.TriggerConnectorTest
 import info.nightscout.automation.triggers.TriggerDummy
 import info.nightscout.interfaces.ConfigBuilder
 import info.nightscout.interfaces.aps.Loop
-import info.nightscout.rx.bus.RxBus
 import info.nightscout.shared.interfaces.ResourceHelper
-import info.nightscout.sharedtests.TestBase
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -36,7 +35,7 @@ class AutomationEventTest : TestBase() {
                 it.loopPlugin = loopPlugin
                 it.rh = rh
                 it.configBuilder = configBuilder
-                it.rxBus = RxBus(aapsSchedulers, aapsLogger)
+                it.rxBus = rxBus
             }
         }
     }

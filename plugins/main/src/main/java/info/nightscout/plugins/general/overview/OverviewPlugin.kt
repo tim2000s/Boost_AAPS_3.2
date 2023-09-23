@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.annotation.StringRes
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
+import app.aaps.shared.impl.rx.bus.RxBusImpl
 import dagger.android.HasAndroidInjector
 import info.nightscout.core.events.EventIobCalculationProgress
 import info.nightscout.core.events.EventNewNotification
@@ -12,6 +13,7 @@ import info.nightscout.core.ui.dialogs.OKDialog
 import info.nightscout.core.utils.extensions.putDouble
 import info.nightscout.core.utils.extensions.putInt
 import info.nightscout.core.utils.extensions.putString
+import info.nightscout.core.utils.extensions.storeBoolean
 import info.nightscout.core.utils.extensions.storeDouble
 import info.nightscout.core.utils.extensions.storeInt
 import info.nightscout.core.utils.extensions.storeString
@@ -19,6 +21,7 @@ import info.nightscout.core.utils.fabric.FabricPrivacy
 import info.nightscout.core.validators.ValidatingEditTextPreference
 import info.nightscout.interfaces.Config
 import info.nightscout.interfaces.Overview
+import info.nightscout.interfaces.constraints.ConstraintsChecker
 import info.nightscout.interfaces.overview.OverviewMenus
 import info.nightscout.interfaces.plugin.PluginBase
 import info.nightscout.interfaces.plugin.PluginDescription
@@ -55,7 +58,8 @@ class OverviewPlugin @Inject constructor(
     private val config: Config,
     private val overviewData: OverviewData,
     private val overviewMenus: OverviewMenus,
-    private val context: Context
+    private val context: Context,
+    private val constraintsChecker: ConstraintsChecker
 ) : PluginBase(
     PluginDescription()
         .mainType(PluginType.GENERAL)
@@ -72,7 +76,7 @@ class OverviewPlugin @Inject constructor(
 
     private var disposable: CompositeDisposable = CompositeDisposable()
 
-    override val overviewBus = RxBus(aapsSchedulers, aapsLogger)
+    override val overviewBus = RxBusImpl(aapsSchedulers, aapsLogger)
 
     override fun addNotificationWithDialogResponse(id: Int, text: String, level: Int, @StringRes actionButtonId: Int, title: String, message: String) {
         rxBus.send(
@@ -186,6 +190,7 @@ class OverviewPlugin @Inject constructor(
             .putDouble(R.string.key_statuslights_bat_warning, sp, rh)
             .putDouble(R.string.key_statuslights_bat_critical, sp, rh)
             .putInt(info.nightscout.core.utils.R.string.key_boluswizard_percentage, sp, rh)
+            .put(rh.gs(info.nightscout.core.utils.R.string.key_used_autosens_on_main_phone), constraintsChecker.isAutosensModeEnabled().value()) // can be disabled by activated DynISF
 
     override fun applyConfiguration(configuration: JSONObject) {
         val previousUnits = sp.getString(info.nightscout.core.utils.R.string.key_units, "random")
@@ -215,6 +220,8 @@ class OverviewPlugin @Inject constructor(
             .storeDouble(R.string.key_statuslights_bat_warning, sp, rh)
             .storeDouble(R.string.key_statuslights_bat_critical, sp, rh)
             .storeInt(info.nightscout.core.utils.R.string.key_boluswizard_percentage, sp, rh)
+            .storeBoolean(info.nightscout.core.utils.R.string.key_used_autosens_on_main_phone, sp, rh)
+
         val newUnits = sp.getString(info.nightscout.core.utils.R.string.key_units, "new")
         if (previousUnits != newUnits) {
             overviewData.reset()

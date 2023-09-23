@@ -10,11 +10,13 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import app.aaps.shared.impl.extensions.safeQueryBroadcastReceivers
 import dagger.android.HasAndroidInjector
 import info.nightscout.core.extensions.toStringShort
 import info.nightscout.core.iob.generateCOBString
 import info.nightscout.core.iob.round
 import info.nightscout.core.ui.toast.ToastUtils
+import info.nightscout.core.utils.HtmlHelper
 import info.nightscout.core.utils.fabric.FabricPrivacy
 import info.nightscout.interfaces.Constants
 import info.nightscout.interfaces.GlucoseUnit
@@ -31,7 +33,6 @@ import info.nightscout.interfaces.sync.DataSyncSelector
 import info.nightscout.interfaces.sync.Sync
 import info.nightscout.interfaces.ui.UiInteraction
 import info.nightscout.interfaces.utils.DecimalFormatter
-import info.nightscout.interfaces.utils.HtmlHelper
 import info.nightscout.plugins.sync.R
 import info.nightscout.plugins.sync.nsclient.extensions.toJson
 import info.nightscout.plugins.sync.xdrip.events.EventXdripUpdateGUI
@@ -47,7 +48,6 @@ import info.nightscout.rx.events.EventNewHistoryData
 import info.nightscout.rx.events.EventXdripNewLog
 import info.nightscout.rx.logging.AAPSLogger
 import info.nightscout.rx.logging.LTag
-import info.nightscout.shared.extensions.safeQueryBroadcastReceivers
 import info.nightscout.shared.interfaces.ProfileUtil
 import info.nightscout.shared.interfaces.ResourceHelper
 import info.nightscout.shared.sharedPreferences.SP

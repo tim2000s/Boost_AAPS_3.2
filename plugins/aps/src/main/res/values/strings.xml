@@ -28,7 +28,6 @@
     <string name="key_adjust_sensitivity" translatable="false">dynisf_adjust_sensitivity</string>
 
     <string name="key_openapsma_max_basal" translatable="false">openapsma_max_basal</string>
-    <string name="key_openapsama_use_autosens" translatable="false">openapsama_useautosens</string>
     <string name="key_openapsama_smb_delivery_ratio" translatable="false">openapsama_smb_delivery_ratio</string>
     <string name="key_openapsama_smb_delivery_ratio_min" translatable="false">openapsama_smb_delivery_ratio_min</string>
     <string name="key_openapsama_smb_delivery_ratio_max" translatable="false">openapsama_smb_delivery_ratio_max</string>
@@ -150,6 +149,7 @@
     <string name="smb_disabled_in_preferences">SMB disabled in preferences</string>
     <string name="uam_disabled_in_preferences">UAM disabled in preferences</string>
     <string name="autosens_disabled_in_preferences">Autosens disabled in preferences</string>
+    <string name="autosens_disabled_in_dyn_isf">Autosens disabled in DynISF</string>
 
     <string name="a52_risk_enable">A52 risk enable</string>
     <string name="a52_risk_enable_summary">Flag to disable Medtronic A52 error safety (should lead to more agressive bolusing)</string>

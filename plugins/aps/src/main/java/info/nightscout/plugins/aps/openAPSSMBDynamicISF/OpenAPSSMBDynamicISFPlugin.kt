@@ -1,12 +1,13 @@
 package info.nightscout.plugins.aps.openAPSSMBDynamicISF
 
 import android.content.Context
+import app.aaps.annotations.OpenForTesting
 import dagger.android.HasAndroidInjector
-import info.nightscout.annotations.OpenForTesting
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.interfaces.aps.DetermineBasalAdapter
 import info.nightscout.interfaces.bgQualityCheck.BgQualityCheck
-import info.nightscout.interfaces.constraints.Constraints
+import info.nightscout.interfaces.constraints.Constraint
+import info.nightscout.interfaces.constraints.ConstraintsChecker
 import info.nightscout.interfaces.iob.GlucoseStatusProvider
 import info.nightscout.interfaces.iob.IobCobCalculator
 import info.nightscout.interfaces.plugin.ActivePlugin
@@ -32,7 +33,7 @@ class OpenAPSSMBDynamicISFPlugin @Inject constructor(
     injector: HasAndroidInjector,
     aapsLogger: AAPSLogger,
     rxBus: RxBus,
-    constraintChecker: Constraints,
+    constraintChecker: ConstraintsChecker,
     rh: ResourceHelper,
     profileFunction: ProfileFunction,
     context: Context,
@@ -75,4 +76,9 @@ class OpenAPSSMBDynamicISFPlugin @Inject constructor(
 
     // If there is no TDD data fallback to SMB as ISF calculation may be really off
     override fun provideDetermineBasalAdapter(): DetermineBasalAdapter = DetermineBasalAdapterSMBDynamicISFJS(ScriptReader(context), injector)
+
+    override fun isAutosensModeEnabled(value: Constraint<Boolean>): Constraint<Boolean> {
+        value.set(false, rh.gs(R.string.autosens_disabled_in_dyn_isf), this)
+        return value
+    }
 }

@@ -1,9 +1,11 @@
 package info.nightscout.plugins.general.smsCommunicator
 
 import android.telephony.SmsManager
+import app.aaps.shared.tests.TestBaseWithProfile
 import com.google.common.truth.Truth.assertThat
 import dagger.android.AndroidInjector
 import dagger.android.HasAndroidInjector
+import info.nightscout.core.constraints.ConstraintObject
 import info.nightscout.database.entities.GlucoseValue
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.database.impl.transactions.CancelCurrentOfflineEventIfAnyTransaction
@@ -16,8 +18,7 @@ import info.nightscout.interfaces.Constants
 import info.nightscout.interfaces.XDripBroadcast
 import info.nightscout.interfaces.aps.AutosensDataStore
 import info.nightscout.interfaces.aps.Loop
-import info.nightscout.interfaces.constraints.Constraint
-import info.nightscout.interfaces.constraints.Constraints
+import info.nightscout.interfaces.constraints.ConstraintsChecker
 import info.nightscout.interfaces.iob.CobInfo
 import info.nightscout.interfaces.iob.InMemoryGlucoseValue
 import info.nightscout.interfaces.iob.IobTotal
@@ -33,7 +34,6 @@ import info.nightscout.plugins.general.smsCommunicator.otp.OneTimePassword
 import info.nightscout.plugins.general.smsCommunicator.otp.OneTimePasswordValidationResult
 import info.nightscout.shared.utils.DateUtil
 import info.nightscout.shared.utils.T
-import info.nightscout.sharedtests.TestBaseWithProfile
 import io.reactivex.rxjava3.core.Single
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -48,7 +48,7 @@ import org.mockito.invocation.InvocationOnMock
 @Suppress("SpellCheckingInspection")
 class SmsCommunicatorPluginTest : TestBaseWithProfile() {
 
-    @Mock lateinit var constraintChecker: Constraints
+    @Mock lateinit var constraintChecker: ConstraintsChecker
     @Mock lateinit var commandQueue: CommandQueue
     @Mock lateinit var loop: Loop
     @Mock lateinit var profileSource: ProfileSource
@@ -836,7 +836,7 @@ class SmsCommunicatorPluginTest : TestBaseWithProfile() {
         smsCommunicatorPlugin.processSms(sms)
         assertThat(smsCommunicatorPlugin.messages[0].text).isEqualTo("BASAL 20% 20")
         assertThat(smsCommunicatorPlugin.messages[1].text).isEqualTo("TBR duration must be a multiple of 30 minutes and greater than 0.")
-        `when`(constraintChecker.applyBasalPercentConstraints(anyObject(), anyObject())).thenReturn(Constraint(20))
+        `when`(constraintChecker.applyBasalPercentConstraints(anyObject(), anyObject())).thenReturn(ConstraintObject(20, aapsLogger))
 
         //BASAL 20% 30
         smsCommunicatorPlugin.messages = ArrayList()
@@ -862,7 +862,7 @@ class SmsCommunicatorPluginTest : TestBaseWithProfile() {
         smsCommunicatorPlugin.processSms(sms)
         assertThat(smsCommunicatorPlugin.messages[0].text).isEqualTo("BASAL 1 0")
         assertThat(smsCommunicatorPlugin.messages[1].text).isEqualTo("TBR duration must be a multiple of 30 minutes and greater than 0.")
-        `when`(constraintChecker.applyBasalConstraints(anyObject(), anyObject())).thenReturn(Constraint(1.0))
+        `when`(constraintChecker.applyBasalConstraints(anyObject(), anyObject())).thenReturn(ConstraintObject(1.0, aapsLogger))
 
         //BASAL 1 20
         smsCommunicatorPlugin.messages = ArrayList()
@@ -870,7 +870,7 @@ class SmsCommunicatorPluginTest : TestBaseWithProfile() {
         smsCommunicatorPlugin.processSms(sms)
         assertThat(smsCommunicatorPlugin.messages[0].text).isEqualTo("BASAL 1 20")
         assertThat(smsCommunicatorPlugin.messages[1].text).isEqualTo("TBR duration must be a multiple of 30 minutes and greater than 0.")
-        `when`(constraintChecker.applyBasalConstraints(anyObject(), anyObject())).thenReturn(Constraint(1.0))
+        `when`(constraintChecker.applyBasalConstraints(anyObject(), anyObject())).thenReturn(ConstraintObject(1.0, aapsLogger))
 
         //BASAL 1 30
         smsCommunicatorPlugin.messages = ArrayList()
@@ -918,7 +918,7 @@ class SmsCommunicatorPluginTest : TestBaseWithProfile() {
         smsCommunicatorPlugin.processSms(sms)
         assertThat(smsCommunicatorPlugin.messages[0].text).isEqualTo("EXTENDED a%")
         assertThat(smsCommunicatorPlugin.messages[1].text).isEqualTo("Wrong format")
-        `when`(constraintChecker.applyExtendedBolusConstraints(anyObject())).thenReturn(Constraint(1.0))
+        `when`(constraintChecker.applyExtendedBolusConstraints(anyObject())).thenReturn(ConstraintObject(1.0, aapsLogger))
 
         //EXTENDED 1 0
         smsCommunicatorPlugin.messages = ArrayList()
@@ -955,7 +955,7 @@ class SmsCommunicatorPluginTest : TestBaseWithProfile() {
         smsCommunicatorPlugin.processSms(sms)
         assertThat(smsCommunicatorPlugin.messages[0].text).isEqualTo("BOLUS")
         assertThat(smsCommunicatorPlugin.messages[1].text).isEqualTo("Wrong format")
-        `when`(constraintChecker.applyBolusConstraints(anyObject())).thenReturn(Constraint(1.0))
+        `when`(constraintChecker.applyBolusConstraints(anyObject())).thenReturn(ConstraintObject(1.0, aapsLogger))
         `when`(dateUtilMocked.now()).thenReturn(1000L)
         `when`(sp.getLong(R.string.key_smscommunicator_remote_bolus_min_distance, T.msecs(Constants.remoteBolusMinDistance).mins())).thenReturn(15L)
         //BOLUS 1
@@ -964,7 +964,7 @@ class SmsCommunicatorPluginTest : TestBaseWithProfile() {
         smsCommunicatorPlugin.processSms(sms)
         assertThat(smsCommunicatorPlugin.messages[0].text).isEqualTo("BOLUS 1")
         assertThat(smsCommunicatorPlugin.messages[1].text).isEqualTo("Remote bolus not available. Try again later.")
-        `when`(constraintChecker.applyBolusConstraints(anyObject())).thenReturn(Constraint(0.0))
+        `when`(constraintChecker.applyBolusConstraints(anyObject())).thenReturn(ConstraintObject(0.0, aapsLogger))
         `when`(dateUtilMocked.now()).thenReturn(Constants.remoteBolusMinDistance + 1002L)
 
         //BOLUS 0
@@ -980,8 +980,8 @@ class SmsCommunicatorPluginTest : TestBaseWithProfile() {
         smsCommunicatorPlugin.processSms(sms)
         assertThat(smsCommunicatorPlugin.messages[0].text).isEqualTo("BOLUS a")
         assertThat(smsCommunicatorPlugin.messages[1].text).isEqualTo("Wrong format")
-        `when`(constraintChecker.applyExtendedBolusConstraints(anyObject())).thenReturn(Constraint(1.0))
-        `when`(constraintChecker.applyBolusConstraints(anyObject())).thenReturn(Constraint(1.0))
+        `when`(constraintChecker.applyExtendedBolusConstraints(anyObject())).thenReturn(ConstraintObject(1.0, aapsLogger))
+        `when`(constraintChecker.applyBolusConstraints(anyObject())).thenReturn(ConstraintObject(1.0, aapsLogger))
 
         //BOLUS 1
         smsCommunicatorPlugin.messages = ArrayList()
@@ -1078,7 +1078,7 @@ class SmsCommunicatorPluginTest : TestBaseWithProfile() {
         smsCommunicatorPlugin.processSms(sms)
         assertThat(smsCommunicatorPlugin.messages[0].text).isEqualTo("CARBS")
         assertThat(smsCommunicatorPlugin.messages[1].text).isEqualTo("Wrong format")
-        `when`(constraintChecker.applyCarbsConstraints(anyObject())).thenReturn(Constraint(0))
+        `when`(constraintChecker.applyCarbsConstraints(anyObject())).thenReturn(ConstraintObject(0, aapsLogger))
 
         //CARBS 0
         smsCommunicatorPlugin.messages = ArrayList()
@@ -1086,7 +1086,7 @@ class SmsCommunicatorPluginTest : TestBaseWithProfile() {
         smsCommunicatorPlugin.processSms(sms)
         assertThat(smsCommunicatorPlugin.messages[0].text).isEqualTo("CARBS 0")
         assertThat(smsCommunicatorPlugin.messages[1].text).isEqualTo("Wrong format")
-        `when`(constraintChecker.applyCarbsConstraints(anyObject())).thenReturn(Constraint(1))
+        `when`(constraintChecker.applyCarbsConstraints(anyObject())).thenReturn(ConstraintObject(1, aapsLogger))
 
         //CARBS 1
         smsCommunicatorPlugin.messages = ArrayList()

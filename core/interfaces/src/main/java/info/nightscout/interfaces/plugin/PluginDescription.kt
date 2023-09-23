@@ -1,8 +1,8 @@
 package info.nightscout.interfaces.plugin
 
-import info.nightscout.interfaces.annotations.InterfacesOpenForTesting
+import app.aaps.annotations.OpenForTesting
 
-@InterfacesOpenForTesting
+@OpenForTesting
 class PluginDescription {
 
     var mainType = PluginType.GENERAL

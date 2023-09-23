@@ -1,8 +1,8 @@
 package info.nightscout.plugins.iob.iobCobCalculator
 
 import androidx.collection.LongSparseArray
+import app.aaps.annotations.OpenForTesting
 import dagger.android.HasAndroidInjector
-import info.nightscout.annotations.OpenForTesting
 import info.nightscout.core.extensions.convertedToAbsolute
 import info.nightscout.core.extensions.iobCalc
 import info.nightscout.core.extensions.toTemporaryBasal
@@ -390,7 +390,7 @@ class IobCobCalculatorPlugin @Inject constructor(
             // prepare task for execution in 1 sec
             scheduledEvent?.let {
                 // set reload bg data if was not set
-                if (!event.reloadBgData) event.reloadBgData = it.reloadBgData
+                event.reloadBgData = event.reloadBgData || it.reloadBgData
             }
             scheduledEvent = event
             scheduledHistoryPost = historyWorker.schedule(
