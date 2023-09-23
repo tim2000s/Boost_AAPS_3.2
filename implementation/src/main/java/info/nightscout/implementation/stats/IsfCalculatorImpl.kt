@@ -20,7 +20,7 @@ class IsfCalculatorImpl @Inject constructor(
     private val sp: SP,
 ) : IsfCalculator {
 
-    override fun calculate(profile : Profile, insulinDivisor: Int, glucose: Double, isTempTarget: Boolean, profileJson: JSONObject?) : IsfCalculation {
+    override fun calculateAndSetToProfile(profile : Profile, insulinDivisor: Int, glucose: Double, isTempTarget: Boolean, profileJson: JSONObject?) : IsfCalculation {
 
         val autosensMax = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_openapsama_autosens_max, "1.2"))
         val autosensMin = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_openapsama_autosens_min, "0.7"))
@@ -63,24 +63,27 @@ class IsfCalculatorImpl @Inject constructor(
                 if (useTDD) {
 
                     val tdd7D = tddCalculator.averageTDD(tddCalculator.calculate(7, false))?.totalAmount
-                    val tddLast24H = tddCalculator.calculateDaily(-24, 0)?.totalAmount ?: 0.0
+                    if (tdd7D != null) {
 
-                    val tdd1D = tddCalculator.averageTDD(tddCalculator.calculate(1, false))?.totalAmount
-                    val tddLast4H = tddCalculator.calculateDaily(-4, 0)?.totalAmount ?: 0.0
-                    val tddLast8to4H = tddCalculator.calculateDaily(-8, -4)?.totalAmount ?: 0.0
-                    val tddWeightedFromLast8H = ((1.4 * tddLast4H) + (0.6 * tddLast8to4H)) * 3
-                    var tdd =
-                        if (tdd1D != null && tdd7D != null) (tddWeightedFromLast8H * 0.33) + (tdd7D * 0.34) + (tdd1D * 0.33)
-                        else tddWeightedFromLast8H
+                        val tddLast24H = tddCalculator.calculateDaily(-24, 0)?.totalAmount ?: 0.0
 
-                    val dynISFadjust = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_dynamic_isf_adjust, "100")) / 100.0
-                    tdd *= dynISFadjust
+                        val tdd1D = tddCalculator.averageTDD(tddCalculator.calculate(1, false))?.totalAmount
+                        val tddLast4H = tddCalculator.calculateDaily(-4, 0)?.totalAmount ?: 0.0
+                        val tddLast8to4H = tddCalculator.calculateDaily(-8, -4)?.totalAmount ?: 0.0
+                        val tddWeightedFromLast8H = ((1.4 * tddLast4H) + (0.6 * tddLast8to4H)) * 3
+                        var tdd =
+                            if (tdd1D != null) (tddWeightedFromLast8H * 0.33) + (tdd7D * 0.34) + (tdd1D * 0.33)
+                            else tddWeightedFromLast8H
 
-                    sensNormalTarget = 1800 / (tdd * (ln((bgNormalTarget / insulinDivisor) + 1))) * globalScale
+                        val dynISFadjust = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_dynamic_isf_adjust, "100")) / 100.0
+                        tdd *= dynISFadjust
 
-                    if (adjustSens && tdd7D != null) {
-                        ratio = Math.max(Math.min(tddLast24H / tdd7D, autosensMax), autosensMin)
-                        sensNormalTarget /= ratio
+                        sensNormalTarget = 1800 / (tdd * (ln((bgNormalTarget / insulinDivisor) + 1))) * globalScale
+
+                        if (adjustSens) {
+                            ratio = Math.max(Math.min(tddLast24H / tdd7D, autosensMax), autosensMin)
+                            sensNormalTarget /= ratio
+                        }
                     }
                 }
 

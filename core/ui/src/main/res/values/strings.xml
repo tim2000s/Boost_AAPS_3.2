@@ -238,7 +238,6 @@
     <string name="manual">Manual</string>
     <string name="unknown">unknown</string>
     <string name="eatingsoon">Eating Soon</string>
-    <string name="eatingnow">Eating Now</string>
     <string name="hypo">Hypo</string>
     <string name="activity">Activity</string>
     <string name="wear">Wear</string>
@@ -632,5 +631,9 @@
     <string name="cleanup_db_confirm">Do you want to cleanup the database?\nIt will remove tracked changes and historic data older than 3 months.</string>
     <string name="cleanup_db_confirm_sync">Do you want to cleanup the database?\nIt will remove tracked changes and historic data older than 3 months.\nDoing it will speedup full synchronization dramatically.</string>
     <string name="cleared_entries">Cleared entries</string>
+
+    <!--    Eating Now TT -->
+    <string name="eatingnow">Eating Now</string>
+    <string name="eatingnow_prebolus">Eating Now PB</string>
 
 </resources>

@@ -267,6 +267,7 @@
     <string name="key_enautostart" translatable="false">key_enautostart</string>
     <string name="key_eatingnow_cobboost_maxbolus_breakfast">key_eatingnow_cobboost_maxbolus_breakfast</string>
     <string name="key_eatingnow_breakfastpct">key_eatingnow_breakfastpct</string>
+    <string name="key_eatingnow_pct">key_eatingnow_pct</string>
     <string name="key_eatingnow_uam_maxbolus_breakfast">key_eatingnow_uam_maxbolus_breakfast</string>
     <string name="key_enw_breakfast_max_tdd">key_enw_breakfast_max_tdd</string>
     <string name="key_enw_max_tdd">key_enw_max_tdd</string>
@@ -278,9 +279,11 @@
     <string name="key_eatingnow_uambgboost_maxbolus">key_eatingnow_uambgboost_maxbolus</string>
     <string name="key_eatingnow_uambgboost_bkfast">key_eatingnow_uambgboost_bkfast</string>
     <string name="key_eatingnow_uambgboost_maxbolus_bkfast">key_eatingnow_uambgboost_maxbolus_bkfast</string>
+    <string name="key_eatingnow_uamplus_maxbolus_bkfast">key_eatingnow_uamplus_maxbolus_bkfast</string>
     <string name="key_eatingnow_bgplus_maxbolus">key_eatingnow_bgplus_maxbolus</string>
     <string name="key_eatingnow_noenw_maxbolus">key_eatingnow_noenw_maxbolus</string>
     <string name="key_use_uamplus_noenw">key_use_uamplus_noenw</string>
+    <string name="key_use_uamplustbr_noenw">key_use_uamplustbr_noenw</string>
     <string name="key_eatingnow_uamplus_maxbolus">key_eatingnow_uamplus_maxbolus</string>
     <string name="key_use_dynamicISF">key_use_dynamicISF</string>
     <string name="key_eatingnow_isfbgscaler">key_eatingnow_isfbgscaler</string>

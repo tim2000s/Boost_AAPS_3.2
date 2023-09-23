@@ -562,11 +562,7 @@
             android:summary="ISF related settings."
             app:initialExpandedChildrenCount="0">
 
-            <SwitchPreference
-                android:defaultValue="true"
-                android:key="key_use_dynamicISF"
-                android:title="Use dynamic ISF"
-                android:summary="As BG increases ISF will become stronger when enabled." />
+            <Preference android:summary="Main ISF settings are located in Sensitivity plugin options (or Absorption settings section)"></Preference>
 
             <info.nightscout.core.validators.ValidatingEditTextPreference
                 android:defaultValue="0"
@@ -579,38 +575,6 @@
                 validate:floatminNumber="-20"
                 validate:testType="floatNumericRange" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
-                android:defaultValue="100"
-                android:inputType="numberDecimal"
-                android:key="@string/key_eatingnow_isfbgscaler_velocity"
-                android:title="ISF BG Scaling velocity %"
-                android:summary="This controls how fast will be ISF scaled based on BG level"
-                android:dialogMessage="This controls how fast will be ISF scaled based on BG level: 0% means no scaling at all, constant ISF value for every BG level; 100% - normal DynamicISF scaling;"
-                validate:floatmaxNumber="200"
-                validate:floatminNumber="0"
-                validate:testType="floatNumericRange"/>
-
-            <SwitchPreference
-                android:defaultValue="false"
-                android:key="key_use_sens_tdd"
-                android:title="Use TDD for ISF"
-                android:summary="Use TDD as the basis for calculating the current ISF. This will override the profile ISF." />
-
-            <SwitchPreference
-                android:defaultValue="false"
-                android:key="key_sens_tdd_use_profile"
-                android:title="Obey profile"
-                android:summary="Follow profile % changes for sensitivity" />
-
-            <info.nightscout.core.validators.ValidatingEditTextPreference
-                android:defaultValue="100"
-                android:inputType="numberDecimal"
-                android:key="@string/key_sens_tdd_scale"
-                android:dialogMessage="This will use a percentage of the calculated TDD ISF. If TDD ISF is too strong it can be reduced e.g. 75 will use 75% of the calculated TDD ISF."
-                android:title="TDD ISF Scaling"
-                validate:floatmaxNumber="100"
-                validate:floatminNumber="25"
-                validate:testType="floatNumericRange"/>
 
             <info.nightscout.core.validators.ValidatingEditTextPreference
                 android:defaultValue="100"
@@ -621,12 +585,6 @@
                 validate:maxNumber="200"
                 validate:minNumber="100"
                 validate:testType="numericRange" />
-
-            <SwitchPreference
-                android:defaultValue="false"
-                android:key="key_use_sr_tdd"
-                android:title="Use TDD based SensitivityRatio"
-                android:summary="Use recent TDD history to calculate current SensitivityRatio. Used for basal only. Min/Max Autosens values will be respected."/>
 
             <info.nightscout.core.validators.ValidatingEditTextPreference
                 android:defaultValue="0"

@@ -2,19 +2,13 @@ package info.nightscout.plugins.aps.Boost
 
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.plugins.aps.Boost.BoostDefaults
-import info.nightscout.plugins.aps.APSResultObject
 import info.nightscout.core.extensions.convertedToAbsolute
 import info.nightscout.core.extensions.getPassedDurationToTimeInMinutes
 import info.nightscout.core.extensions.plannedRemainingMinutes
 import info.nightscout.core.profile.ProfileSealed
 import info.nightscout.core.validators.LoopVariantPreference
-import info.nightscout.database.ValueWrapper
-import info.nightscout.database.entities.Bolus
-import info.nightscout.database.entities.TherapyEvent
-import info.nightscout.database.impl.AppRepository
 import info.nightscout.interfaces.GlucoseUnit
 import info.nightscout.interfaces.aps.DetermineBasalAdapter
-import info.nightscout.interfaces.aps.SMBDefaults
 import info.nightscout.interfaces.constraints.Constraints
 import info.nightscout.interfaces.iob.GlucoseStatus
 import info.nightscout.interfaces.iob.IobCobCalculator
@@ -379,7 +373,7 @@ var getIsfByProfile = function (bg, profile, useCap) {
             if (ps != null) effectiveProfile = ProfileSealed.PS(ps)
         }
 
-        val isf = isfCalculator.calculate(effectiveProfile, insulinDivisor, glucoseStatus.glucose, tempTargetSet, this.profile)
+        val isf = isfCalculator.calculateAndSetToProfile(effectiveProfile, insulinDivisor, glucoseStatus.glucose, tempTargetSet, this.profile)
 
         autosensData.put("ratio", isf.ratio)
         this.profile.put("normalTarget", 99)

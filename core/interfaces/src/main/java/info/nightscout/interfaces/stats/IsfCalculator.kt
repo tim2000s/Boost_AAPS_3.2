@@ -4,5 +4,5 @@ import info.nightscout.interfaces.profile.Profile
 import org.json.JSONObject
 
 interface IsfCalculator {
-    fun calculate(profile : Profile, insulinDivisor: Int, glucose: Double, isTempTarget: Boolean, profileJson : JSONObject? = null) : IsfCalculation
+    fun calculateAndSetToProfile(profile : Profile, insulinDivisor: Int, glucose: Double, isTempTarget: Boolean, profileJson : JSONObject? = null) : IsfCalculation
 }

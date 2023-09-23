@@ -278,7 +278,7 @@ var getIsfByProfile = function (bg, profile) {
             insulin.peak > 50 -> 65 // ultra rapid peak: 55
             else              -> 75 // rapid peak: 75
         }
-        val isf = isfCalculator.calculate(profile, insulinDivisor, glucoseStatus.glucose, tempTargetSet, this.profile)
+        val isf = isfCalculator.calculateAndSetToProfile(profile, insulinDivisor, glucoseStatus.glucose, tempTargetSet, this.profile)
 
         autosensData.put("ratio", isf.ratio)
         this.profile.put("normalTarget", 99)

@@ -2,19 +2,15 @@ package info.nightscout.plugins.aps.AIMI
 
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.plugins.aps.AIMI.AIMIDefaults
-import info.nightscout.plugins.aps.APSResultObject
 import info.nightscout.core.extensions.convertedToAbsolute
 import info.nightscout.core.extensions.getPassedDurationToTimeInMinutes
 import info.nightscout.core.extensions.plannedRemainingMinutes
-import info.nightscout.core.profile.ProfileSealed
 import info.nightscout.core.validators.LoopVariantPreference
 import info.nightscout.database.ValueWrapper
 import info.nightscout.database.entities.Bolus
-import info.nightscout.database.entities.TherapyEvent
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.interfaces.GlucoseUnit
 import info.nightscout.interfaces.aps.DetermineBasalAdapter
-import info.nightscout.interfaces.aps.SMBDefaults
 import info.nightscout.interfaces.constraints.Constraints
 import info.nightscout.interfaces.iob.GlucoseStatus
 import info.nightscout.interfaces.iob.IobCobCalculator
@@ -26,8 +22,6 @@ import info.nightscout.interfaces.profile.ProfileFunction
 import info.nightscout.interfaces.stats.IsfCalculator
 import info.nightscout.interfaces.stats.TddCalculator
 import info.nightscout.interfaces.stats.TirCalculator
-import info.nightscout.interfaces.utils.MidnightTime
-import info.nightscout.interfaces.utils.Round
 import info.nightscout.plugins.aps.R
 import info.nightscout.plugins.aps.logger.LoggerCallback
 import info.nightscout.plugins.aps.openAPSSMB.DetermineBasalResultSMB
@@ -51,9 +45,7 @@ import org.mozilla.javascript.Undefined
 import java.io.IOException
 import java.lang.reflect.InvocationTargetException
 import java.nio.charset.StandardCharsets
-import java.security.InvalidParameterException
 import javax.inject.Inject
-import kotlin.math.ln
 
 class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader: ScriptReader, private val injector: HasAndroidInjector): DetermineBasalAdapter {
 
@@ -379,7 +371,7 @@ class DetermineBasalAdapterAIMIJS internal constructor(private val scriptReader:
             insulin.peak > 45 -> 65 // ultra rapid peak: 55
             else              -> 75 // rapid peak: 75
         }
-        isfCalculator.calculate(profile, insulinDivisor, glucoseStatus.glucose, tempTargetSet, this.profile)
+        isfCalculator.calculateAndSetToProfile(profile, insulinDivisor, glucoseStatus.glucose, tempTargetSet, this.profile)
 
         this.profile.put("lastHourTIRLow", lastHourTIRLow)
         this.profile.put("TDD", tdd)
