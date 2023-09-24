@@ -1102,14 +1102,16 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         if (config.NSCLIENT && sp.getBoolean(info.nightscout.core.utils.R.string.key_used_autosens_on_main_phone, false) ||
             !config.NSCLIENT && constraintChecker.isAutosensModeEnabled().value()) {
             binding.infoLayout.sensitivityIcon.setImageResource(info.nightscout.core.main.R.drawable.ic_swap_vert_black_48dp_green)
+            binding.infoLayout.sensitivity.visibility = View.VISIBLE
+            binding.infoLayout.sensitivity.text =
+                lastAutosensData?.let {
+                    String.format(Locale.ENGLISH, "%.0f%%", it.autosensResult.ratio * 100)
+                } ?: ""
         } else {
             binding.infoLayout.sensitivityIcon.setImageResource(info.nightscout.core.main.R.drawable.ic_x_swap_vert)
+            binding.infoLayout.sensitivity.visibility = View.GONE
         }
 
-        binding.infoLayout.sensitivity.text =
-            lastAutosensData?.let {
-                String.format(Locale.ENGLISH, "%.0f%%", it.autosensResult.ratio * 100)
-            } ?: ""
         // Show variable sensitivity
         val profile = profileFunction.getProfile()
         val request = loop.lastRun?.request
