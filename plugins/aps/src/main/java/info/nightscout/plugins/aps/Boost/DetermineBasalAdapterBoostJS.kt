@@ -362,6 +362,11 @@ var getIsfByProfile = function (bg, profile, useCap) {
                 activityTargetBg = inactivity_pct
             }
         }
+
+        this.profile.put("recentSteps5Minutes", recentSteps5Minutes)
+        this.profile.put("recentSteps15Minutes", recentSteps15Minutes)
+        this.profile.put("recentSteps30Minutes", recentSteps30Minutes)
+        this.profile.put("recentSteps60Minutes", recentSteps60Minutes)
         this.profile.put("min_bg", activityMinBg)
         this.profile.put("max_bg", activityMaxBg)
         this.profile.put("target_bg", activityTargetBg)
