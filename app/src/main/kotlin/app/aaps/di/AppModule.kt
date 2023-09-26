@@ -2,20 +2,20 @@ package app.aaps.di
 
 import android.content.Context
 import app.aaps.MainApp
+import app.aaps.core.main.workflow.CalculationWorkflow
 import app.aaps.implementations.ConfigImpl
 import app.aaps.implementations.InstantiatorImpl
 import app.aaps.implementations.UiInteractionImpl
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.objects.Instantiator
+import app.aaps.core.interfaces.plugin.PluginBase
+import app.aaps.core.interfaces.ui.UiInteraction
 import app.aaps.workflow.CalculationWorkflowImpl
 import dagger.Binds
 import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import dagger.android.HasAndroidInjector
-import info.nightscout.core.workflow.CalculationWorkflow
-import info.nightscout.interfaces.Config
-import info.nightscout.interfaces.plugin.PluginBase
-import info.nightscout.interfaces.profile.Instantiator
-import info.nightscout.interfaces.ui.UiInteraction
 
 @Suppress("unused")
 @Module(

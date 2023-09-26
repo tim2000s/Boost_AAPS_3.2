@@ -1,17 +1,17 @@
 package info.nightscout.plugins.sync.nsclient.extensions
 
-import info.nightscout.core.extensions.fromConstant
-import info.nightscout.core.extensions.getCustomizedName
-import info.nightscout.core.extensions.pureProfileFromJson
-import info.nightscout.core.profile.ProfileSealed
-import info.nightscout.core.utils.JsonHelper
-import info.nightscout.database.entities.ProfileSwitch
-import info.nightscout.database.entities.TherapyEvent
-import info.nightscout.database.entities.embedments.InterfaceIDs
-import info.nightscout.interfaces.plugin.ActivePlugin
-import info.nightscout.interfaces.utils.DecimalFormatter
-import info.nightscout.shared.utils.DateUtil
-import info.nightscout.shared.utils.T
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.DecimalFormatter
+import app.aaps.core.interfaces.utils.T
+import app.aaps.core.main.extensions.fromConstant
+import app.aaps.core.main.extensions.getCustomizedName
+import app.aaps.core.main.extensions.pureProfileFromJson
+import app.aaps.core.main.profile.ProfileSealed
+import app.aaps.core.utils.JsonHelper
+import app.aaps.database.entities.ProfileSwitch
+import app.aaps.database.entities.TherapyEvent
+import app.aaps.database.entities.embedments.InterfaceIDs
 import org.json.JSONObject
 
 fun ProfileSwitch.toJson(isAdd: Boolean, dateUtil: DateUtil, decimalFormatter: DecimalFormatter): JSONObject =

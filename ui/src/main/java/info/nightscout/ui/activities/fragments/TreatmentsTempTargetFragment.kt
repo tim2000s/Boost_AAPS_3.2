@@ -14,37 +14,37 @@ import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.extensions.toVisibility
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.logging.UserEntryLogger
+import app.aaps.core.interfaces.profile.ProfileUtil
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.AapsSchedulers
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventTempTargetChange
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.DecimalFormatter
+import app.aaps.core.interfaces.utils.T
+import app.aaps.core.interfaces.utils.Translator
+import app.aaps.core.main.extensions.friendlyDescription
+import app.aaps.core.main.extensions.highValueToUnitsToString
+import app.aaps.core.main.extensions.lowValueToUnitsToString
+import app.aaps.core.main.utils.ActionModeHelper
+import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.core.ui.dialogs.OKDialog
+import app.aaps.core.ui.toast.ToastUtils
+import app.aaps.database.ValueWrapper
+import app.aaps.database.entities.TemporaryTarget
+import app.aaps.database.entities.UserEntry.Action
+import app.aaps.database.entities.UserEntry.Sources
+import app.aaps.database.entities.ValueWithUnit
+import app.aaps.database.entities.interfaces.end
 import dagger.android.support.DaggerFragment
-import info.nightscout.core.extensions.friendlyDescription
-import info.nightscout.core.extensions.highValueToUnitsToString
-import info.nightscout.core.extensions.lowValueToUnitsToString
-import info.nightscout.core.ui.dialogs.OKDialog
-import info.nightscout.core.ui.toast.ToastUtils
-import info.nightscout.core.utils.ActionModeHelper
-import info.nightscout.core.utils.fabric.FabricPrivacy
-import info.nightscout.database.ValueWrapper
-import info.nightscout.database.entities.TemporaryTarget
-import info.nightscout.database.entities.UserEntry.Action
-import info.nightscout.database.entities.UserEntry.Sources
-import info.nightscout.database.entities.ValueWithUnit
-import info.nightscout.database.entities.interfaces.end
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.database.impl.transactions.InvalidateTemporaryTargetTransaction
-import info.nightscout.interfaces.Config
-import info.nightscout.interfaces.Translator
-import info.nightscout.interfaces.logging.UserEntryLogger
-import info.nightscout.interfaces.utils.DecimalFormatter
-import info.nightscout.rx.AapsSchedulers
-import info.nightscout.rx.bus.RxBus
-import info.nightscout.rx.events.EventTempTargetChange
-import info.nightscout.rx.logging.AAPSLogger
-import info.nightscout.rx.logging.LTag
-import info.nightscout.shared.extensions.toVisibility
-import info.nightscout.shared.interfaces.ProfileUtil
-import info.nightscout.shared.interfaces.ResourceHelper
-import info.nightscout.shared.sharedPreferences.SP
-import info.nightscout.shared.utils.DateUtil
-import info.nightscout.shared.utils.T
 import info.nightscout.ui.R
 import info.nightscout.ui.activities.fragments.TreatmentsTempTargetFragment.RecyclerViewAdapter.TempTargetsViewHolder
 import info.nightscout.ui.databinding.TreatmentsTemptargetFragmentBinding
@@ -165,14 +165,14 @@ class TreatmentsTempTargetFragment : DaggerFragment(), MenuProvider {
             holder.binding.date.visibility = newDay.toVisibility()
             holder.binding.date.text = if (newDay) dateUtil.dateStringRelative(tempTarget.timestamp, rh) else ""
             holder.binding.time.text = dateUtil.timeRangeString(tempTarget.timestamp, tempTarget.end)
-            holder.binding.duration.text = rh.gs(info.nightscout.core.ui.R.string.format_mins, T.msecs(tempTarget.duration).mins())
+            holder.binding.duration.text = rh.gs(app.aaps.core.ui.R.string.format_mins, T.msecs(tempTarget.duration).mins())
             holder.binding.low.text = tempTarget.lowValueToUnitsToString(units, decimalFormatter)
             holder.binding.high.text = tempTarget.highValueToUnitsToString(units, decimalFormatter)
             holder.binding.reason.text = translator.translate(tempTarget.reason)
             holder.binding.time.setTextColor(
                 when {
-                    tempTarget.id == currentlyActiveTarget?.id -> rh.gac(context, info.nightscout.core.ui.R.attr.activeColor)
-                    tempTarget.timestamp > dateUtil.now()      -> rh.gac(context, info.nightscout.core.ui.R.attr.scheduledColor)
+                    tempTarget.id == currentlyActiveTarget?.id -> rh.gac(context, app.aaps.core.ui.R.attr.activeColor)
+                    tempTarget.timestamp > dateUtil.now()      -> rh.gac(context, app.aaps.core.ui.R.attr.scheduledColor)
                     else                                       -> holder.binding.reasonColon.currentTextColor
                 }
             )
@@ -224,15 +224,15 @@ class TreatmentsTempTargetFragment : DaggerFragment(), MenuProvider {
     private fun getConfirmationText(selectedItems: SparseArray<TemporaryTarget>): String {
         if (selectedItems.size() == 1) {
             val tempTarget = selectedItems.valueAt(0)
-            return "${rh.gs(info.nightscout.core.ui.R.string.temporary_target)}: ${tempTarget.friendlyDescription(profileUtil.units, rh, profileUtil)}\n" +
+            return "${rh.gs(app.aaps.core.ui.R.string.temporary_target)}: ${tempTarget.friendlyDescription(profileUtil.units, rh, profileUtil)}\n" +
                 dateUtil.dateAndTimeString(tempTarget.timestamp)
         }
-        return rh.gs(info.nightscout.core.ui.R.string.confirm_remove_multiple_items, selectedItems.size())
+        return rh.gs(app.aaps.core.ui.R.string.confirm_remove_multiple_items, selectedItems.size())
     }
 
     private fun removeSelected(selectedItems: SparseArray<TemporaryTarget>) {
         activity?.let { activity ->
-            OKDialog.showConfirmation(activity, rh.gs(info.nightscout.core.ui.R.string.removerecord), getConfirmationText(selectedItems), Runnable {
+            OKDialog.showConfirmation(activity, rh.gs(app.aaps.core.ui.R.string.removerecord), getConfirmationText(selectedItems), Runnable {
                 selectedItems.forEach { _, tempTarget ->
                     uel.log(
                         Action.TT_REMOVED, Sources.Treatments,

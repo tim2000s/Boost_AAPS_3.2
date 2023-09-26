@@ -1,14 +1,14 @@
 package info.nightscout.plugins.sync.nsclientV3.extensions
 
+import app.aaps.core.interfaces.insulin.Insulin
+import app.aaps.core.nssdk.localmodel.treatment.NSEffectiveProfileSwitch
+import app.aaps.core.nssdk.mapper.convertToRemoteAndBack
+import app.aaps.database.entities.EffectiveProfileSwitch
+import app.aaps.database.entities.embedments.InsulinConfiguration
+import app.aaps.database.entities.embedments.InterfaceIDs
 import app.aaps.shared.tests.TestBaseWithProfile
-import info.nightscout.database.entities.EffectiveProfileSwitch
-import info.nightscout.database.entities.embedments.InsulinConfiguration
-import info.nightscout.database.entities.embedments.InterfaceIDs
-import info.nightscout.interfaces.insulin.Insulin
+import com.google.common.truth.Truth.assertThat
 import info.nightscout.plugins.sync.nsclient.extensions.fromConstant
-import info.nightscout.sdk.localmodel.treatment.NSEffectiveProfileSwitch
-import info.nightscout.sdk.mapper.convertToRemoteAndBack
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mock
@@ -55,7 +55,7 @@ internal class EffectiveProfileSwitchExtensionKtTest : TestBaseWithProfile() {
         )
 
         val profileSwitch2 = (profileSwitch.toNSEffectiveProfileSwitch(dateUtil).convertToRemoteAndBack() as NSEffectiveProfileSwitch).toEffectiveProfileSwitch(dateUtil)!!
-        Assertions.assertTrue(profileSwitch.contentEqualsTo(profileSwitch2))
-        Assertions.assertTrue(profileSwitch.interfaceIdsEqualsTo(profileSwitch2))
+        assertThat(profileSwitch.contentEqualsTo(profileSwitch2)).isTrue()
+        assertThat(profileSwitch.interfaceIdsEqualsTo(profileSwitch2)).isTrue()
     }
 }

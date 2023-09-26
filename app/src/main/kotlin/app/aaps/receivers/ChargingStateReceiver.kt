@@ -4,12 +4,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.receivers.ReceiverStatusStore
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventChargingState
 import dagger.android.DaggerBroadcastReceiver
-import info.nightscout.interfaces.receivers.ReceiverStatusStore
-import info.nightscout.rx.bus.RxBus
-import info.nightscout.rx.events.EventChargingState
-import info.nightscout.rx.logging.AAPSLogger
-import info.nightscout.rx.logging.LTag
 import javax.inject.Inject
 
 class ChargingStateReceiver : DaggerBroadcastReceiver() {

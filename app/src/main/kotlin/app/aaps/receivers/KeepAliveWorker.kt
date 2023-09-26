@@ -9,27 +9,27 @@ import androidx.work.WorkManager
 import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import app.aaps.configuration.maintenance.MaintenancePlugin
+import app.aaps.core.interfaces.alerts.LocalAlertUtils
+import app.aaps.core.interfaces.aps.Loop
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.iob.IobCobCalculator
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.profile.ProfileFunction
+import app.aaps.core.interfaces.queue.Command
+import app.aaps.core.interfaces.queue.CommandQueue
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventProfileSwitchChanged
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.T
+import app.aaps.core.main.profile.ProfileSealed
+import app.aaps.core.main.utils.worker.LoggingWorker
+import app.aaps.plugins.configuration.maintenance.MaintenancePlugin
 import com.google.common.util.concurrent.ListenableFuture
 import info.nightscout.androidaps.R
-import info.nightscout.core.profile.ProfileSealed
-import info.nightscout.core.utils.worker.LoggingWorker
 import info.nightscout.database.impl.AppRepository
-import info.nightscout.interfaces.Config
-import info.nightscout.interfaces.LocalAlertUtils
-import info.nightscout.interfaces.aps.Loop
-import info.nightscout.interfaces.iob.IobCobCalculator
-import info.nightscout.interfaces.plugin.ActivePlugin
-import info.nightscout.interfaces.profile.ProfileFunction
-import info.nightscout.interfaces.queue.Command
-import info.nightscout.interfaces.queue.CommandQueue
-import info.nightscout.rx.bus.RxBus
-import info.nightscout.rx.events.EventProfileSwitchChanged
-import info.nightscout.rx.logging.LTag
-import info.nightscout.shared.interfaces.ResourceHelper
-import info.nightscout.shared.sharedPreferences.SP
-import info.nightscout.shared.utils.DateUtil
-import info.nightscout.shared.utils.T
 import kotlinx.coroutines.Dispatchers
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -187,10 +187,10 @@ class KeepAliveWorker(
             rxBus.send(EventProfileSwitchChanged())
         } else if (isStatusOutdated && !pump.isBusy()) {
             lastReadStatus = now
-            commandQueue.readStatus(rh.gs(info.nightscout.core.ui.R.string.keepalive_status_outdated), null)
+            commandQueue.readStatus(rh.gs(app.aaps.core.ui.R.string.keepalive_status_outdated), null)
         } else if (isBasalOutdated && !pump.isBusy()) {
             lastReadStatus = now
-            commandQueue.readStatus(rh.gs(info.nightscout.core.ui.R.string.keepalive_basal_outdated), null)
+            commandQueue.readStatus(rh.gs(app.aaps.core.ui.R.string.keepalive_basal_outdated), null)
         }
     }
 }

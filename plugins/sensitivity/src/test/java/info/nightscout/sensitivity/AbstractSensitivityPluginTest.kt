@@ -1,16 +1,16 @@
 package info.nightscout.sensitivity
 
+import app.aaps.core.interfaces.aps.AutosensDataStore
+import app.aaps.core.interfaces.aps.AutosensResult
+import app.aaps.core.interfaces.aps.Sensitivity
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.plugin.PluginDescription
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.sharedPreferences.SP
 import app.aaps.shared.tests.TestBase
 import com.google.common.truth.Truth.assertThat
 import dagger.android.AndroidInjector
 import dagger.android.HasAndroidInjector
-import info.nightscout.interfaces.aps.AutosensDataStore
-import info.nightscout.interfaces.aps.AutosensResult
-import info.nightscout.interfaces.aps.Sensitivity
-import info.nightscout.interfaces.plugin.PluginDescription
-import info.nightscout.rx.logging.AAPSLogger
-import info.nightscout.shared.interfaces.ResourceHelper
-import info.nightscout.shared.sharedPreferences.SP
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import org.mockito.Mock

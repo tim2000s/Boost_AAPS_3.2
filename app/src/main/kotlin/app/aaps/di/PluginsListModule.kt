@@ -1,7 +1,34 @@
 package app.aaps.di
 
-import app.aaps.configuration.configBuilder.ConfigBuilderPlugin
-import app.aaps.configuration.maintenance.MaintenancePlugin
+import app.aaps.core.interfaces.plugin.PluginBase
+import app.aaps.plugins.aps.autotune.AutotunePlugin
+import app.aaps.plugins.aps.loop.LoopPlugin
+import app.aaps.plugins.aps.openAPSAMA.OpenAPSAMAPlugin
+import app.aaps.plugins.aps.openAPSSMB.OpenAPSSMBPlugin
+import app.aaps.plugins.aps.openAPSSMBDynamicISF.OpenAPSSMBDynamicISFPlugin
+import app.aaps.plugins.automation.AutomationPlugin
+import app.aaps.plugins.configuration.configBuilder.ConfigBuilderPlugin
+import app.aaps.plugins.configuration.maintenance.MaintenancePlugin
+import app.aaps.plugins.constraints.bgQualityCheck.BgQualityCheckPlugin
+import app.aaps.plugins.constraints.dstHelper.DstHelperPlugin
+import app.aaps.plugins.constraints.objectives.ObjectivesPlugin
+import app.aaps.plugins.constraints.safety.SafetyPlugin
+import app.aaps.plugins.constraints.signatureVerifier.SignatureVerifierPlugin
+import app.aaps.plugins.constraints.storage.StorageConstraintPlugin
+import app.aaps.plugins.constraints.versionChecker.VersionCheckerPlugin
+import app.aaps.plugins.insulin.InsulinLyumjevPlugin
+import app.aaps.plugins.insulin.InsulinOrefFreePeakPlugin
+import app.aaps.plugins.insulin.InsulinOrefRapidActingPlugin
+import app.aaps.plugins.insulin.InsulinOrefUltraRapidActingPlugin
+import app.aaps.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin
+import app.aaps.plugins.main.general.actions.ActionsPlugin
+import app.aaps.plugins.main.general.food.FoodPlugin
+import app.aaps.plugins.main.general.overview.OverviewPlugin
+import app.aaps.plugins.main.general.persistentNotification.PersistentNotificationPlugin
+import app.aaps.plugins.main.general.smsCommunicator.SmsCommunicatorPlugin
+import app.aaps.plugins.main.general.themes.ThemeSwitcherPlugin
+import app.aaps.plugins.main.general.wear.WearPlugin
+import app.aaps.plugins.main.profile.ProfilePlugin
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntKey
@@ -14,34 +41,6 @@ import info.nightscout.androidaps.plugins.pump.insight.LocalInsightPlugin
 import info.nightscout.androidaps.plugins.pump.medtronic.MedtronicPumpPlugin
 import info.nightscout.androidaps.plugins.pump.omnipod.dash.OmnipodDashPumpPlugin
 import info.nightscout.androidaps.plugins.pump.omnipod.eros.OmnipodErosPumpPlugin
-import info.nightscout.automation.AutomationPlugin
-import info.nightscout.insulin.InsulinLyumjevPlugin
-import info.nightscout.insulin.InsulinLyumjevU100PDPlugin
-import info.nightscout.insulin.InsulinLyumjevU200PDPlugin
-import info.nightscout.insulin.InsulinOrefFreePeakPlugin
-import info.nightscout.insulin.InsulinOrefRapidActingPlugin
-import info.nightscout.insulin.InsulinOrefUltraRapidActingPlugin
-import info.nightscout.interfaces.plugin.PluginBase
-import info.nightscout.plugins.aps.loop.LoopPlugin
-import info.nightscout.plugins.aps.openAPSAMA.OpenAPSAMAPlugin
-import info.nightscout.plugins.aps.openAPSSMB.OpenAPSSMBPlugin
-import info.nightscout.plugins.aps.openAPSSMBDynamicISF.OpenAPSSMBDynamicISFPlugin
-import info.nightscout.plugins.aps.Boost.BoostPlugin
-import info.nightscout.plugins.aps.EN.ENPlugin
-import info.nightscout.plugins.constraints.bgQualityCheck.BgQualityCheckPlugin
-import info.nightscout.plugins.constraints.objectives.ObjectivesPlugin
-import info.nightscout.plugins.constraints.safety.SafetyPlugin
-import info.nightscout.plugins.constraints.signatureVerifier.SignatureVerifierPlugin
-import info.nightscout.plugins.general.actions.ActionsPlugin
-import info.nightscout.plugins.general.autotune.AutotunePlugin
-import info.nightscout.plugins.general.food.FoodPlugin
-import info.nightscout.plugins.general.overview.OverviewPlugin
-import info.nightscout.plugins.general.persistentNotification.PersistentNotificationPlugin
-import info.nightscout.plugins.general.smsCommunicator.SmsCommunicatorPlugin
-import info.nightscout.plugins.general.themes.ThemeSwitcherPlugin
-import info.nightscout.plugins.general.wear.WearPlugin
-import info.nightscout.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin
-import info.nightscout.plugins.profile.ProfilePlugin
 import info.nightscout.plugins.sync.dataBroadcaster.DataBroadcastPlugin
 import info.nightscout.plugins.sync.nsclient.NSClientPlugin
 import info.nightscout.plugins.sync.nsclientV3.NSClientV3Plugin
@@ -302,7 +301,7 @@ abstract class PluginsListModule {
     @NotNSClient
     @IntoMap
     @IntKey(270)
-    abstract fun bindVersionCheckerPlugin(plugin: info.nightscout.plugins.constraints.versionChecker.VersionCheckerPlugin): PluginBase
+    abstract fun bindVersionCheckerPlugin(plugin: VersionCheckerPlugin): PluginBase
 
     @Binds
     @NotNSClient
@@ -314,7 +313,7 @@ abstract class PluginsListModule {
     @APS
     @IntoMap
     @IntKey(290)
-    abstract fun bindStorageConstraintPlugin(plugin: info.nightscout.plugins.constraints.storage.StorageConstraintPlugin): PluginBase
+    abstract fun bindStorageConstraintPlugin(plugin: StorageConstraintPlugin): PluginBase
 
     @Binds
     @APS
@@ -386,7 +385,7 @@ abstract class PluginsListModule {
     @AllConfigs
     @IntoMap
     @IntKey(380)
-    abstract fun bindDstHelperPlugin(plugin: info.nightscout.plugins.constraints.dstHelper.DstHelperPlugin): PluginBase
+    abstract fun bindDstHelperPlugin(plugin: DstHelperPlugin): PluginBase
 
     @Binds
     @AllConfigs

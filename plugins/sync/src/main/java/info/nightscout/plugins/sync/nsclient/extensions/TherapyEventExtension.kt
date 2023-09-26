@@ -1,12 +1,11 @@
 package info.nightscout.plugins.sync.nsclient.extensions
 
-import info.nightscout.core.utils.JsonHelper
-import info.nightscout.database.entities.TherapyEvent
-import info.nightscout.interfaces.Constants
-import info.nightscout.interfaces.GlucoseUnit
+import app.aaps.core.interfaces.db.GlucoseUnit
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.T
+import app.aaps.core.utils.JsonHelper
+import app.aaps.database.entities.TherapyEvent
 import info.nightscout.plugins.sync.nsclient.data.NSMbg
-import info.nightscout.shared.utils.DateUtil
-import info.nightscout.shared.utils.T
 import org.json.JSONObject
 
 fun TherapyEvent.GlucoseUnit.toMainUnit(): GlucoseUnit =

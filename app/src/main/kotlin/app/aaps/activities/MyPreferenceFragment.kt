@@ -15,7 +15,36 @@ import androidx.preference.PreferenceGroup
 import androidx.preference.PreferenceManager
 import androidx.preference.PreferenceScreen
 import androidx.preference.size
-import app.aaps.configuration.maintenance.MaintenancePlugin
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.nsclient.NSSettingsStatus
+import app.aaps.core.interfaces.plugin.PluginBase
+import app.aaps.core.interfaces.profile.ProfileUtil
+import app.aaps.core.interfaces.protection.PasswordCheck
+import app.aaps.core.interfaces.protection.ProtectionCheck.ProtectionType.BIOMETRIC
+import app.aaps.core.interfaces.protection.ProtectionCheck.ProtectionType.CUSTOM_PASSWORD
+import app.aaps.core.interfaces.protection.ProtectionCheck.ProtectionType.CUSTOM_PIN
+import app.aaps.core.interfaces.protection.ProtectionCheck.ProtectionType.NONE
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventPreferenceChange
+import app.aaps.core.interfaces.rx.events.EventRebuildTabs
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.utils.SafeParse
+import app.aaps.core.ui.dialogs.OKDialog
+import app.aaps.implementation.plugin.PluginStore
+import app.aaps.plugins.aps.autotune.AutotunePlugin
+import app.aaps.plugins.aps.loop.LoopPlugin
+import app.aaps.plugins.aps.openAPSAMA.OpenAPSAMAPlugin
+import app.aaps.plugins.aps.openAPSSMB.OpenAPSSMBPlugin
+import app.aaps.plugins.aps.openAPSSMBDynamicISF.OpenAPSSMBDynamicISFPlugin
+import app.aaps.plugins.aps.Boost.BoostPlugin
+import app.aaps.plugins.aps.EN.ENPlugin
+import app.aaps.plugins.automation.AutomationPlugin
+import app.aaps.plugins.configuration.maintenance.MaintenancePlugin
+import app.aaps.plugins.constraints.safety.SafetyPlugin
+import app.aaps.plugins.insulin.InsulinOrefFreePeakPlugin
+import app.aaps.plugins.main.general.smsCommunicator.SmsCommunicatorPlugin
+import app.aaps.plugins.main.general.wear.WearPlugin
 import dagger.android.support.AndroidSupportInjection
 import info.nightscout.androidaps.R
 import info.nightscout.androidaps.danaRKorean.DanaRKoreanPlugin
@@ -24,28 +53,6 @@ import info.nightscout.androidaps.danar.DanaRPlugin
 import info.nightscout.androidaps.plugins.pump.eopatch.EopatchPumpPlugin
 import info.nightscout.androidaps.plugins.pump.insight.LocalInsightPlugin
 import info.nightscout.androidaps.plugins.pump.medtronic.MedtronicPumpPlugin
-import info.nightscout.automation.AutomationPlugin
-import info.nightscout.core.ui.dialogs.OKDialog
-import info.nightscout.implementation.plugin.PluginStore
-import info.nightscout.insulin.InsulinOrefFreePeakPlugin
-import info.nightscout.interfaces.Config
-import info.nightscout.interfaces.nsclient.NSSettingsStatus
-import info.nightscout.interfaces.plugin.PluginBase
-import info.nightscout.interfaces.protection.PasswordCheck
-import info.nightscout.interfaces.protection.ProtectionCheck.ProtectionType.BIOMETRIC
-import info.nightscout.interfaces.protection.ProtectionCheck.ProtectionType.CUSTOM_PASSWORD
-import info.nightscout.interfaces.protection.ProtectionCheck.ProtectionType.CUSTOM_PIN
-import info.nightscout.interfaces.protection.ProtectionCheck.ProtectionType.NONE
-import info.nightscout.plugins.aps.loop.LoopPlugin
-import info.nightscout.plugins.aps.openAPSAMA.OpenAPSAMAPlugin
-import info.nightscout.plugins.aps.openAPSSMB.OpenAPSSMBPlugin
-import info.nightscout.plugins.aps.openAPSSMBDynamicISF.OpenAPSSMBDynamicISFPlugin
-import info.nightscout.plugins.aps.Boost.BoostPlugin
-import info.nightscout.plugins.aps.EN.ENPlugin
-import info.nightscout.plugins.constraints.safety.SafetyPlugin
-import info.nightscout.plugins.general.autotune.AutotunePlugin
-import info.nightscout.plugins.general.smsCommunicator.SmsCommunicatorPlugin
-import info.nightscout.plugins.general.wear.WearPlugin
 import info.nightscout.plugins.sync.nsclient.NSClientPlugin
 import info.nightscout.plugins.sync.nsclientV3.NSClientV3Plugin
 import info.nightscout.plugins.sync.openhumans.OpenHumansUploaderPlugin
@@ -56,16 +63,9 @@ import info.nightscout.pump.combov2.ComboV2Plugin
 import info.nightscout.pump.diaconn.DiaconnG8Plugin
 import info.nightscout.pump.medtrum.MedtrumPlugin
 import info.nightscout.pump.virtual.VirtualPumpPlugin
-import info.nightscout.rx.bus.RxBus
-import info.nightscout.rx.events.EventPreferenceChange
-import info.nightscout.rx.events.EventRebuildTabs
 import info.nightscout.sensitivity.SensitivityAAPSPlugin
 import info.nightscout.sensitivity.SensitivityOref1Plugin
 import info.nightscout.sensitivity.SensitivityWeightedAveragePlugin
-import info.nightscout.shared.SafeParse
-import info.nightscout.shared.interfaces.ProfileUtil
-import info.nightscout.shared.interfaces.ResourceHelper
-import info.nightscout.shared.sharedPreferences.SP
 import info.nightscout.source.AidexPlugin
 import info.nightscout.source.DexcomPlugin
 import info.nightscout.source.EversensePlugin
@@ -190,7 +190,7 @@ class MyPreferenceFragment : PreferenceFragmentCompat(), OnSharedPreferenceChang
             addPreferencesFromResource(pluginId, rootKey)
         } else {
             addPreferencesFromResource(R.xml.pref_general, rootKey)
-            addPreferencesFromResource(info.nightscout.plugins.R.xml.pref_overview, rootKey)
+            addPreferencesFromResource(app.aaps.plugins.main.R.xml.pref_overview, rootKey)
             addPreferencesFromResourceIfEnabled(safetyPlugin, rootKey)
             addPreferencesFromResourceIfEnabled(eversensePlugin, rootKey)
             addPreferencesFromResourceIfEnabled(dexcomPlugin, rootKey)
@@ -232,7 +232,7 @@ class MyPreferenceFragment : PreferenceFragmentCompat(), OnSharedPreferenceChang
             addPreferencesFromResourceIfEnabled(wearPlugin, rootKey)
             addPreferencesFromResourceIfEnabled(statusLinePlugin, rootKey)
             addPreferencesFromResource(R.xml.pref_alerts, rootKey)
-            addPreferencesFromResource(app.aaps.configuration.R.xml.pref_datachoices, rootKey)
+            addPreferencesFromResource(app.aaps.plugins.configuration.R.xml.pref_datachoices, rootKey)
             addPreferencesFromResourceIfEnabled(maintenancePlugin, rootKey)
             addPreferencesFromResourceIfEnabled(openHumansUploaderPlugin, rootKey)
         }
@@ -241,14 +241,15 @@ class MyPreferenceFragment : PreferenceFragmentCompat(), OnSharedPreferenceChang
         if (filter != "") updateFilterVisibility(filter, preferenceScreen)
     }
 
-    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) {
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
+        key ?: return
         rxBus.send(EventPreferenceChange(key))
-        if (key == rh.gs(info.nightscout.core.ui.R.string.key_language)) {
+        if (key == rh.gs(app.aaps.core.ui.R.string.key_language)) {
             rxBus.send(EventRebuildTabs(true))
             //recreate() does not update language so better close settings
             activity?.finish()
         }
-        if (key == rh.gs(info.nightscout.plugins.R.string.key_short_tabtitles)) {
+        if (key == rh.gs(app.aaps.plugins.main.R.string.key_short_tabtitles)) {
             rxBus.send(EventRebuildTabs())
         }
         if (key == rh.gs(info.nightscout.core.utils.R.string.key_units)) {
@@ -257,7 +258,7 @@ class MyPreferenceFragment : PreferenceFragmentCompat(), OnSharedPreferenceChang
         }
         if (key == rh.gs(info.nightscout.core.utils.R.string.key_use_autosens) && sp.getBoolean(info.nightscout.core.utils.R.string.key_use_autosens, false)) {
             activity?.let {
-                OKDialog.show(it, rh.gs(app.aaps.configuration.R.string.configbuilder_sensitivity), rh.gs(R.string.sensitivity_warning))
+                OKDialog.show(it, rh.gs(app.aaps.plugins.configuration.R.string.configbuilder_sensitivity), rh.gs(R.string.sensitivity_warning))
             }
         }
         checkForBiometricFallback(key)
@@ -281,9 +282,9 @@ class MyPreferenceFragment : PreferenceFragmentCompat(), OnSharedPreferenceChang
             sp.getInt(key, NONE.ordinal) == BIOMETRIC.ordinal
         ) {
             activity?.let {
-                val title = rh.gs(info.nightscout.core.ui.R.string.unsecure_fallback_biometric)
+                val title = rh.gs(app.aaps.core.ui.R.string.unsecure_fallback_biometric)
                 val message =
-                    rh.gs(app.aaps.configuration.R.string.master_password_missing, rh.gs(app.aaps.configuration.R.string.configbuilder_general), rh.gs(app.aaps.configuration.R.string.protection))
+                    rh.gs(app.aaps.plugins.configuration.R.string.master_password_missing, rh.gs(app.aaps.plugins.configuration.R.string.configbuilder_general), rh.gs(app.aaps.plugins.configuration.R.string.protection))
                 OKDialog.show(it, title = title, message = message)
             }
         }
@@ -294,8 +295,8 @@ class MyPreferenceFragment : PreferenceFragmentCompat(), OnSharedPreferenceChang
             sp.getInt(info.nightscout.core.utils.R.string.key_bolus_protection, NONE.ordinal) == BIOMETRIC.ordinal
         if (rh.gs(info.nightscout.core.utils.R.string.key_master_password) == key && sp.getString(key, "") == "" && isBiometricActivated) {
             activity?.let {
-                val title = rh.gs(info.nightscout.core.ui.R.string.unsecure_fallback_biometric)
-                val message = rh.gs(info.nightscout.core.ui.R.string.unsecure_fallback_descriotion_biometric)
+                val title = rh.gs(app.aaps.core.ui.R.string.unsecure_fallback_biometric)
+                val message = rh.gs(app.aaps.core.ui.R.string.unsecure_fallback_descriotion_biometric)
                 OKDialog.show(it, title = title, message = message)
             }
         }
@@ -391,7 +392,6 @@ class MyPreferenceFragment : PreferenceFragmentCompat(), OnSharedPreferenceChang
             if (pref.getKey().contains("password") || pref.getKey().contains("pin") || pref.getKey().contains("secret") || pref.getKey().contains("token")) {
                 pref.setSummary("******")
             } else if (pref.text != null) {
-                pref.dialogMessage = pref.dialogMessage
                 pref.setSummary(pref.text)
             }
         }
@@ -410,16 +410,14 @@ class MyPreferenceFragment : PreferenceFragmentCompat(), OnSharedPreferenceChang
             rh.gs(info.nightscout.core.utils.R.string.key_settings_pin)
         )
 
-        if (pref is Preference) {
-            if ((pref.key != null) && (hmacPasswords.contains(pref.key))) {
-                if (sp.getString(pref.key, "").startsWith("hmac:")) {
-                    pref.summary = "******"
+        if (pref is Preference && (pref.key != null) && (hmacPasswords.contains(pref.key))) {
+            if (sp.getString(pref.key, "").startsWith("hmac:")) {
+                pref.summary = "******"
+            } else {
+                if (pref.key.contains("pin")) {
+                    pref.summary = rh.gs(app.aaps.core.ui.R.string.pin_not_set)
                 } else {
-                    if (pref.key.contains("pin")) {
-                        pref.summary = rh.gs(info.nightscout.core.ui.R.string.pin_not_set)
-                    } else {
-                        pref.summary = rh.gs(info.nightscout.core.ui.R.string.password_not_set)
-                    }
+                    pref.summary = rh.gs(app.aaps.core.ui.R.string.password_not_set)
                 }
             }
         }
@@ -429,10 +427,8 @@ class MyPreferenceFragment : PreferenceFragmentCompat(), OnSharedPreferenceChang
     private fun initSummary(p: Preference, isSinglePreference: Boolean) {
         p.isIconSpaceReserved = false // remove extra spacing on left after migration to androidx
         // expand single plugin preference by default
-        if (p is PreferenceScreen && isSinglePreference) {
-            if (p.size > 0 && p.getPreference(0) is PreferenceCategory)
-                (p.getPreference(0) as PreferenceCategory).initialExpandedChildrenCount = Int.MAX_VALUE
-        }
+        if (p is PreferenceScreen && isSinglePreference && p.size > 0 && p.getPreference(0) is PreferenceCategory)
+            (p.getPreference(0) as PreferenceCategory).initialExpandedChildrenCount = Int.MAX_VALUE
         if (p is PreferenceGroup) {
             for (i in 0 until p.preferenceCount) {
                 initSummary(p.getPreference(i), isSinglePreference)
@@ -445,46 +441,54 @@ class MyPreferenceFragment : PreferenceFragmentCompat(), OnSharedPreferenceChang
     // We use Preference and custom editor instead of EditTextPreference
     // to hash password while it is saved and never have to show it, even hashed
 
-    override fun onPreferenceTreeClick(preference: Preference): Boolean {
+    override fun onPreferenceTreeClick(preference: Preference): Boolean =
         context?.let { context ->
-            if (preference.key == rh.gs(info.nightscout.core.utils.R.string.key_master_password)) {
-                passwordCheck.queryPassword(context, app.aaps.configuration.R.string.current_master_password, info.nightscout.core.utils.R.string.key_master_password, {
-                    passwordCheck.setPassword(context, info.nightscout.core.ui.R.string.master_password, info.nightscout.core.utils.R.string.key_master_password)
-                })
-                return true
+            when (preference.key) {
+                rh.gs(info.nightscout.core.utils.R.string.key_master_password)      -> {
+                    passwordCheck.queryPassword(context, app.aaps.plugins.configuration.R.string.current_master_password, info.nightscout.core.utils.R.string.key_master_password, {
+                        passwordCheck.setPassword(context, app.aaps.core.ui.R.string.master_password, info.nightscout.core.utils.R.string.key_master_password)
+                    })
+                    true
+                }
+
+                rh.gs(info.nightscout.core.utils.R.string.key_settings_password)    -> {
+                    passwordCheck.setPassword(context, app.aaps.core.ui.R.string.settings_password, info.nightscout.core.utils.R.string.key_settings_password)
+                    true
+                }
+
+                rh.gs(info.nightscout.core.utils.R.string.key_bolus_password)       -> {
+                    passwordCheck.setPassword(context, app.aaps.core.ui.R.string.bolus_password, info.nightscout.core.utils.R.string.key_bolus_password)
+                    true
+                }
+
+                rh.gs(info.nightscout.core.utils.R.string.key_application_password) -> {
+                    passwordCheck.setPassword(context, app.aaps.core.ui.R.string.application_password, info.nightscout.core.utils.R.string.key_application_password)
+                    true
+                }
+
+                rh.gs(info.nightscout.core.utils.R.string.key_settings_pin)         -> {
+                    passwordCheck.setPassword(context, app.aaps.core.ui.R.string.settings_pin, info.nightscout.core.utils.R.string.key_settings_pin, pinInput = true)
+                    true
+                }
+
+                rh.gs(info.nightscout.core.utils.R.string.key_bolus_pin)            -> {
+                    passwordCheck.setPassword(context, app.aaps.core.ui.R.string.bolus_pin, info.nightscout.core.utils.R.string.key_bolus_pin, pinInput = true)
+                    true
+                }
+
+                rh.gs(info.nightscout.core.utils.R.string.key_application_pin)      -> {
+                    passwordCheck.setPassword(context, app.aaps.core.ui.R.string.application_pin, info.nightscout.core.utils.R.string.key_application_pin, pinInput = true)
+                    true
+                }
+                // NSClient copy settings
+                rh.gs(app.aaps.plugins.main.R.string.key_statuslights_copy_ns)    -> {
+                    nsSettingStatus.copyStatusLightsNsSettings(context)
+                    true
+                }
+
+                else                                                                -> super.onPreferenceTreeClick(preference)
             }
-            if (preference.key == rh.gs(info.nightscout.core.utils.R.string.key_settings_password)) {
-                passwordCheck.setPassword(context, info.nightscout.core.ui.R.string.settings_password, info.nightscout.core.utils.R.string.key_settings_password)
-                return true
-            }
-            if (preference.key == rh.gs(info.nightscout.core.utils.R.string.key_bolus_password)) {
-                passwordCheck.setPassword(context, info.nightscout.core.ui.R.string.bolus_password, info.nightscout.core.utils.R.string.key_bolus_password)
-                return true
-            }
-            if (preference.key == rh.gs(info.nightscout.core.utils.R.string.key_application_password)) {
-                passwordCheck.setPassword(context, info.nightscout.core.ui.R.string.application_password, info.nightscout.core.utils.R.string.key_application_password)
-                return true
-            }
-            if (preference.key == rh.gs(info.nightscout.core.utils.R.string.key_settings_pin)) {
-                passwordCheck.setPassword(context, info.nightscout.core.ui.R.string.settings_pin, info.nightscout.core.utils.R.string.key_settings_pin, pinInput = true)
-                return true
-            }
-            if (preference.key == rh.gs(info.nightscout.core.utils.R.string.key_bolus_pin)) {
-                passwordCheck.setPassword(context, info.nightscout.core.ui.R.string.bolus_pin, info.nightscout.core.utils.R.string.key_bolus_pin, pinInput = true)
-                return true
-            }
-            if (preference.key == rh.gs(info.nightscout.core.utils.R.string.key_application_pin)) {
-                passwordCheck.setPassword(context, info.nightscout.core.ui.R.string.application_pin, info.nightscout.core.utils.R.string.key_application_pin, pinInput = true)
-                return true
-            }
-            // NSClient copy settings
-            if (preference.key == rh.gs(info.nightscout.plugins.R.string.key_statuslights_copy_ns)) {
-                nsSettingStatus.copyStatusLightsNsSettings(context)
-                return true
-            }
-        }
-        return super.onPreferenceTreeClick(preference)
-    }
+        } ?: super.onPreferenceTreeClick(preference)
 
     fun setFilter(filter: String) {
         this.filter = filter

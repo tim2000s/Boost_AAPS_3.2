@@ -1,22 +1,22 @@
 package app.aaps.activities
 
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.profile.DefaultValueHelper
+import app.aaps.core.interfaces.profile.ProfileFunction
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.AapsSchedulers
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.DecimalFormatter
+import app.aaps.core.main.graph.OverviewData
+import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.core.main.workflow.CalculationWorkflow
+import app.aaps.implementation.overview.OverviewDataImpl
+import app.aaps.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin
 import dagger.android.HasAndroidInjector
-import info.nightscout.core.graph.OverviewData
-import info.nightscout.core.utils.fabric.FabricPrivacy
-import info.nightscout.core.workflow.CalculationWorkflow
 import info.nightscout.database.impl.AppRepository
-import info.nightscout.implementation.overview.OverviewDataImpl
-import info.nightscout.interfaces.plugin.ActivePlugin
-import info.nightscout.interfaces.profile.DefaultValueHelper
-import info.nightscout.interfaces.profile.ProfileFunction
-import info.nightscout.interfaces.utils.DecimalFormatter
-import info.nightscout.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin
-import info.nightscout.rx.AapsSchedulers
-import info.nightscout.rx.bus.RxBus
-import info.nightscout.rx.logging.AAPSLogger
-import info.nightscout.shared.interfaces.ResourceHelper
-import info.nightscout.shared.sharedPreferences.SP
-import info.nightscout.shared.utils.DateUtil
 import javax.inject.Inject
 import javax.inject.Singleton
 
