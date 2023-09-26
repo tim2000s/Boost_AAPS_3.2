@@ -33,8 +33,8 @@ import app.aaps.database.ValueWrapper
 import app.aaps.database.entities.Bolus
 import app.aaps.database.entities.TemporaryTarget
 import app.aaps.database.entities.TherapyEvent
+import app.aaps.database.impl.AppRepository
 import app.aaps.plugins.aps.R
-import info.nightscout.database.impl.AppRepository
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject

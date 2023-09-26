@@ -34,7 +34,7 @@ import app.aaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
 import app.aaps.plugins.aps.openAPSSMB.OpenAPSSMBPlugin
 import app.aaps.plugins.aps.utils.ScriptReader
 import app.aaps.database.ValueWrapper
-import info.nightscout.database.impl.AppRepository
+import app.aaps.database.impl.AppRepository
 import app.aaps.plugins.aps.R
 import javax.inject.Inject
 import javax.inject.Singleton

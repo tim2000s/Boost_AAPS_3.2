@@ -1,4 +1,4 @@
-package info.nightscout.ui.dialogs
+package app.aaps.ui.dialogs
 
 import android.content.Context
 import android.os.Bundle
@@ -22,14 +22,14 @@ import app.aaps.database.entities.TemporaryTarget
 import app.aaps.database.entities.ValueWithUnit
 import com.google.common.base.Joiner
 import com.google.common.collect.Lists
-import info.nightscout.database.impl.AppRepository
-import info.nightscout.ui.databinding.DialogEnTemptargetBinding
 import app.aaps.core.ui.R
 import app.aaps.core.ui.toast.ToastUtils
 import app.aaps.database.ValueWrapper
 import app.aaps.database.entities.UserEntry
-import info.nightscout.database.impl.transactions.CancelCurrentTemporaryTargetIfAnyTransaction
-import info.nightscout.database.impl.transactions.InsertAndCancelCurrentTemporaryTargetTransaction
+import app.aaps.database.impl.AppRepository
+import app.aaps.database.impl.transactions.CancelCurrentTemporaryTargetIfAnyTransaction
+import app.aaps.database.impl.transactions.InsertAndCancelCurrentTemporaryTargetTransaction
+import app.aaps.ui.databinding.DialogEnTemptargetBinding
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import java.text.DecimalFormat
@@ -143,19 +143,19 @@ class ENTempTargetDialog : DialogFragmentWithDate() {
 
     private fun longClick(v: View) {
         when (v.id) {
-            info.nightscout.ui.R.id.eating_soon -> {
+            app.aaps.ui.R.id.eating_soon -> {
                 binding.temptarget.value = defaultValueHelper.determineEatingSoonTT()
                 binding.duration.value = defaultValueHelper.determineEatingSoonTTDuration().toDouble()
                 binding.reasonList.setText(rh.gs(R.string.eatingsoon), false)
             }
 
-            info.nightscout.ui.R.id.activity    -> {
+            app.aaps.ui.R.id.activity    -> {
                 binding.temptarget.value = defaultValueHelper.determineActivityTT()
                 binding.duration.value = defaultValueHelper.determineActivityTTDuration().toDouble()
                 binding.reasonList.setText(rh.gs(R.string.activity), false)
             }
 
-            info.nightscout.ui.R.id.hypo        -> {
+            app.aaps.ui.R.id.hypo        -> {
                 binding.temptarget.value = defaultValueHelper.determineHypoTT()
                 binding.duration.value = defaultValueHelper.determineHypoTTDuration().toDouble()
                 binding.reasonList.setText(rh.gs(R.string.hypo), false)
@@ -269,7 +269,7 @@ class ENTempTargetDialog : DialogFragmentWithDate() {
                 val cancelFail = {
                     queryingProtection = false
                     aapsLogger.debug(LTag.APS, "Dialog canceled on resume protection: ${this.javaClass.name}")
-                    ToastUtils.showToastInUiThread(ctx, rh.gs(info.nightscout.ui.R.string.dialog_canceled))
+                    ToastUtils.showToastInUiThread(ctx, rh.gs(app.aaps.ui.R.string.dialog_canceled))
                     dismiss()
                 }
                 protectionCheck.queryProtection(activity, ProtectionCheck.Protection.BOLUS, { queryingProtection = false }, cancelFail, cancelFail)
