@@ -33,6 +33,7 @@ import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.DecimalFormatter
 import app.aaps.core.interfaces.utils.MidnightTime
 import app.aaps.core.interfaces.utils.T
+import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
 import app.aaps.core.main.extensions.convertedToAbsolute
 import app.aaps.core.main.extensions.iobCalc
 import app.aaps.core.main.extensions.toTemporaryBasal
@@ -42,17 +43,16 @@ import app.aaps.core.main.iob.copy
 import app.aaps.core.main.iob.determineBasalJson
 import app.aaps.core.main.iob.plus
 import app.aaps.core.main.iob.round
-import app.aaps.core.main.utils.fabric.FabricPrivacy
 import app.aaps.core.main.workflow.CalculationWorkflow
 import app.aaps.database.ValueWrapper
 import app.aaps.database.entities.Bolus
 import app.aaps.database.entities.ExtendedBolus
 import app.aaps.database.entities.TemporaryBasal
 import app.aaps.database.entities.interfaces.end
+import app.aaps.database.impl.AppRepository
 import app.aaps.plugins.iob.iobCobCalculator.data.AutosensDataStoreObject
 import app.aaps.plugins.main.R
 import dagger.android.HasAndroidInjector
-import info.nightscout.database.impl.AppRepository
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import org.json.JSONArray

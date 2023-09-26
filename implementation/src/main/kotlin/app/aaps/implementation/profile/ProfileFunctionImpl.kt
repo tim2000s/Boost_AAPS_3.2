@@ -17,13 +17,13 @@ import app.aaps.core.interfaces.sharedPreferences.SP
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.HardLimits
 import app.aaps.core.interfaces.utils.T
+import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
 import app.aaps.core.main.extensions.fromConstant
 import app.aaps.core.main.profile.ProfileSealed
-import app.aaps.core.main.utils.fabric.FabricPrivacy
 import app.aaps.database.ValueWrapper
 import app.aaps.database.entities.ProfileSwitch
-import info.nightscout.database.impl.AppRepository
-import info.nightscout.database.impl.transactions.InsertOrUpdateProfileSwitch
+import app.aaps.database.impl.AppRepository
+import app.aaps.database.impl.transactions.InsertOrUpdateProfileSwitch
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import java.util.concurrent.ConcurrentHashMap

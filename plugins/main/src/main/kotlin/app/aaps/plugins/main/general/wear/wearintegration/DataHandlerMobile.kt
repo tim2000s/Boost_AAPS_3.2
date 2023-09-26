@@ -39,6 +39,7 @@ import app.aaps.core.interfaces.utils.DecimalFormatter
 import app.aaps.core.interfaces.utils.HardLimits
 import app.aaps.core.interfaces.utils.T
 import app.aaps.core.interfaces.utils.TrendCalculator
+import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
 import app.aaps.core.main.constraints.ConstraintObject
 import app.aaps.core.main.extensions.convertedToAbsolute
 import app.aaps.core.main.extensions.toStringShort
@@ -46,7 +47,6 @@ import app.aaps.core.main.extensions.valueToUnits
 import app.aaps.core.main.graph.data.GlucoseValueDataPoint
 import app.aaps.core.main.iob.generateCOBString
 import app.aaps.core.main.iob.round
-import app.aaps.core.main.utils.fabric.FabricPrivacy
 import app.aaps.core.main.wizard.BolusWizard
 import app.aaps.core.main.wizard.QuickWizard
 import app.aaps.core.main.wizard.QuickWizardEntry
@@ -62,12 +62,12 @@ import app.aaps.database.entities.TotalDailyDose
 import app.aaps.database.entities.UserEntry
 import app.aaps.database.entities.ValueWithUnit
 import app.aaps.database.entities.interfaces.end
+import app.aaps.database.impl.AppRepository
+import app.aaps.database.impl.transactions.CancelCurrentTemporaryTargetIfAnyTransaction
+import app.aaps.database.impl.transactions.InsertAndCancelCurrentTemporaryTargetTransaction
+import app.aaps.database.impl.transactions.InsertOrUpdateHeartRateTransaction
 import app.aaps.plugins.main.R
 import dagger.android.HasAndroidInjector
-import info.nightscout.database.impl.AppRepository
-import info.nightscout.database.impl.transactions.CancelCurrentTemporaryTargetIfAnyTransaction
-import info.nightscout.database.impl.transactions.InsertAndCancelCurrentTemporaryTargetTransaction
-import info.nightscout.database.impl.transactions.InsertOrUpdateHeartRateTransaction
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import java.text.DateFormat

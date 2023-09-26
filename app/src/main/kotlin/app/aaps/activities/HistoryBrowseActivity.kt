@@ -26,15 +26,15 @@ import app.aaps.core.interfaces.rx.events.EventScale
 import app.aaps.core.interfaces.rx.events.EventUpdateOverviewGraph
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.T
+import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
 import app.aaps.core.main.events.EventIobCalculationProgress
-import app.aaps.core.main.utils.fabric.FabricPrivacy
 import app.aaps.core.main.workflow.CalculationWorkflow
 import app.aaps.core.ui.activities.TranslatedDaggerAppCompatActivity
+import app.aaps.databinding.ActivityHistorybrowseBinding
 import app.aaps.plugins.main.general.overview.graphData.GraphData
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.jjoe64.graphview.GraphView
 import dagger.android.HasAndroidInjector
-import info.nightscout.androidaps.databinding.ActivityHistorybrowseBinding
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import java.util.Calendar

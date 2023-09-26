@@ -76,12 +76,12 @@ import app.aaps.core.interfaces.ui.UiInteraction
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.DecimalFormatter
 import app.aaps.core.interfaces.utils.TrendCalculator
+import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
 import app.aaps.core.main.constraints.ConstraintObject
 import app.aaps.core.main.extensions.directionToIcon
 import app.aaps.core.main.graph.OverviewData
 import app.aaps.core.main.iob.displayText
 import app.aaps.core.main.profile.ProfileSealed
-import app.aaps.core.main.utils.fabric.FabricPrivacy
 import app.aaps.core.main.wizard.QuickWizard
 import app.aaps.core.ui.UIRunnable
 import app.aaps.core.ui.dialogs.OKDialog
@@ -92,6 +92,7 @@ import app.aaps.database.entities.TemporaryTarget
 import app.aaps.database.entities.UserEntry.Action
 import app.aaps.database.entities.UserEntry.Sources
 import app.aaps.database.entities.interfaces.end
+import app.aaps.database.impl.AppRepository
 import app.aaps.plugins.main.R
 import app.aaps.plugins.main.databinding.OverviewFragmentBinding
 import app.aaps.plugins.main.general.overview.graphData.GraphData
@@ -102,7 +103,6 @@ import app.aaps.plugins.main.skins.SkinProvider
 import com.jjoe64.graphview.GraphView
 import dagger.android.HasAndroidInjector
 import dagger.android.support.DaggerFragment
-import info.nightscout.database.impl.AppRepository
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import java.util.Locale
