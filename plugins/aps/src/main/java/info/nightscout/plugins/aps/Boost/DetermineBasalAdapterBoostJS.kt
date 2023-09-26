@@ -359,7 +359,7 @@ var getIsfByProfile = function (bg, profile, useCap) {
                 && currentHour < boost_end
                 && !(currentHour < ( boost_start + sleep_in_hrs ) && recentSteps60Minutes < sleep_in_steps))
             {
-                activityTargetBg = inactivity_pct
+                profileSwitch = inactivity_pct
             }
         }
 
