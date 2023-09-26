@@ -31,9 +31,43 @@ import androidx.core.view.MenuProvider
 import androidx.viewpager2.widget.ViewPager2
 import app.aaps.activities.HistoryBrowseActivity
 import app.aaps.activities.PreferencesActivity
-import app.aaps.configuration.activities.DaggerAppCompatActivityWithResult
-import app.aaps.configuration.activities.SingleFragmentActivity
-import app.aaps.configuration.setupwizard.SetupWizardActivity
+import app.aaps.core.interfaces.androidPermissions.AndroidPermission
+import app.aaps.core.interfaces.aps.Loop
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.constraints.ConstraintsChecker
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.logging.UserEntryLogger
+import app.aaps.core.interfaces.maintenance.PrefFileListProvider
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.profile.ProfileFunction
+import app.aaps.core.interfaces.protection.ProtectionCheck
+import app.aaps.core.interfaces.rx.AapsSchedulers
+import app.aaps.core.interfaces.rx.events.EventAppExit
+import app.aaps.core.interfaces.rx.events.EventAppInitialized
+import app.aaps.core.interfaces.rx.events.EventPreferenceChange
+import app.aaps.core.interfaces.rx.events.EventRebuildTabs
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.smsCommunicator.SmsCommunicator
+import app.aaps.core.interfaces.ui.IconsProvider
+import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
+import app.aaps.core.interfaces.versionChecker.VersionCheckerUtils
+import app.aaps.core.main.utils.CryptoUtil
+import app.aaps.core.ui.UIRunnable
+import app.aaps.core.ui.dialogs.OKDialog
+import app.aaps.core.ui.locale.LocaleHelper
+import app.aaps.core.ui.toast.ToastUtils
+import app.aaps.core.utils.isRunningRealPumpTest
+import app.aaps.database.entities.UserEntry.Action
+import app.aaps.database.entities.UserEntry.Sources
+import app.aaps.databinding.ActivityMainBinding
+import app.aaps.plugins.configuration.activities.DaggerAppCompatActivityWithResult
+import app.aaps.plugins.configuration.activities.SingleFragmentActivity
+import app.aaps.plugins.configuration.setupwizard.SetupWizardActivity
+import app.aaps.plugins.constraints.signatureVerifier.SignatureVerifierPlugin
+import app.aaps.ui.activities.ProfileHelperActivity
+import app.aaps.ui.activities.StatsActivity
+import app.aaps.ui.activities.TreatmentsActivity
+import app.aaps.ui.tabs.TabPageAdapter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -42,42 +76,6 @@ import com.microsoft.appcenter.analytics.Analytics
 import com.microsoft.appcenter.crashes.Crashes
 import com.joanzapata.iconify.Iconify
 import com.joanzapata.iconify.fonts.FontAwesomeModule
-import info.nightscout.androidaps.BuildConfig
-import info.nightscout.androidaps.R
-import info.nightscout.androidaps.databinding.ActivityMainBinding
-import info.nightscout.core.ui.UIRunnable
-import info.nightscout.core.ui.dialogs.OKDialog
-import info.nightscout.core.ui.locale.LocaleHelper
-import info.nightscout.core.ui.toast.ToastUtils
-import info.nightscout.core.utils.CryptoUtil
-import info.nightscout.core.utils.fabric.FabricPrivacy
-import info.nightscout.core.utils.isRunningRealPumpTest
-import info.nightscout.database.entities.UserEntry.Action
-import info.nightscout.database.entities.UserEntry.Sources
-import info.nightscout.interfaces.AndroidPermission
-import info.nightscout.interfaces.Config
-import info.nightscout.interfaces.aps.Loop
-import info.nightscout.interfaces.constraints.ConstraintsChecker
-import info.nightscout.interfaces.logging.UserEntryLogger
-import info.nightscout.interfaces.maintenance.PrefFileListProvider
-import info.nightscout.interfaces.plugin.ActivePlugin
-import info.nightscout.interfaces.profile.ProfileFunction
-import info.nightscout.interfaces.protection.ProtectionCheck
-import info.nightscout.interfaces.smsCommunicator.SmsCommunicator
-import info.nightscout.interfaces.ui.IconsProvider
-import info.nightscout.interfaces.versionChecker.VersionCheckerUtils
-import info.nightscout.plugins.constraints.signatureVerifier.SignatureVerifierPlugin
-import info.nightscout.rx.AapsSchedulers
-import info.nightscout.rx.events.EventAppExit
-import info.nightscout.rx.events.EventAppInitialized
-import info.nightscout.rx.events.EventPreferenceChange
-import info.nightscout.rx.events.EventRebuildTabs
-import info.nightscout.rx.logging.LTag
-import info.nightscout.shared.sharedPreferences.SP
-import info.nightscout.ui.activities.ProfileHelperActivity
-import info.nightscout.ui.activities.StatsActivity
-import info.nightscout.ui.activities.TreatmentsActivity
-import info.nightscout.ui.tabs.TabPageAdapter
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import java.io.File
@@ -138,7 +136,7 @@ class MainActivity : DaggerAppCompatActivityWithResult() {
         }
 
         // initialize screen wake lock
-        processPreferenceChange(EventPreferenceChange(rh.gs(info.nightscout.plugins.R.string.key_keep_screen_on)))
+        processPreferenceChange(EventPreferenceChange(rh.gs(app.aaps.plugins.main.R.string.key_keep_screen_on)))
         binding.mainPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageScrollStateChanged(state: Int) {}
             override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
@@ -220,19 +218,19 @@ class MainActivity : DaggerAppCompatActivityWithResult() {
                     R.id.nav_about              -> {
                         var message = "Build: ${BuildConfig.BUILDVERSION}\n"
                         message += "Flavor: ${BuildConfig.FLAVOR}${BuildConfig.BUILD_TYPE}\n"
-                        message += "${rh.gs(app.aaps.configuration.R.string.configbuilder_nightscoutversion_label)} ${activePlugin.activeNsClient?.detectedNsVersion() ?: rh.gs(info.nightscout.plugins.R.string.not_available_full)}"
-                        if (config.isEngineeringMode()) message += "\n${rh.gs(app.aaps.configuration.R.string.engineering_mode_enabled)}"
+                        message += "${rh.gs(app.aaps.plugins.configuration.R.string.configbuilder_nightscoutversion_label)} ${activePlugin.activeNsClient?.detectedNsVersion() ?: rh.gs(app.aaps.plugins.main.R.string.not_available_full)}"
+                        if (config.isEngineeringMode()) message += "\n${rh.gs(app.aaps.plugins.configuration.R.string.engineering_mode_enabled)}"
                         if (config.isUnfinishedMode()) message += "\nUnfinished mode enabled"
-                        if (!fabricPrivacy.fabricEnabled()) message += "\n${rh.gs(info.nightscout.core.ui.R.string.fabric_upload_disabled)}"
-                        message += rh.gs(info.nightscout.core.ui.R.string.about_link_urls)
+                        if (!fabricPrivacy.fabricEnabled()) message += "\n${rh.gs(app.aaps.core.ui.R.string.fabric_upload_disabled)}"
+                        message += rh.gs(app.aaps.core.ui.R.string.about_link_urls)
                         val messageSpanned = SpannableString(message)
                         Linkify.addLinks(messageSpanned, Linkify.WEB_URLS)
-                        MaterialAlertDialogBuilder(this@MainActivity, info.nightscout.core.ui.R.style.DialogTheme)
+                        MaterialAlertDialogBuilder(this@MainActivity, app.aaps.core.ui.R.style.DialogTheme)
                             .setTitle(rh.gs(R.string.app_name) + " " + BuildConfig.VERSION)
                             .setIcon(iconsProvider.getIcon())
                             .setMessage(messageSpanned)
-                            .setPositiveButton(rh.gs(info.nightscout.core.ui.R.string.ok), null)
-                            .setNeutralButton(rh.gs(info.nightscout.core.ui.R.string.cta_dont_kill_my_app_info)) { _, _ ->
+                            .setPositiveButton(rh.gs(app.aaps.core.ui.R.string.ok), null)
+                            .setNeutralButton(rh.gs(app.aaps.core.ui.R.string.cta_dont_kill_my_app_info)) { _, _ ->
                                 startActivity(
                                     Intent(
                                         Intent.ACTION_VIEW,
@@ -320,7 +318,7 @@ class MainActivity : DaggerAppCompatActivityWithResult() {
     }
 
     private fun startWizard(): Boolean =
-        !sp.getBoolean(app.aaps.configuration.R.string.key_setupwizard_processed, false)
+        !sp.getBoolean(app.aaps.plugins.configuration.R.string.key_setupwizard_processed, false)
 
     override fun onPostCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
         super.onPostCreate(savedInstanceState, persistentState)
@@ -345,13 +343,13 @@ class MainActivity : DaggerAppCompatActivityWithResult() {
     }
 
     private fun setWakeLock() {
-        val keepScreenOn = sp.getBoolean(info.nightscout.plugins.R.string.key_keep_screen_on, false)
+        val keepScreenOn = sp.getBoolean(app.aaps.plugins.main.R.string.key_keep_screen_on, false)
         if (keepScreenOn) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     private fun processPreferenceChange(ev: EventPreferenceChange) {
-        if (ev.isChanged(rh.gs(info.nightscout.plugins.R.string.key_keep_screen_on))) setWakeLock()
-        if (ev.isChanged(rh.gs(info.nightscout.plugins.R.string.key_skin))) recreate()
+        if (ev.isChanged(rh.gs(app.aaps.plugins.main.R.string.key_keep_screen_on))) setWakeLock()
+        if (ev.isChanged(rh.gs(app.aaps.plugins.main.R.string.key_skin))) recreate()
     }
 
     private fun setupViews() {
@@ -367,7 +365,7 @@ class MainActivity : DaggerAppCompatActivityWithResult() {
                 if (p.menuIcon != -1) {
                     menuItem.setIcon(p.menuIcon)
                 } else {
-                    menuItem.setIcon(info.nightscout.core.ui.R.drawable.ic_settings)
+                    menuItem.setIcon(app.aaps.core.ui.R.drawable.ic_settings)
                 }
                 menuItem.setOnMenuItemClickListener {
                     startActivity(
@@ -385,10 +383,10 @@ class MainActivity : DaggerAppCompatActivityWithResult() {
         checkPluginPreferences(binding.mainPager)
 
         // Tabs
-        if (sp.getBoolean(info.nightscout.plugins.R.string.key_short_tabtitles, false)) {
+        if (sp.getBoolean(app.aaps.plugins.main.R.string.key_short_tabtitles, false)) {
             binding.tabsNormal.visibility = View.GONE
             binding.tabsCompact.visibility = View.VISIBLE
-            binding.toolbar.layoutParams = LinearLayout.LayoutParams(Toolbar.LayoutParams.MATCH_PARENT, resources.getDimension(info.nightscout.core.ui.R.dimen.compact_height).toInt())
+            binding.toolbar.layoutParams = LinearLayout.LayoutParams(Toolbar.LayoutParams.MATCH_PARENT, resources.getDimension(app.aaps.core.ui.R.dimen.compact_height).toInt())
             TabLayoutMediator(binding.tabsCompact, binding.mainPager) { tab, position ->
                 tab.text = (binding.mainPager.adapter as TabPageAdapter).getPluginAt(position).nameShort
             }.attach()
@@ -427,7 +425,7 @@ class MainActivity : DaggerAppCompatActivityWithResult() {
     private fun setDisabledMenuItemColorPluginPreferences() {
         if (pluginPreferencesMenuItem?.isEnabled == false) {
             val spanString = SpannableString(this.menu?.findItem(R.id.nav_plugin_preferences)?.title.toString())
-            spanString.setSpan(ForegroundColorSpan(rh.gac(info.nightscout.core.ui.R.attr.disabledTextColor)), 0, spanString.length, 0)
+            spanString.setSpan(ForegroundColorSpan(rh.gac(app.aaps.core.ui.R.attr.disabledTextColor)), 0, spanString.length, 0)
             this.menu?.findItem(R.id.nav_plugin_preferences)?.title = spanString
         }
     }
@@ -469,7 +467,7 @@ class MainActivity : DaggerAppCompatActivityWithResult() {
             .replace(".org/", ":")
             .replace(".net/", ":")
         fabricPrivacy.firebaseAnalytics.setUserProperty("Mode", BuildConfig.APPLICATION_ID + "-" + closedLoopEnabled)
-        fabricPrivacy.firebaseAnalytics.setUserProperty("Language", sp.getString(info.nightscout.core.ui.R.string.key_language, Locale.getDefault().language))
+        fabricPrivacy.firebaseAnalytics.setUserProperty("Language", sp.getString(app.aaps.core.ui.R.string.key_language, Locale.getDefault().language))
         fabricPrivacy.firebaseAnalytics.setUserProperty("Version", BuildConfig.VERSION)
         fabricPrivacy.firebaseAnalytics.setUserProperty("HEAD", BuildConfig.HEAD)
         fabricPrivacy.firebaseAnalytics.setUserProperty("Remote", remote)
@@ -503,7 +501,7 @@ class MainActivity : DaggerAppCompatActivityWithResult() {
             val sn = activePlugin.activePump.serialNumber()
             sp.putString(info.nightscout.core.utils.R.string.key_master_password, cryptoUtil.hashPassword(sn))
             passwordReset.delete()
-            ToastUtils.okToast(context, context.getString(info.nightscout.core.ui.R.string.password_set))
+            ToastUtils.okToast(context, context.getString(app.aaps.core.ui.R.string.password_set))
         }
     }
 }

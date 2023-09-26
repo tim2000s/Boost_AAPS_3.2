@@ -8,14 +8,14 @@
         android:title="@string/Boost"
         app:initialExpandedChildrenCount="0">
 
-        <info.nightscout.core.validators.LoopVariantPreference
+        <app.aaps.core.validators.LoopVariantPreference
             android:title="@string/Boost_Variant_title"
             android:defaultValue="default"
             android:selectable="true"
             app:pluginFolder="Boost"
             />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="1"
             android:dialogMessage="@string/openapsma_max_basal_summary"
             android:inputType="numberDecimal"
@@ -25,7 +25,7 @@
             validate:floatminNumber="0.1"
             validate:testType="floatNumericRange" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="3"
             android:dialogMessage="@string/openapssmb_max_iob_summary"
             android:inputType="numberDecimal"
@@ -35,7 +35,7 @@
             validate:floatminNumber="0"
             validate:testType="floatNumericRange" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="65"
             android:inputType="numberDecimal"
             android:dialogMessage="@string/lgs_threshold_summary"
@@ -45,7 +45,7 @@
             validate:floatminNumber="65"
             validate:testType="bgRange" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="50"
             android:enabled="true"
             android:dialogMessage="@string/Boost_InsulinReq_summary"
@@ -56,7 +56,7 @@
             validate:floatminNumber="30"
             validate:testType="floatNumericRange" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="0.1"
             android:dialogMessage="@string/openapsama_boost_bolus_summary"
             android:digits="0123456789.,"
@@ -70,7 +70,7 @@
             validate:floatminNumber="0.1"
             validate:testType="floatNumericRange" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="200"
             android:dialogMessage="@string/openapsama_boost_scale_factor_summary"
             android:digits="0123456789.,"
@@ -84,7 +84,7 @@
             validate:floatminNumber="50"
             validate:testType="floatNumericRange" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="1.0"
             android:dialogMessage="@string/openapsama_boost_scale_summary"
             android:digits="0123456789.,"
@@ -98,7 +98,7 @@
             validate:floatminNumber="0.1"
             validate:testType="floatNumericRange" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="0.1"
             android:dialogMessage="@string/openapsama_boost_max_iob_summary"
             android:digits="0123456789.,"
@@ -112,7 +112,7 @@
             validate:floatminNumber="0.1"
             validate:testType="floatNumericRange" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="7"
             android:dialogMessage="@string/openapsama_boost_start_summary"
             android:digits="0123456789.,"
@@ -126,7 +126,7 @@
             validate:floatminNumber="0"
             validate:testType="floatNumericRange" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="8"
             android:dialogMessage="@string/openapsama_boost_end_summary"
             android:digits="0123456789.,"
@@ -207,7 +207,7 @@
             android:summary="@string/enableCircadianISF_summary"
             android:title="@string/enableCircadianISF" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="3"
             android:digits="0123456789"
             android:inputType="number"
@@ -220,7 +220,7 @@
             validate:minNumber="1"
             validate:testType="numericRange" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="30"
             android:digits="0123456789"
             android:entries="@array/smbMaxMinutes"
@@ -232,7 +232,7 @@
             validate:minNumber="15"
             validate:testType="numericRange" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="30"
             android:dialogMessage="@string/uam_smb_max_minutes"
             android:digits="0123456789"
@@ -280,7 +280,7 @@
             android:summary="@string/low_temptarget_lowers_sensitivity_summary"
             android:title="@string/low_temptarget_lowers_sensitivity_title" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="1"
             android:dialogMessage="@string/carbs_req_threshold_summary"
             android:digits="0123456789"
@@ -302,7 +302,7 @@
             <Preference android:summary="@string/Stepcount_preference_summary">
             </Preference>
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="500"
                 android:dialogMessage="@string/inactivity_steps_summary"
                 android:digits="0123456789"
@@ -316,7 +316,7 @@
                 validate:minNumber="1"
                 validate:testType="numericRange" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="130"
                 android:dialogMessage="@string/inactivity_pct_inc_summary"
                 android:digits="0123456789.,"
@@ -330,7 +330,7 @@
                 validate:minNumber="100"
                 validate:testType="numericRange" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="2"
                 android:dialogMessage="@string/sleep_in_hrs_summary"
                 android:digits="0123456789.,"
@@ -344,7 +344,7 @@
                 validate:minNumber="0"
                 validate:testType="numericRange" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="250"
                 android:dialogMessage="@string/sleep_in_steps_summary"
                 android:digits="0123456789"
@@ -362,7 +362,7 @@
             <Preference android:summary="@string/Activity_preference_summary">
             </Preference>
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="420"
                 android:dialogMessage="@string/activity_steps_5_summary"
                 android:digits="0123456789"
@@ -376,7 +376,7 @@
                 validate:minNumber="1"
                 validate:testType="numericRange" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="1200"
                 android:dialogMessage="@string/activity_steps_30_summary"
                 android:digits="0123456789"
@@ -390,7 +390,7 @@
                 validate:minNumber="1"
                 validate:testType="numericRange" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="1800"
                 android:dialogMessage="@string/activity_hour_steps_summary"
                 android:digits="0123456789"
@@ -406,7 +406,7 @@
 
 
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="80"
                 android:dialogMessage="@string/activity_pct_inc_summary"
                 android:digits="0123456789.,"
@@ -441,7 +441,7 @@
                 android:summary="@string/always_use_short_avg_summary"
                 android:title="@string/always_use_short_avg" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="3"
                 android:dialogMessage="@string/openapsama_max_daily_safety_multiplier_summary"
                 android:digits="0123456789.,"
@@ -454,7 +454,7 @@
                 validate:minNumber="1"
                 validate:testType="numericRange" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="4"
                 android:dialogMessage="@string/openapsama_current_basal_safety_multiplier_summary"
                 android:digits="0123456789.,"

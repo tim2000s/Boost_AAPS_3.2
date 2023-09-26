@@ -1,9 +1,8 @@
 package app.aaps.shared.tests
 
-import info.nightscout.implementation.HardLimitsImpl
-import info.nightscout.interfaces.utils.HardLimits
-import info.nightscout.shared.interfaces.ResourceHelper
-import info.nightscout.shared.sharedPreferences.SP
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.utils.HardLimits
 import javax.inject.Inject
 import kotlin.math.max
 import kotlin.math.min
