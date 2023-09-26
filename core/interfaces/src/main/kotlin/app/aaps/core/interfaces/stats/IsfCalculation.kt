@@ -1,6 +1,4 @@
-package info.nightscout.interfaces.stats
-
-import org.json.JSONObject
+package app.aaps.core.interfaces.stats
 
 data class IsfCalculation (
     val bg : Double,

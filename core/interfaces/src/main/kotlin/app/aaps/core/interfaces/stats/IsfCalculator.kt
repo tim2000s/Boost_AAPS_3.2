@@ -1,6 +1,6 @@
-package info.nightscout.interfaces.stats
+package app.aaps.core.interfaces.stats
 
-import info.nightscout.interfaces.profile.Profile
+import app.aaps.core.interfaces.profile.Profile
 import org.json.JSONObject
 
 interface IsfCalculator {

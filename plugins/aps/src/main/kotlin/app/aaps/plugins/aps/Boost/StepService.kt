@@ -1,4 +1,4 @@
-package info.nightscout.plugins.aps.Boost
+package app.aaps.plugins.aps.Boost
 
 import android.hardware.Sensor
 import android.hardware.SensorEvent

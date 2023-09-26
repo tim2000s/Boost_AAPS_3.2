@@ -40,7 +40,7 @@ class InsulinOrefFreePeakPluginTest : TestBase() {
 
     @BeforeEach
     fun setup() {
-        sut = InsulinOrefFreePeakPlugin(injector, sp, rh, profileFunction, rxBus, aapsLogger, config, hardLimits, uiInteraction)
+        sut = InsulinOrefFreePeakPlugin(injector, rh, profileFunction, rxBus, aapsLogger, config, hardLimits, uiInteraction)
     }
 
     @Test

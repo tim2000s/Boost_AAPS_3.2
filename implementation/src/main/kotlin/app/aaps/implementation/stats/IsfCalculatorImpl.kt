@@ -1,14 +1,14 @@
-package info.nightscout.implementation.stats
+package app.aaps.implementation.stats
 
-import info.nightscout.core.profile.ProfileSealed
-import info.nightscout.interfaces.aps.SMBDefaults
-import info.nightscout.interfaces.profile.Profile
-import info.nightscout.interfaces.stats.IsfCalculation
-import info.nightscout.interfaces.stats.IsfCalculator
-import info.nightscout.interfaces.stats.TddCalculator
-import info.nightscout.interfaces.utils.Round
-import info.nightscout.shared.SafeParse
-import info.nightscout.shared.sharedPreferences.SP
+import app.aaps.core.interfaces.aps.SMBDefaults
+import app.aaps.core.interfaces.profile.Profile
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.stats.IsfCalculation
+import app.aaps.core.interfaces.stats.IsfCalculator
+import app.aaps.core.interfaces.stats.TddCalculator
+import app.aaps.core.interfaces.utils.Round
+import app.aaps.core.interfaces.utils.SafeParse
+import app.aaps.core.main.profile.ProfileSealed
 import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -51,13 +51,13 @@ class IsfCalculatorImpl @Inject constructor(
 
         val result =
             if (!useDynIsf) IsfCalculation(
-                    glucose,
-                    glucose,
-                    Round.roundTo(sensNormalTarget, 0.1),
-                    Round.roundTo(variableSensitivity, 0.1),
-                    Round.roundTo(ratio / globalScale, 0.1),
-                    insulinDivisor,
-                    dynIsfVelocity
+                glucose,
+                glucose,
+                Round.roundTo(sensNormalTarget, 0.1),
+                Round.roundTo(variableSensitivity, 0.1),
+                Round.roundTo(ratio / globalScale, 0.1),
+                insulinDivisor,
+                dynIsfVelocity
                 )
             else {
                 if (useTDD) {

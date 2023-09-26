@@ -674,7 +674,7 @@ class LoopPlugin @Inject constructor(
     private fun applySMBRequest(request: APSResult, callback: Callback?) {
         if (!request.isBolusRequested) {
             aapsLogger.debug(LTag.APS, "No SMB requested")
-            callback?.result(PumpEnactResult(injector).enacted(false).success(true).comment(info.nightscout.core.ui.R.string.no_action_selected))?.run()
+            callback?.result(PumpEnactResult(injector).enacted(false).success(true).comment(app.aaps.core.ui.R.string.no_action_selected))?.run()
             return
         }
         val pump = activePlugin.activePump

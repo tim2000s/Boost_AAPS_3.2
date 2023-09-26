@@ -39,7 +39,7 @@
             android:title="@string/a52_risk_enable"
             android:summary="@string/a52_risk_enable_summary" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="160"
             android:dialogMessage="@string/half_basal_exercise_target"
             android:digits="0123456789"
@@ -230,7 +230,7 @@
                 validate:floatminNumber="1"
                 validate:testType="floatNumericRange" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="0.5"
                 android:dialogMessage="@string/openapsama_smb_delivery_ratio_summary"
                 android:digits="0123456789.,"
@@ -244,7 +244,7 @@
                 validate:floatminNumber="0.1"
                 validate:testType="floatNumericRange" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="0.5"
                 android:dialogMessage="@string/openapsama_smb_delivery_ratio_min_summary"
                 android:digits="0123456789.,"
@@ -258,7 +258,7 @@
                 validate:floatminNumber="0.5"
                 validate:testType="floatNumericRange" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="0.5"
                 android:dialogMessage="@string/openapsama_smb_delivery_ratio_max_summary"
                 android:digits="0123456789.,"
@@ -272,7 +272,7 @@
                 validate:floatminNumber="0.5"
                 validate:testType="floatNumericRange" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="0"
                 android:dialogMessage="@string/openapsama_smb_delivery_ratio_bg_range_summary"
                 android:digits="0123456789.,"

@@ -179,6 +179,8 @@ class TranslatorImpl @Inject internal constructor(
     override fun translate(reason: TemporaryTarget.Reason?): String = when (reason) {
         TemporaryTarget.Reason.CUSTOM       -> rh.gs(app.aaps.core.ui.R.string.custom)
         TemporaryTarget.Reason.HYPOGLYCEMIA -> rh.gs(app.aaps.core.ui.R.string.hypo)
+        TemporaryTarget.Reason.EATING_NOW   -> rh.gs(app.aaps.core.ui.R.string.eatingnow)
+        TemporaryTarget.Reason.EATING_NOW_PB-> rh.gs(app.aaps.core.ui.R.string.eatingnow_prebolus)
         TemporaryTarget.Reason.EATING_SOON  -> rh.gs(app.aaps.core.ui.R.string.eatingsoon)
         TemporaryTarget.Reason.ACTIVITY     -> rh.gs(app.aaps.core.ui.R.string.activity)
         TemporaryTarget.Reason.AUTOMATION   -> rh.gs(app.aaps.core.ui.R.string.automation)

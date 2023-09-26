@@ -92,7 +92,7 @@ class SafetyPlugin @Inject constructor(
 
     override fun isAdvancedFilteringEnabled(value: Constraint<Boolean>): Constraint<Boolean> {
         val bgSource = activePlugin.activeBgSource
-        val ignore = sp.getBoolean(info.nightscout.core.ui.R.string.key_enableSMB_ignore, false)
+        val ignore = sp.getBoolean(app.aaps.core.ui.R.string.key_enableSMB_ignore, false)
         if (!ignore && !bgSource.advancedFilteringSupported()) value.set(false, rh.gs(R.string.smbalwaysdisabled), this)
         return value
     }

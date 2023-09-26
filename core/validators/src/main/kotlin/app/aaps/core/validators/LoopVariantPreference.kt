@@ -1,10 +1,10 @@
-package info.nightscout.core.validators
+package app.aaps.core.validators
 
 import android.content.Context
 import android.util.AttributeSet
 import androidx.preference.DropDownPreference
+import app.aaps.core.interfaces.sharedPreferences.SP
 import dagger.android.HasAndroidInjector
-import info.nightscout.shared.sharedPreferences.SP
 import java.util.*
 import javax.inject.Inject
 
