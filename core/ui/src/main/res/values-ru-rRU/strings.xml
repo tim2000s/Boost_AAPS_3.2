@@ -167,6 +167,19 @@
     <string name="virtualpump_uploadstatus_title">Передавать статус помпы в NS или Tidepool</string>
     <string name="suspendloop_label">Отключенный/приостановленный цикл</string>
     <string name="iob_label">Активный инсулин (IOB)</string>
+
+    <!-- Night mode -->
+    <string name="treatment_safety_night_mode">Ночной режим</string>
+    <string name="treatment_safety_night_mode_enabled">Использовать ночной режим</string>
+    <string name="treatment_safety_night_mode_bg_offset_title">Диапазон ГК</string>
+    <string name="treatment_safety_night_mode_bg_offset_description">Допустимое отклонение ГК от целевого, в пределах которого будет работать ночной режим\nНапример, если целевой сахар 5.5, а эта настройка задана в 1.5, то AAPS не будет подавать СМБ, пока ГК не достигнет 7.0 (5.5 + 1.5)</string>
+    <string name="treatment_safety_night_mode_start_title">Начало ночного режима (время в 24х часовом формате ЧЧ:ММ)</string>
+    <string name="treatment_safety_night_mode_end_title">Окончание ночного режима (время в 24х часовом формате ЧЧ:ММ)</string>
+    <string name="treatment_safety_night_mode_disable_with_cob_title">Отключать ночной режим при активных углеводах (COB > 0)</string>
+    <string name="treatment_safety_night_mode_disable_with_low_temp_target_title">Отключать ночной режим при активной пониженной Временной Цели</string>
+    <string name="treatment_safety_night_mode_smb_disabled">СМБ отключены в ночном режиме</string>
+    <!-- /Night mode -->
+
     <!--    Protection-->
     <string name="wrongpassword">Неверный пароль</string>
     <string name="wrongpin">Неверный PIN-код</string>
