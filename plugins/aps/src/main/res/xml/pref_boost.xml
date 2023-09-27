@@ -113,32 +113,24 @@
             validate:testType="floatNumericRange" />
 
         <app.aaps.core.validators.ValidatingEditTextPreference
-            android:defaultValue="7"
-            android:dialogMessage="@string/openapsama_boost_start_summary"
-            android:digits="0123456789.,"
-            android:inputType="number"
+            android:defaultValue="23:00"
+            android:inputType="text"
             android:key="@string/key_openapsama_boost_start"
-            android:maxLines="20"
-            android:selectAllOnFocus="true"
-            android:singleLine="true"
             android:title="@string/openapsama_boost_start_title"
-            validate:floatmaxNumber="24"
-            validate:floatminNumber="0"
-            validate:testType="floatNumericRange" />
+            android:dialogMessage="@string/openapsama_boost_start_summary"
+            validate:customRegexp="@string/timeregexp"
+            validate:testErrorString="@string/error_invalid_time"
+            validate:testType="regexp" />
 
         <app.aaps.core.validators.ValidatingEditTextPreference
-            android:defaultValue="8"
             android:dialogMessage="@string/openapsama_boost_end_summary"
-            android:digits="0123456789.,"
-            android:inputType="number"
+            android:defaultValue="07:00"
+            android:inputType="text"
             android:key="@string/key_openapsama_boost_end"
-            android:maxLines="20"
-            android:selectAllOnFocus="true"
-            android:singleLine="true"
             android:title="@string/openapsama_boost_end_title"
-            validate:floatmaxNumber="24"
-            validate:floatminNumber="0"
-            validate:testType="floatNumericRange" />
+            validate:customRegexp="@string/timeregexp"
+            validate:testErrorString="@string/error_invalid_time"
+            validate:testType="regexp" />
 
         <SwitchPreference
             android:defaultValue="false"

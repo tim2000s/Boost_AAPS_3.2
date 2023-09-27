@@ -60,7 +60,7 @@
                 android:inputType="text"
                 android:key="@string/key_treatment_safety_night_mode_start"
                 android:title="@string/treatment_safety_night_mode_start_title"
-                validate:customRegexp="@string/time"
+                validate:customRegexp="@string/timeregexp"
                 validate:testErrorString="@string/error_invalid_time"
                 validate:testType="regexp" />
 
@@ -70,7 +70,7 @@
                 android:inputType="text"
                 android:key="@string/key_treatment_safety_night_mode_end"
                 android:title="@string/treatment_safety_night_mode_end_title"
-                validate:customRegexp="@string/time"
+                validate:customRegexp="@string/timeregexp"
                 validate:testErrorString="@string/error_invalid_time"
                 validate:testType="regexp" />
 

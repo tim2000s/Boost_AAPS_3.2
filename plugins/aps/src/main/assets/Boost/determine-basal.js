@@ -165,7 +165,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var rT = {}; //short for requestedTemp
 
     var deliverAt = new Date();
-    var countsteps = true; //profile.key_use_countsteps;
     var recentSteps5Minutes = profile.recentSteps5Minutes;
     var recentSteps10Minutes = profile.recentSteps10Minutes;
     var recentSteps30Minutes = profile.recentSteps30Minutes;
@@ -182,8 +181,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     rT.reason = "36 Hours: "+recentSteps36hrs+"; ";
     rT.reason = "              ";
 
-    var boost_start = profile.boost_start;
-    var boost_end = profile.boost_end;
+    var boostActive = profile.boostActive;
 
     if (currentTime) {
         deliverAt = new Date(currentTime);
@@ -281,17 +279,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     //**                   Start of Dynamic ISF code for predictions                 **
     //*********************************************************************************
 
-        console.error("---------------------------------------------------------");
-        console.error( "     Boost version: 4.1.5                              ");
-        console.error("---------------------------------------------------------");
+    console.error("---------------------------------------------------------");
+    console.error( "     Boost version: 4.1.5                              ");
+    console.error("---------------------------------------------------------");
 
-    var enableBoost = enable_boost(
-                profile,
-                target_bg
-            );
-
-    var profileSwitch = profile.profilePercent;
-    console.error("Current Profile percent: "+profileSwitch+"; ");
+    console.error("Current Profile percent: "+profile.profileSwitch+"; ");
 
     var insulinPeak = profile.insulinPeak;
     var ins_val = profile.insulinDivisor;
@@ -626,11 +618,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         target_bg
     );
 
-    /*var enableBoost = enable_boost(
-            profile,
-            target_bg
-        );*/
-
     // enable UAM (if enabled in preferences)
     var enableUAM=(profile.enableUAM);
 
@@ -921,7 +908,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             console.log("Future state sensitivity is " +future_sens+" weighted on eventual BG due to COB");
             rT.reason += "Dosing sensitivity: " +future_sens+" weighted on predicted BG due to COB;";
         }
-        else if( glucose_status.delta > 4 && delta_accl > 10 && bg < 180 && eventualBG > bg && now1 >= boost_start && now1 < boost_end ) {
+        else if( glucose_status.delta > 4 && delta_accl > 10 && bg < 180 && eventualBG > bg && boostActive ) {
 
             var future_sens = getISFforBGNoCap((fsens_bg * 0.5) + (sens_bg * 0.5))
             console.log("Future state sensitivity is " +future_sens+" weighted on predicted bg due to increasing deltas");
@@ -1389,7 +1376,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
                 //var now1 = new Date().getHours();
 
-                if (now1 >= profile.boost_start && now1 <= profile.boost_end) {
+                if (boostActive) {
                     console.error("Hours are now "+now1+", so UAM Boost is enabled;");
                     } else {
                     console.error("Hours are now "+now1+", so UAM Boost is disabled;");
@@ -1412,23 +1399,15 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
 
                 console.error("Delta variance is "+delta_accl+"; ");
-                console.error("Boost start time is "+(boost_start)+"hrs and boost end time is "+(boost_end)+"hrs; ");
+                console.error("Boost is "+ (!boostActive ? "in" : "") +"active; ");
                 console.error("Base boost insulin is "+boostInsulinReq+" iu; ");
                 console.error("Post Boost trigger state:"+iTimeActive+"; ");
                 console.error("           ");
 
 
-
-                if (now1 < ( boost_start + profile.sleep_in_hrs ) && recentSteps60Minutes < profile.sleep_in_steps) {
-                    console.error("Boost disabled due to lie-in");
-                    enableBoost = false;
-                }else{
-                    console.error("Regular boost setting enabled");
-                }
-
                 //cARB HANDLING INSULIN UPTICK CODE.
                 //With COB, allow a large initial bolus
-                if ( now1 >= boost_start && now1 < boost_end && COB > 0 && lastCarbAge < 25  ){
+                if ( boostActive && COB > 0 && lastCarbAge < 25  ){
                     //var cob_boost_max = Math.max((( COB / CR ) / insulinReqPCT),boost_max);
                     rT.reason += "boost_max due to COB = " + insulinReq + "; ";
                     rT.reason += "Last carb age is: " + lastCarbAge + "; ";
@@ -1444,7 +1423,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                     console.error("Insulin required % ("+((1/insulinReqPCT) * 100)+"%) applied.");
                     }
                  //Aafter initial period, allow larger carb based bolusing with some restrictions
-                 else if ( now1 >= boost_start && now1 < boost_end && COB > 0 && lastCarbAge < 40 && glucose_status.delta > 5 ){
+                 else if ( boostActive && COB > 0 && lastCarbAge < 40 && glucose_status.delta > 5 ){
                        var cob_boost_max = Math.max((( COB / CR ) / insulinReqPCT),boost_max);
                        rT.reason += "boost_max due to COB = " + cob_boost_max + "; ";
                        rT.reason += "Last carb age is: " + lastCarbAge + "; ";
@@ -1460,8 +1439,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                  }
                  //End of Carb handling uptick code.
                  //Test whether we have a positive delta, and confirm iob, time and boost being possible, then use the boost function
-                 else if (glucose_status.delta >= 5 && glucose_status.short_avgdelta >= 3 && uamBoost1 > 1.2 && uamBoost2 > 2 && now1 >= boost_start && now1 < boost_end && iob_data.iob < boostMaxIOB && boost_scale < 3 && eventualBG > target_bg && bg > 80
-                 && insulinReq > 0 && enableBoost) {
+                 else if (glucose_status.delta >= 5 && glucose_status.short_avgdelta >= 3 && uamBoost1 > 1.2 && uamBoost2 > 2 && boostActive && iob_data.iob < boostMaxIOB && boost_scale < 3 && eventualBG > target_bg && bg > 80 && insulinReq > 0) {
                      console.error("Profile Boost Scale value is "+boost_scale+": ");
                      //console.error("Automated Boost Scale value is "+scaleSMB+": ");
                      //document the pre-boost insulin required recommendation
@@ -1496,7 +1474,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                      rT.reason += "UAM Boost enacted; SMB equals" + boostInsulinReq + "; ";
                  }
 
-                 else if (delta_accl > 5 && bg > 180 && now1 >= boost_start && now1 < boost_end && iob_data.iob < boostMaxIOB && boost_scale < 3 && eventualBG > target_bg && bg > 80 && insulinReq > 0 && enableBoost) {
+                 else if (delta_accl > 5 && bg > 180 && boostActive && iob_data.iob < boostMaxIOB && boost_scale < 3 && eventualBG > target_bg && bg > 80 && insulinReq > 0) {
                      console.error("Profile Boost Scale value is "+boost_scale+": ");
                      //console.error("Automated Boost Scale value is "+scaleSMB+": ");
                      //document the pre-boost insulin required recommendation
@@ -1545,7 +1523,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                     rT.reason += "100% of insulinRequired "+insulinReq;
                  }*/
                  //If no other criteria are met, and delta is positive, scale microbolus size up to 1.0x insulin required from bg > 108 to bg = 180.
-           else if (bg > 98 && bg < 181 && glucose_status.delta > 3 && delta_accl > 0 && eventualBG > target_bg && iob_data.iob < boostMaxIOB && now1 >= boost_start && now1 < boost_end && enableBoost ) {
+           else if (bg > 98 && bg < 181 && glucose_status.delta > 3 && delta_accl > 0 && eventualBG > target_bg && iob_data.iob < boostMaxIOB && boostActive ) {
                 if (insulinReq > boostMaxIOB-iob_data.iob) {
                           insulinReq = boostMaxIOB-iob_data.iob;
                       }
@@ -1565,7 +1543,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 console.error("Post percent scale trigger state:"+iTimeActive+"; ");
                               }
 
-           else if (delta_accl > 25 && glucose_status.delta > 4 && now1 >= boost_start && now1 < boost_end && iob_data.iob < boostMaxIOB && enableBoost && eventualBG > target_bg){
+           else if (delta_accl > 25 && glucose_status.delta > 4 && iob_data.iob < boostMaxIOB && boostActive && eventualBG > target_bg){
 
             boostInsulinReq = Math.min(boost_scale * boostInsulinReq,boost_max);
                     if (boostInsulinReq > boostMaxIOB-iob_data.iob) {
@@ -1586,7 +1564,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
             }
 
-      else if ( now1 >= boost_start && now1 < boost_end && glucose_status.delta > 0 && delta_accl >= 0.5 && enableBoost){
+      else if ( boostActive && glucose_status.delta > 0 && delta_accl >= 0.5 ){
 
             var microBolus = Math.floor(Math.min(insulinReq/insulinReqPCT,boost_max)*roundSMBTo)/roundSMBTo;
             rT.reason += "Enhanced oref1 triggered; SMB equals" + microBolus + "; ";
@@ -1651,9 +1629,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             //rT.reason += ". ";
 
             // if no zero temp is required, don't return yet; allow later code to set a high temp
-           if ( (now1 >= boost_start && now1 < boost_end && COB > 0 && lastCarbAge < 15) || ( basal > ( 4 * profile_current_basal ) && lastBolusAge < 15 && delta_accl > 0 ) ){
-                       iTimeActive = true;
-                   }
+           if ( (boostActive && COB > 0 && lastCarbAge < 15) || ( basal > ( 4 * profile_current_basal ) && lastBolusAge < 15 && delta_accl > 0 ) ){
+               iTimeActive = true;
+           }
 
             if (durationReq > 0 && ! iTimeActive === true) {
                 rT.rate = smbLowTempReq;

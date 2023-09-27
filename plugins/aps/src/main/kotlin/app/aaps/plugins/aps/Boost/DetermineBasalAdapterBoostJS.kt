@@ -16,7 +16,6 @@ import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.sharedPreferences.SP
 import app.aaps.core.interfaces.utils.SafeParse
-import app.aaps.core.interfaces.utils.T
 import app.aaps.core.main.extensions.convertedToAbsolute
 import app.aaps.core.main.extensions.getPassedDurationToTimeInMinutes
 import app.aaps.core.main.extensions.plannedRemainingMinutes
@@ -27,7 +26,9 @@ import app.aaps.plugins.aps.utils.ScriptReader
 import dagger.android.HasAndroidInjector
 import app.aaps.core.validators.LoopVariantPreference
 import app.aaps.core.interfaces.stats.IsfCalculator
+import app.aaps.core.interfaces.utils.MidnightTime
 import app.aaps.plugins.aps.R
+import org.joda.time.format.ISODateTimeFormat
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -245,7 +246,6 @@ var getIsfByProfile = function (bg, profile, useCap) {
         this.profile.put("maxSMBBasalMinutes", sp.getInt(R.string.key_smb_max_minutes, BoostDefaults.maxSMBBasalMinutes))
         this.profile.put("maxUAMSMBBasalMinutes", sp.getInt(R.string.key_uam_smb_max_minutes, BoostDefaults.maxUAMSMBBasalMinutes))
         this.profile.put("DynISFAdjust",  SafeParse.stringToDouble(sp.getString(R.string.key_DynISFAdjust, "100")))
-        this.profile.put("profilePercent",  if (profile is ProfileSealed.EPS) profile.value.originalPercentage else 100)
 
         //set the min SMB amount to be the amount set by the pump.
         this.profile.put("bolus_increment", pumpBolusStep)
@@ -261,10 +261,10 @@ var getIsfByProfile = function (bg, profile, useCap) {
 //MP: Boost_boluscap start
         this.profile.put("boost_bolus",SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_boost_bolus,"2.5")))
         this.profile.put("boost_percent_scale",SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_boost_scale_factor,"200")))
-        val boost_start = SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_boost_start, "7.0"))
-        val boost_end = SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_boost_end, "8.0"))
-        this.profile.put("boost_start", boost_start )
-        this.profile.put("boost_end", boost_end )
+
+
+        val now = System.currentTimeMillis()
+
         this.profile.put("boost_maxIOB",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_boost_max_iob, "1.0")))
         this.profile.put("Boost_InsulinReq",  SafeParse.stringToDouble(sp.getString(R.string.key_boost_insulinreq,"50.0")))
         this.profile.put("boost_scale",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_boost_scale, "1.0")))
@@ -275,7 +275,6 @@ var getIsfByProfile = function (bg, profile, useCap) {
         if (profileFunction.getUnits() == GlucoseUnit.MMOL) {
             this.profile.put("out_units", "mmol/L")
         }
-        val now = System.currentTimeMillis()
         val tb = iobCobCalculator.getTempBasalIncludingConvertedExtended(now)
         currentTemp.put("temp", "absolute")
         currentTemp.put("duration", tb?.plannedRemainingMinutes ?: 0)
@@ -319,13 +318,23 @@ var getIsfByProfile = function (bg, profile, useCap) {
 
         val inactivity_steps = SafeParse.stringToDouble(sp.getString(R.string.key_inactivity_steps,"400"))
         val inactivity_pct = SafeParse.stringToDouble(sp.getString(R.string.key_inactivity_pct_inc,"130"))
-        val sleep_in_hrs = SafeParse.stringToDouble(sp.getString(R.string.key_sleep_in_hrs,"2"))
         val sleep_in_steps = SafeParse.stringToDouble(sp.getString(R.string.key_sleep_in_steps,"250"))
         val activity_steps_5 = SafeParse.stringToDouble(sp.getString(R.string.key_activity_steps_5,"420"))
         val activity_steps_30 = SafeParse.stringToDouble(sp.getString(R.string.key_activity_steps_30,"1200"))
         val activity_steps_60 = SafeParse.stringToDouble(sp.getString(R.string.key_activity_hour_steps,"1800"))
         val activity_pct = SafeParse.stringToDouble(sp.getString(R.string.key_activity_pct_inc,"80"))
 
+        val midnight = MidnightTime.calc(now)
+        val startHour = sp.getString(R.string.key_openapsama_boost_start, "22:00")
+        var boostStart = midnight + org.joda.time.LocalTime.parse(startHour, ISODateTimeFormat.timeElementParser()).millisOfDay
+        val endHour = sp.getString(R.string.key_openapsama_boost_end, "7:00");
+        var boostEnd = midnight + org.joda.time.LocalTime.parse(endHour, ISODateTimeFormat.timeElementParser()).millisOfDay
+        val sleepInMillis = (3600000.0 * SafeParse.stringToDouble(sp.getString(R.string.key_sleep_in_hrs, "2"))).toLong()
+        if (boostStart > boostEnd) {
+            if (now > boostEnd) boostEnd += 86400000
+            else boostStart -= 86400000
+        }
+        var boostActive = now in boostStart..<boostEnd
 
         val recentSteps5Minutes = StepService.getRecentStepCount5Min()
         // val recentSteps10Minutes = StepService.getRecentStepCount10Min() // unused
@@ -343,25 +352,23 @@ var getIsfByProfile = function (bg, profile, useCap) {
         var activityMinBg = minBg
         var activityMaxBg = maxBg
         var activityTargetBg = targetBg
-        val currentHour =  T.hours(now).hours()
-        if (profileSwitch == 1.0)
+        if (activity)
         {
-            if (activity)
-            {
-                profileSwitch = activity_pct
-                activityMinBg = activityBgTarget
-                activityMaxBg = activityBgTarget
-                activityTargetBg = activityBgTarget
-            }
-            else if (recentSteps60Minutes < inactivity_steps
-                && currentHour > boost_start
-                && currentHour < boost_end
-                && !(currentHour < ( boost_start + sleep_in_hrs ) && recentSteps60Minutes < sleep_in_steps))
-            {
-                profileSwitch = inactivity_pct
-            }
+            if (profileSwitch == 1.0) profileSwitch = 100 / activity_pct
+            activityMinBg = activityBgTarget
+            activityMaxBg = activityBgTarget
+            activityTargetBg = activityBgTarget
+        }
+        else if (profileSwitch == 1.0 && recentSteps60Minutes < inactivity_steps
+            && boostActive
+            && !(now < ( boostStart + sleepInMillis ) && recentSteps60Minutes < sleep_in_steps))
+        {
+            boostActive = false
+            profileSwitch = 100 / inactivity_pct
         }
 
+        this.profile.put("boostActive", boostActive)
+        this.profile.put("profileSwitch", profileSwitch)
         this.profile.put("recentSteps5Minutes", recentSteps5Minutes)
         this.profile.put("recentSteps15Minutes", recentSteps15Minutes)
         this.profile.put("recentSteps30Minutes", recentSteps30Minutes)

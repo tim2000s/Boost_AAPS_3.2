@@ -28,6 +28,6 @@
     <string name="eighthexanumber" translatable="false">^[A-F0-9]{8}$</string>
     <string name="fourhexanumber" translatable="false">^[A-F0-9]{4}$</string>
 
-    <string name="time" translatable="false">^\\d{1,2}:\\d{1,2}$</string>
+    <string name="timeregexp" translatable="false">^\\d{1,2}:\\d{1,2}$</string>
 
 </resources>

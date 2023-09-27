@@ -166,6 +166,24 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var rT = {}; //short for requestedTemp
 
     var deliverAt = new Date();
+    var recentSteps5Minutes = profile.recentSteps5Minutes;
+    var recentSteps10Minutes = profile.recentSteps10Minutes;
+    var recentSteps30Minutes = profile.recentSteps30Minutes;
+    var recentSteps60Minutes = profile.recentSteps60Minutes;
+    var recentSteps36hrs = profile.recentSteps36hrs;
+
+    console.error("Historic Step Count is "+recentSteps36hrs+";")
+
+    rT.reason = "Step counts for last periods of time are:";
+    rT.reason = "Five mins: "+recentSteps5Minutes+"; ";
+    rT.reason = "Ten mins: "+recentSteps10Minutes+"; ";
+    rT.reason = "Thirty mins: "+recentSteps30Minutes+"; ";
+    rT.reason = "Sixty mins: "+recentSteps60Minutes+"; ";
+    rT.reason = "36 Hours: "+recentSteps36hrs+"; ";
+    rT.reason = "              ";
+
+    var boostActive = profile.boostActive;
+
     if (currentTime) {
         deliverAt = new Date(currentTime);
     }
@@ -221,7 +239,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             return rT;
             //return tempBasalFunctions.setTempBasal(0, 30, profile, rT, currenttemp);
         } else { //do nothing.
-            rT.reason += ". Temp " + currenttemp.rate + " <= current basal " + basal + "U/hr; doing nothing. ";
+            rT.reason += ". Temp " + currenttemp.rate + " <= current basal " + round(basal, 2) + "U/hr; doing nothing. ";
             return rT;
         }
     }
@@ -263,13 +281,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     //**                   Start of Dynamic ISF code for predictions                 **
     //*********************************************************************************
 
-        console.error("---------------------------------------------------------");
-        console.error( "     Boost version: 3.9                 ");
-        console.error("---------------------------------------------------------");
+    console.error("---------------------------------------------------------");
+    console.error( "     Boost version: 3.9                 ");
+    console.error("---------------------------------------------------------");
 
-    var profileSwitch = profile.profilePercent;
-
-    console.error("Current Profile percent: "+profileSwitch+"; ");
+    console.error("Current Profile percent: "+profile.profileSwitch+"; ");
 
     var insulinPeak = profile.insulinPeak;
     var ins_val = profile.insulinDivisor;
@@ -1386,19 +1402,10 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 console.error("Base boost insulin is "+boostInsulinReq+" iu; ");
                 console.error("            ");
 
-                /*
-
-                if (profile.allowBoost_with_high_temptarget === false && profile.temptargetSet && target_bg > 100) {
-                    console.error("Boost disabled due to high temptarget of",target_bg);
-                    enableBoost = false;
-                } else {
-                    enableBoost = true;
-                    console.error("Boost enabled);
-                }*/
 
                 //cARB HANDLING INSULIN UPTICK CODE.
                 //With COB, allow a large initial bolus
-                if ( now1 >= boost_start && now1 < boost_end && COB > 0 && lastCarbAge < 15  ){
+                if ( boostActive && COB > 0 && lastCarbAge < 15  ){
                     //var cob_boost_max = Math.max((( COB / CR ) / insulinReqPCT),boost_max);
                     rT.reason += "boost_max due to COB = " + insulinReq + "; ";
                     rT.reason += "Last carb age is: " + lastCarbAge + "; ";
@@ -1413,7 +1420,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                     console.error("Insulin required % ("+((1/insulinReqPCT) * 100)+"%) applied.");
                     }
                  //Aafter initial period, allow larger carb based bolusing with some restrictions
-                 else if ( now1 >= boost_start && now1 < boost_end && COB > 0 && lastCarbAge < 40 && glucose_status.delta > 5 ){
+                 else if ( boostActive && COB > 0 && lastCarbAge < 40 && glucose_status.delta > 5 ){
                        var cob_boost_max = Math.max((( COB / CR ) / insulinReqPCT),boost_max);
                        rT.reason += "boost_max due to COB = " + cob_boost_max + "; ";
                        rT.reason += "Last carb age is: " + lastCarbAge + "; ";
@@ -1429,8 +1436,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                  }
                  //End of Carb handling uptick code.
                  //Test whether we have a positive delta, and confirm iob, time and boost being possible, then use the boost function
-                 else if (glucose_status.delta >= 5 && glucose_status.short_avgdelta >= 3 && uamBoost1 > 1.2 && uamBoost2 > 2 && now1 >= boost_start && now1 < boost_end && iob_data.iob < boostMaxIOB && boost_scale < 3 && eventualBG > target_bg && bg > 80
-                 && insulinReq > 0 && enableBoost) {
+                 else if (glucose_status.delta >= 5 && glucose_status.short_avgdelta >= 3 && uamBoost1 > 1.2 && uamBoost2 > 2 && boostActive && iob_data.iob < boostMaxIOB && boost_scale < 3 && eventualBG > target_bg && bg > 80 && insulinReq > 0) {
                      console.error("Profile Boost Scale value is "+boost_scale+": ");
                      //console.error("Automated Boost Scale value is "+scaleSMB+": ");
                      //document the pre-boost insulin required recommendation
@@ -1460,7 +1466,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                      rT.reason += "UAM Boost enacted; SMB equals" + boostInsulinReq + "; ";
                  }
 
-                 else if (delta_accl > 0 && bg > 180 && now1 >= boost_start && now1 < boost_end && iob_data.iob < boostMaxIOB && boost_scale < 3 && eventualBG > target_bg && bg > 80 && insulinReq > 0 && enableBoost) {
+                 else if (delta_accl > 5 && bg > 180 && boostActive && iob_data.iob < boostMaxIOB && boost_scale < 3 && eventualBG > target_bg && bg > 80 && insulinReq > 0) {
                      console.error("Profile Boost Scale value is "+boost_scale+": ");
                      //console.error("Automated Boost Scale value is "+scaleSMB+": ");
                      //document the pre-boost insulin required recommendation
@@ -1508,7 +1514,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                     rT.reason += "100% of insulinRequired "+insulinReq;
                  }*/
                  //If no other criteria are met, and delta is positive, scale microbolus size up to 1.0x insulin required from bg > 108 to bg = 180.
-           else if (bg > 98 && bg < 181 && glucose_status.delta > 3 && delta_accl > 0 && eventualBG > target_bg && iob_data.iob < boostMaxIOB && now1 >= boost_start && now1 < boost_end && enableBoost ) {
+           else if (bg > 98 && bg < 181 && glucose_status.delta > 3 && delta_accl > 0 && eventualBG > target_bg && iob_data.iob < boostMaxIOB && boostActive ) {
                 if (insulinReq > boostMaxIOB-iob_data.iob) {
                           insulinReq = boostMaxIOB-iob_data.iob;
                       }
@@ -1518,7 +1524,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 var microBolus = Math.floor(Math.min(insulinReq/insulinDivisor,boost_max)*roundSMBTo)/roundSMBTo;
                 rT.reason += "Increased SMB as percentage of insulin required to "+((1/insulinDivisor) * 100)+"%. SMB is " + microBolus;
                               }
-            else if ( now1 >= boost_start && now1 < boost_end && glucose_status.delta > 0 && delta_accl >= 1 && enableBoost){
+            else if ( boostActive && glucose_status.delta > 0 && delta_accl >= 1 ){
 
             var microBolus = Math.floor(Math.min(insulinReq/insulinReqPCT,boost_max)*roundSMBTo)/roundSMBTo;
             rT.reason += "Enhanced oref1 triggered; SMB equals" + microBolus + "; ";
