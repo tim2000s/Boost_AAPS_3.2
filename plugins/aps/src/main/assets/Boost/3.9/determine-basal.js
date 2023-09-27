@@ -276,7 +276,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 console.log("For "+profile.insulinType+" (insulin peak: "+profile.insulinPeak+") divisor is: "+ins_val+"; ");
 
     var sens_bg = profile.dynISFBgCapped;
-    if (sens_bg != bg) console.log("Current sensitivity increasing slowly from " + profile.dynISFSensBGCap + " mg/dl / 11.7mmol/l");
+    if (sens_bg != bg) console.log("Current sensitivity increasing slowly from " + profile.dynISFBgCap + " mg/dl / 11.7mmol/l");
 
     variable_sens =  profile.variable_sens;
     console.log("Current sensitivity for predictions is " +variable_sens+" based on current bg");
@@ -885,7 +885,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var now1 = new Date().getHours();
     //var boost_start = profile.boost_start;
     //var boost_end = profile.boost_end;
-    var sensBgCap = profile.dynISFSensBGCap;
+    var sensBgCap = profile.dynISFBgCap;
 
         if( meal_data.mealCOB > 0 && delta_accl > 0 ) {
             var future_sens = getISFforBGNoCap((eventualBG * 0.75) + (sens_bg * 0.25));

@@ -118,7 +118,7 @@ class DetermineBasalAdapterENJS internal constructor(private val scriptReader: S
             rhino.evaluateString(scope,
                                  """
 var getIsfByProfile = function (bg, profile) {
-    var cap = profile.dynISFSensBGCap;
+    var cap = profile.dynISFBgCap;
     if (bg > cap) bg = (cap + (bg - cap)/3);
     var sens_BG = Math.log((bg / profile.insulinDivisor) + 1);
     var scaler = Math.log((profile.normalTarget / profile.insulinDivisor) + 1) / sens_BG;

@@ -43,6 +43,12 @@ import app.aaps.plugins.aps.events.EventOpenAPSUpdateGui
 import app.aaps.plugins.aps.events.EventResetOpenAPSGui
 import app.aaps.plugins.aps.utils.ScriptReader
 import dagger.android.HasAndroidInjector
+import org.joda.time.DateTime
+import org.joda.time.LocalTime
+import org.joda.time.format.DateTimeFormatter
+import org.joda.time.format.ISODateTimeFormat
+import java.util.Calendar
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.floor
@@ -332,11 +338,12 @@ open class OpenAPSSMBPlugin @Inject constructor(
         val bgCurrent = verifyGlucoseStatusLoaded(true)?.glucose
         if (sp.getBoolean(info.nightscout.core.utils.R.string.key_treatment_safety_night_mode_enabled, false) && bgCurrent != null) {
 
-            val parser = SimpleDateFormat("hh:mm")
             val currentTimeMillis = System.currentTimeMillis()
             val midnight = MidnightTime.calc(currentTimeMillis)
-            val start = midnight + parser.parse(sp.getString(info.nightscout.core.utils.R.string.key_treatment_safety_night_mode_start, "22:00")).time
-            val end = midnight + parser.parse(sp.getString(info.nightscout.core.utils.R.string.key_treatment_safety_night_mode_end, "7:00")).time
+            val startHour = sp.getString(info.nightscout.core.utils.R.string.key_treatment_safety_night_mode_start, "22:00")
+            val start = midnight + LocalTime.parse(startHour, ISODateTimeFormat.timeElementParser()).millisOfDay
+            val endHour = sp.getString(info.nightscout.core.utils.R.string.key_treatment_safety_night_mode_end, "7:00");
+            val end = midnight + LocalTime.parse(endHour, ISODateTimeFormat.timeElementParser()).millisOfDay
             val bgOffset = sp.getDouble(info.nightscout.core.utils.R.string.key_treatment_safety_night_mode_bg_offset, 27.0)
             val active =
                 if (end > start) currentTimeMillis in start..<end

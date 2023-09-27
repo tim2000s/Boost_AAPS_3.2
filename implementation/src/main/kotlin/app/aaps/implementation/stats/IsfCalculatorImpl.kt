@@ -75,7 +75,7 @@ class IsfCalculatorImpl @Inject constructor(
                             if (tdd1D != null) (tddWeightedFromLast8H * 0.33) + (tdd7D * 0.34) + (tdd1D * 0.33)
                             else tddWeightedFromLast8H
 
-                        val dynISFadjust = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_dynamic_isf_adjust, "100")) / 100.0
+                        val dynISFadjust = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_dynamic_isf_tdd_adjust, "100")) / 100.0
                         tdd *= dynISFadjust
 
                         sensNormalTarget = 1800 / (tdd * (ln((bgNormalTarget / insulinDivisor) + 1))) * globalScale
@@ -116,13 +116,12 @@ class IsfCalculatorImpl @Inject constructor(
             }
 
         profileJson?.let { p ->
+            p.put("dynISFBgCap", bgCap )
             p.put("dynISFBgCapped", result.bgCapped)
             p.put("dynISFvelocity", result.velocity)
             p.put("sensNormalTarget", result.isfNormalTarget)
             p.put("variable_sens", result.isf)
             p.put("insulinDivisor", result.insulinDivisor)
-            p.put("dynISFSensBGCap", bgCap )
-            p.put("dynISFBgCapped", bgCurrent )
         }
         return result
     }
