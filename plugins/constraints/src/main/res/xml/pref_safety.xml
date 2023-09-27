@@ -43,7 +43,7 @@
                 android:key="@string/key_treatment_safety_night_mode_enabled"
                 android:title="@string/treatment_safety_night_mode_enabled" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:dependency="@string/key_treatment_safety_night_mode_enabled"
                 android:defaultValue="27"
                 android:inputType="numberDecimal"
@@ -54,7 +54,7 @@
                 validate:floatminNumber="0"
                 validate:testType="bgRange" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:dependency="@string/key_treatment_safety_night_mode_enabled"
                 android:defaultValue="23:00"
                 android:inputType="text"
@@ -64,7 +64,7 @@
                 validate:testErrorString="@string/error_invalid_time"
                 validate:testType="regexp" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:dependency="@string/key_treatment_safety_night_mode_enabled"
                 android:defaultValue="07:00"
                 android:inputType="text"

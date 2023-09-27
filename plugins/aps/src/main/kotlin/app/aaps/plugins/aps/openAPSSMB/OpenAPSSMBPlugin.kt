@@ -12,8 +12,10 @@ import app.aaps.core.interfaces.bgQualityCheck.BgQualityCheck
 import app.aaps.core.interfaces.constraints.Constraint
 import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.constraints.PluginConstraints
+import app.aaps.core.interfaces.iob.GlucoseStatus
 import app.aaps.core.interfaces.iob.GlucoseStatusProvider
 import app.aaps.core.interfaces.iob.IobCobCalculator
+import app.aaps.core.interfaces.iob.MealData
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.plugin.ActivePlugin
@@ -26,9 +28,9 @@ import app.aaps.core.interfaces.profiling.Profiler
 import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.rx.bus.RxBus
 import app.aaps.core.interfaces.sharedPreferences.SP
-import app.aaps.core.interfaces.stats.TddCalculator
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.HardLimits
+import app.aaps.core.interfaces.utils.MidnightTime
 import app.aaps.core.interfaces.utils.Round
 import app.aaps.core.main.constraints.ConstraintObject
 import app.aaps.core.main.extensions.target
@@ -356,7 +358,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
                     targetBg =
                         hardLimits.verifyHardLimits(
                             tempTarget.value.target(),
-                            info.nightscout.core.ui.R.string.temp_target_value,
+                            app.aaps.core.ui.R.string.temp_target_value,
                             HardLimits.VERY_HARD_LIMIT_TEMP_TARGET_BG[0].toDouble(),
                             HardLimits.VERY_HARD_LIMIT_TEMP_TARGET_BG[1].toDouble()
                         )
@@ -366,7 +368,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
             }
 
             if (bgCurrent < profileTarget + bgOffset) {
-                value.set(false, rh.gs(info.nightscout.core.ui.R.string.treatment_safety_night_mode_smb_disabled), this)
+                value.set(false, rh.gs(app.aaps.core.ui.R.string.treatment_safety_night_mode_smb_disabled), this)
                 return value
             }
         }
