@@ -384,6 +384,8 @@ var getIsfByProfile = function (bg, profile, useCap) {
         {
             val ps = profileFunction.buildCurrentProfileSwitch(0, profileSwitch.toInt(), 0)
             if (ps != null) effectiveProfile = ProfileSealed.PS(ps)
+
+            this.profile.put("current_basal", basalRate * (profileSwitch.toDouble() / 100.0))
         }
 
         val isf = isfCalculator.calculateAndSetToProfile(effectiveProfile, insulinDivisor, glucoseStatus.glucose, tempTargetSet, this.profile)
