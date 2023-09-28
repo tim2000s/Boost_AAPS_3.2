@@ -44,6 +44,7 @@ import java.io.IOException
 import java.lang.reflect.InvocationTargetException
 import java.nio.charset.StandardCharsets
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader: ScriptReader, private val injector: HasAndroidInjector) : DetermineBasalAdapter {
 
@@ -346,7 +347,7 @@ var getIsfByProfile = function (bg, profile, useCap) {
             || recentSteps30Minutes > activity_steps_30
             || recentSteps60Minutes > activity_steps_60
             || (recentSteps5Minutes < activity_steps_5 && recentSteps15Minutes > activity_steps_5)
-        var profileSwitch = 100.0 / if (profile is ProfileSealed.EPS) profile.value.originalPercentage else 100
+        var profileSwitch = if (profile is ProfileSealed.EPS) profile.value.originalPercentage else 100.0
 
         val activityBgTarget = 150.0
         var activityMinBg = minBg
@@ -354,17 +355,17 @@ var getIsfByProfile = function (bg, profile, useCap) {
         var activityTargetBg = targetBg
         if (activity)
         {
-            if (profileSwitch == 1.0) profileSwitch = 100 / activity_pct
+            if (profileSwitch == 100) profileSwitch = activity_pct
             activityMinBg = activityBgTarget
             activityMaxBg = activityBgTarget
             activityTargetBg = activityBgTarget
         }
-        else if (profileSwitch == 1.0 && recentSteps60Minutes < inactivity_steps
+        else if (profileSwitch == 100 && recentSteps60Minutes < inactivity_steps
             && boostActive
             && !(now < ( boostStart + sleepInMillis ) && recentSteps60Minutes < sleep_in_steps))
         {
             boostActive = false
-            profileSwitch = 100 / inactivity_pct
+            profileSwitch = inactivity_pct
         }
 
         this.profile.put("boostActive", boostActive)
@@ -378,9 +379,9 @@ var getIsfByProfile = function (bg, profile, useCap) {
         this.profile.put("target_bg", activityTargetBg)
 
         var effectiveProfile = profile
-        if (profileSwitch != 1.0)
+        if (profileSwitch != 100)
         {
-            val ps = profileFunction.buildCurrentProfileSwitch(0, SafeParse.stringToInt(sp.getString(R.string.key_activity_pct_inc,"80")), 0)
+            val ps = profileFunction.buildCurrentProfileSwitch(0, profileSwitch.toInt(), 0)
             if (ps != null) effectiveProfile = ProfileSealed.PS(ps)
         }
 
