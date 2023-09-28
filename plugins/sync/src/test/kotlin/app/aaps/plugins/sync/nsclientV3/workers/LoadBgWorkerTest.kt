@@ -7,6 +7,7 @@ import androidx.work.WorkContinuation
 import androidx.work.WorkManager
 import androidx.work.testing.TestListenableWorkerBuilder
 import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.nsclient.StoreDataForDb
 import app.aaps.core.interfaces.receivers.ReceiverStatusStore
 import app.aaps.core.interfaces.resources.ResourceHelper
@@ -21,7 +22,6 @@ import app.aaps.core.nssdk.remotemodel.LastModified
 import app.aaps.core.utils.receivers.DataWorkerStorage
 import app.aaps.database.entities.GlucoseValue
 import app.aaps.database.entities.embedments.InterfaceIDs
-import app.aaps.database.impl.AppRepository
 import app.aaps.implementation.utils.DecimalFormatterImpl
 import app.aaps.plugins.sync.nsShared.NsIncomingDataProcessor
 import app.aaps.plugins.sync.nsclient.ReceiverDelegate
@@ -56,7 +56,7 @@ internal class LoadBgWorkerTest : TestBase() {
     @Mock lateinit var config: Config
     @Mock lateinit var uiInteraction: UiInteraction
     @Mock lateinit var dataSyncSelectorV3: DataSyncSelectorV3
-    @Mock lateinit var repository: AppRepository
+    @Mock lateinit var persistenceLayer: PersistenceLayer
     @Mock lateinit var receiverStatusStore: ReceiverStatusStore
     @Mock lateinit var nsClientSource: NSClientSource
     @Mock lateinit var workManager: WorkManager
@@ -101,7 +101,7 @@ internal class LoadBgWorkerTest : TestBase() {
         receiverDelegate = ReceiverDelegate(rxBus, rh, sp, receiverStatusStore, aapsSchedulers, fabricPrivacy)
         nsClientV3Plugin = NSClientV3Plugin(
             injector, aapsLogger, aapsSchedulers, rxBus, rh, context, fabricPrivacy,
-            sp, receiverDelegate, config, dateUtil, uiInteraction, dataSyncSelectorV3, repository,
+            sp, receiverDelegate, config, dateUtil, uiInteraction, dataSyncSelectorV3, persistenceLayer,
             nsDeviceStatusHandler, nsClientSource, nsIncomingDataProcessor, storeDataForDb, decimalFormatter
         )
         nsClientV3Plugin.newestDataOnServer = LastModified(LastModified.Collections())
@@ -119,7 +119,7 @@ internal class LoadBgWorkerTest : TestBase() {
     fun notEnabledNSClientSource() = runTest {
         sut = TestListenableWorkerBuilder<LoadBgWorker>(context).build()
         Mockito.`when`(nsClientSource.isEnabled()).thenReturn(false)
-        Mockito.`when`(sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_receive_cgm, false)).thenReturn(false)
+        Mockito.`when`(sp.getBoolean(app.aaps.core.utils.R.string.key_ns_receive_cgm, false)).thenReturn(false)
 
         val result = sut.doWorkAndLog()
         assertIs<ListenableWorker.Result.Success>(result)
