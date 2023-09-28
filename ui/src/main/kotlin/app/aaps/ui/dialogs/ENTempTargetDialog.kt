@@ -255,7 +255,7 @@ class ENTempTargetDialog : DialogFragmentWithDate() {
                     })
                 }
 
-                if (duration == 10) sp.putBoolean(info.nightscout.core.utils.R.string.key_objectiveusetemptarget, true)
+                if (duration == 10) sp.putBoolean(app.aaps.core.utils.R.string.key_objectiveusetemptarget, true)
             })
         }
         return true

@@ -211,7 +211,7 @@ var getIsfByProfile = function (bg, profile) {
         this.profile.put("type", "current")
         this.profile.put("max_daily_basal", profile.getMaxDailyBasal())
         this.profile.put("max_basal", maxBasal)
-        this.profile.put("safety_maxbolus", sp.getDouble(info.nightscout.core.utils.R.string.key_treatmentssafety_maxbolus, 3.0))
+        this.profile.put("safety_maxbolus", sp.getDouble(app.aaps.core.utils.R.string.key_treatmentssafety_maxbolus, 3.0))
         this.profile.put("min_bg", minBg)
         this.profile.put("max_bg", maxBg)
         this.profile.put("target_bg", targetBg)
@@ -256,8 +256,8 @@ var getIsfByProfile = function (bg, profile) {
         this.profile.put("carbsReqThreshold", sp.getInt(R.string.key_carbsReqThreshold, ENDefaults.carbsReqThreshold))
         this.profile.put("current_basal", basalRate)
         this.profile.put("temptargetSet", tempTargetSet)
-        this.profile.put("autosens_min", SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_openapsama_autosens_min, "0.8")))
-        this.profile.put("autosens_max", SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_openapsama_autosens_max, "1.2")))
+        this.profile.put("autosens_min", SafeParse.stringToDouble(sp.getString(app.aaps.core.utils.R.string.key_openapsama_autosens_min, "0.8")))
+        this.profile.put("autosens_max", SafeParse.stringToDouble(sp.getString(app.aaps.core.utils.R.string.key_openapsama_autosens_max, "1.2")))
 //**********************************************************************************************************************************************
         // patches ==== START
         this.profile.put("EatingNowTimeStart", sp.getInt(R.string.key_eatingnow_timestart, 9))
@@ -305,7 +305,7 @@ var getIsfByProfile = function (bg, profile) {
         this.profile.put("SMBbgOffset_day",profileUtil.convertToMgdl(sp.getDouble(R.string.key_eatingnow_smbbgoffset_day, 0.0), profileFunction.getUnits()))
         this.profile.put("ISFbgscaler", sp.getDouble(R.string.key_eatingnow_isfbgscaler, 0.0))
         this.profile.put("MaxISFpct", sp.getInt(R.string.key_eatingnow_maxisfpct, 100))
-        this.profile.put("useDynISF", sp.getBoolean(info.nightscout.core.utils.R.string.key_dynamic_isf_enable, true))
+        this.profile.put("useDynISF", sp.getBoolean(app.aaps.core.utils.R.string.key_dynamic_isf_enable, true))
 
         this.profile.put("percent", if (profile is ProfileSealed.EPS) profile.value.originalPercentage else 100)
         // patches ==== END

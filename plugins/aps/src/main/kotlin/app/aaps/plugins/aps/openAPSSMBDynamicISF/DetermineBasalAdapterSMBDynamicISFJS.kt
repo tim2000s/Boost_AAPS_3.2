@@ -15,7 +15,6 @@ import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.sharedPreferences.SP
 import app.aaps.core.interfaces.stats.IsfCalculator
-import app.aaps.core.interfaces.utils.Round
 import app.aaps.core.interfaces.utils.SafeParse
 import app.aaps.core.main.extensions.convertedToAbsolute
 import app.aaps.core.main.extensions.getPassedDurationToTimeInMinutes

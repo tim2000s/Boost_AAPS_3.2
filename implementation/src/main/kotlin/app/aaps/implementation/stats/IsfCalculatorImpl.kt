@@ -22,20 +22,20 @@ class IsfCalculatorImpl @Inject constructor(
 
     override fun calculateAndSetToProfile(profile : Profile, insulinDivisor: Int, glucose: Double, isTempTarget: Boolean, profileJson: JSONObject?) : IsfCalculation {
 
-        val autosensMax = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_openapsama_autosens_max, "1.2"))
-        val autosensMin = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_openapsama_autosens_min, "0.7"))
-        val dynIsfVelocity = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_dynamic_isf_velocity, "100")) / 100.0
-        val bgCap = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_dynamic_isf_bg_cap, "210"))
-        val bgNormalTarget = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_dynamic_isf_normalTarget, "99"))
+        val autosensMax = SafeParse.stringToDouble(sp.getString(app.aaps.core.utils.R.string.key_openapsama_autosens_max, "1.2"))
+        val autosensMin = SafeParse.stringToDouble(sp.getString(app.aaps.core.utils.R.string.key_openapsama_autosens_min, "0.7"))
+        val dynIsfVelocity = SafeParse.stringToDouble(sp.getString(app.aaps.core.utils.R.string.key_dynamic_isf_velocity, "100")) / 100.0
+        val bgCap = SafeParse.stringToDouble(sp.getString(app.aaps.core.utils.R.string.key_dynamic_isf_bg_cap, "210"))
+        val bgNormalTarget = SafeParse.stringToDouble(sp.getString(app.aaps.core.utils.R.string.key_dynamic_isf_normalTarget, "99"))
 
-        val highTemptargetRaisesSensitivity = sp.getBoolean(info.nightscout.core.utils.R.string.key_high_temptarget_raises_sensitivity, false)
-        val lowTemptargetLowersSensitivity = sp.getBoolean(info.nightscout.core.utils.R.string.key_low_temptarget_lowers_sensitivity, false)
+        val highTemptargetRaisesSensitivity = sp.getBoolean(app.aaps.core.utils.R.string.key_high_temptarget_raises_sensitivity, false)
+        val lowTemptargetLowersSensitivity = sp.getBoolean(app.aaps.core.utils.R.string.key_low_temptarget_lowers_sensitivity, false)
         val halfBasalTarget = SMBDefaults.half_basal_exercise_target
-        val obeyProfile = sp.getBoolean(info.nightscout.core.utils.R.string.key_dynamic_isf_obey_profile, true)
+        val obeyProfile = sp.getBoolean(app.aaps.core.utils.R.string.key_dynamic_isf_obey_profile, true)
 
-        val useDynIsf = sp.getBoolean(info.nightscout.core.utils.R.string.key_dynamic_isf_enable, false)
-        val useTDD = sp.getBoolean(info.nightscout.core.utils.R.string.key_dynamic_isf_use_tdd, false)
-        val adjustSens = sp.getBoolean(info.nightscout.core.utils.R.string.key_dynamic_isf_adjust_sensitivity, false)
+        val useDynIsf = sp.getBoolean(app.aaps.core.utils.R.string.key_dynamic_isf_enable, false)
+        val useTDD = sp.getBoolean(app.aaps.core.utils.R.string.key_dynamic_isf_use_tdd, false)
+        val adjustSens = sp.getBoolean(app.aaps.core.utils.R.string.key_dynamic_isf_adjust_sensitivity, false)
 
         val globalScale =
             if (obeyProfile) (100.0 / if (profile is ProfileSealed.EPS) profile.value.originalPercentage else 100)
@@ -75,7 +75,7 @@ class IsfCalculatorImpl @Inject constructor(
                             if (tdd1D != null) (tddWeightedFromLast8H * 0.33) + (tdd7D * 0.34) + (tdd1D * 0.33)
                             else tddWeightedFromLast8H
 
-                        val dynISFadjust = SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_dynamic_isf_tdd_adjust, "100")) / 100.0
+                        val dynISFadjust = SafeParse.stringToDouble(sp.getString(app.aaps.core.utils.R.string.key_dynamic_isf_tdd_adjust, "100")) / 100.0
                         tdd *= dynISFadjust
 
                         sensNormalTarget = 1800 / (tdd * (ln((bgNormalTarget / insulinDivisor) + 1))) * globalScale

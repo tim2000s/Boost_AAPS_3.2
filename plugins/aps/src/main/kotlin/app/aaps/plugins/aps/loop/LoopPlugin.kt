@@ -405,7 +405,7 @@ class LoopPlugin @Inject constructor(
                             waiting
                         rxBus.send(EventLoopUpdateGui())
                         fabricPrivacy.logCustom("APSRequest")
-                        val swapCommands = sp.getBoolean(info.nightscout.core.utils.R.string.key_loop_swap_smbtbr_order, false)
+                        val swapCommands = sp.getBoolean(app.aaps.core.utils.R.string.key_loop_swap_smbtbr_order, false)
                         if (swapCommands) {
                             applySMBRequest(resultAfterConstraints, object : Callback() {
                                 override fun run() {

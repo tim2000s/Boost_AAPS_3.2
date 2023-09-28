@@ -336,22 +336,22 @@ open class OpenAPSSMBPlugin @Inject constructor(
         val enabled = sp.getBoolean(R.string.key_use_smb, false)
         if (!enabled) value.set(false, rh.gs(R.string.smb_disabled_in_preferences), this)
         val bgCurrent = verifyGlucoseStatusLoaded(true)?.glucose
-        if (sp.getBoolean(info.nightscout.core.utils.R.string.key_treatment_safety_night_mode_enabled, false) && bgCurrent != null) {
+        if (sp.getBoolean(app.aaps.core.utils.R.string.key_treatment_safety_night_mode_enabled, false) && bgCurrent != null) {
 
             val currentTimeMillis = System.currentTimeMillis()
             val midnight = MidnightTime.calc(currentTimeMillis)
-            val startHour = sp.getString(info.nightscout.core.utils.R.string.key_treatment_safety_night_mode_start, "22:00")
+            val startHour = sp.getString(app.aaps.core.utils.R.string.key_treatment_safety_night_mode_start, "22:00")
             val start = midnight + LocalTime.parse(startHour, ISODateTimeFormat.timeElementParser()).millisOfDay
-            val endHour = sp.getString(info.nightscout.core.utils.R.string.key_treatment_safety_night_mode_end, "7:00");
+            val endHour = sp.getString(app.aaps.core.utils.R.string.key_treatment_safety_night_mode_end, "7:00");
             val end = midnight + LocalTime.parse(endHour, ISODateTimeFormat.timeElementParser()).millisOfDay
-            val bgOffset = sp.getDouble(info.nightscout.core.utils.R.string.key_treatment_safety_night_mode_bg_offset, 27.0)
+            val bgOffset = sp.getDouble(app.aaps.core.utils.R.string.key_treatment_safety_night_mode_bg_offset, 27.0)
             val active =
                 if (end > start) currentTimeMillis in start..<end
                 else (currentTimeMillis in (start - 86400000)..<end || currentTimeMillis in start..<(end + 86400000))
 
             if (!active) return value
 
-            if (sp.getBoolean(info.nightscout.core.utils.R.string.key_treatment_safety_night_mode_disable_with_cob, false)) {
+            if (sp.getBoolean(app.aaps.core.utils.R.string.key_treatment_safety_night_mode_disable_with_cob, false)) {
                 val mealData = verifyMealDataLoaded(true)
                 if (mealData.mealCOB > 0) return value
             }
@@ -359,7 +359,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
             val profile = verifyProfileLoaded(true)
             val profileTarget = profile?.getTargetMgdl() ?: 99.0
 
-            if (sp.getBoolean(info.nightscout.core.utils.R.string.key_treatment_safety_night_mode_disable_with_low_temp_target, false)) {
+            if (sp.getBoolean(app.aaps.core.utils.R.string.key_treatment_safety_night_mode_disable_with_low_temp_target, false)) {
                 var targetBg = profileTarget
                 var isTempTarget = false
                 val tempTarget = repository.getTemporaryTargetActiveAt(dateUtil.now()).blockingGet()
