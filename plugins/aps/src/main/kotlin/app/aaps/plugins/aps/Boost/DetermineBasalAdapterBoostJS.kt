@@ -208,7 +208,8 @@ var getIsfByProfile = function (bg, profile, useCap) {
         this.profile.put("sens", profile.getIsfMgdl())
         this.profile.put("max_daily_safety_multiplier", sp.getInt(R.string.key_openapsama_max_daily_safety_multiplier, 3))
         this.profile.put("current_basal_safety_multiplier", sp.getDouble(R.string.key_openapsama_current_basal_safety_multiplier, 4.0))
-        this.profile.put("lgsThreshold", profileUtil.convertToMgdl(sp.getDouble(R.string.key_lgs_threshold, 65.0), profileUtil.units))
+        this.profile.put("lgsThreshold", profileUtil.convertToMgdlDetect(sp.getDouble(R.string.key_lgs_threshold, 65.0)))
+
 
         //mProfile.put("high_temptarget_raises_sensitivity", SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, BoostDefaults.high_temptarget_raises_sensitivity));
 //**********************************************************************************************************************************************
