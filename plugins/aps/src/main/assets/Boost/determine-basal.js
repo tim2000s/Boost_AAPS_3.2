@@ -110,17 +110,6 @@ function enable_smb(
     return false;
 }
 
-function enable_boost(profile,target_bg)
-{
-    // disable Boost when a high temptarget is set
-    if (! profile.allowBoost_with_high_temptarget && profile.temptargetSet && target_bg > 100) {
-        console.error("Boost disabled due to high temptarget of",target_bg);
-        return false;
-    } else {
-        console.error("No high temp target; Boost can run \n");
-    }
-    return true;
-}
 
 /*function autoISF(sens, target_bg, profile, glucose_status, meal_data, autosens_data,
 sensitivityRatio)
@@ -903,12 +892,12 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     if (fsens_bg != eventualBG)
         console.log("Dosing sensitivity increasing slowly from " + sensBgCap + " mg/dl / 11.7mmol/l");
 
-        if( meal_data.mealCOB > 0 && delta_accl > 0 ) {
+        if( boostActive && meal_data.mealCOB > 0 && delta_accl > 0 ) {
             var future_sens = getISFforBGNoCap((fsens_bg * 0.75) + (sens_bg * 0.25));
             console.log("Future state sensitivity is " +future_sens+" weighted on eventual BG due to COB");
             rT.reason += "Dosing sensitivity: " +future_sens+" weighted on predicted BG due to COB;";
         }
-        else if( glucose_status.delta > 4 && delta_accl > 10 && bg < 180 && eventualBG > bg && boostActive ) {
+        else if( boostActive && glucose_status.delta > 4 && delta_accl > 10 && bg < 180 && eventualBG > bg ) {
 
             var future_sens = getISFforBGNoCap((fsens_bg * 0.5) + (sens_bg * 0.5))
             console.log("Future state sensitivity is " +future_sens+" weighted on predicted bg due to increasing deltas");

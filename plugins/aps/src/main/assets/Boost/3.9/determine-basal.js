@@ -110,18 +110,6 @@ function enable_smb(
     return false;
 }
 
-function enable_boost(profile,target_bg)
-{
-    // disable Boost when a high temptarget is set
-    if (! profile.allowBoost_with_high_temptarget && profile.temptargetSet && target_bg > 100) {
-        console.error("Boost disabled due to high temptarget of",target_bg);
-        return false;
-    } else {
-        console.error("No high temp target; Boost can run \n");
-    }
-    return true;
-}
-
 
 /*function autoISF(sens, target_bg, profile, glucose_status, meal_data, autosens_data,
 sensitivityRatio)
@@ -618,11 +606,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         meal_data,
         target_bg
     );
-
-    var enableBoost = enable_boost(
-            profile,
-            target_bg
-        );
 
     // enable UAM (if enabled in preferences)
     var enableUAM=(profile.enableUAM);

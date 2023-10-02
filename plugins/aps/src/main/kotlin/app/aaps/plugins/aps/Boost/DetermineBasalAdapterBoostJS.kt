@@ -198,6 +198,7 @@ var getIsfByProfile = function (bg, profile, useCap) {
     ) {
         val pump = activePlugin.activePump
         val pumpBolusStep = pump.pumpDescription.bolusStep
+        val normalTarget = SafeParse.stringToDouble(sp.getString(app.aaps.core.utils.R.string.key_dynamic_isf_normalTarget, "99"))
 
         this.profile.put("max_iob", maxIob)
         //mProfile.put("dia", profile.getDia());
@@ -242,7 +243,8 @@ var getIsfByProfile = function (bg, profile, useCap) {
         this.profile.put("enableSMB_with_COB", smbEnabled && sp.getBoolean(R.string.key_enableSMB_with_COB, false))
         this.profile.put("enableSMB_with_temptarget", smbEnabled && sp.getBoolean(R.string.key_enableSMB_with_temptarget, false))
         this.profile.put("allowSMB_with_high_temptarget", smbEnabled && sp.getBoolean(R.string.key_allowSMB_with_high_temptarget, false))
-        this.profile.put("allowBoost_with_high_temptarget", smbEnabled && sp.getBoolean(R.string.key_allowBoost_with_high_temptarget, false))
+        val allowBoostWithHighTemporaryTarget = sp.getBoolean(R.string.key_allowBoost_with_high_temptarget, false)
+        this.profile.put("allowBoost_with_high_temptarget", smbEnabled && allowBoostWithHighTemporaryTarget)
         this.profile.put("enableSMB_always", smbEnabled && sp.getBoolean(R.string.key_enableSMB_always, false) && advancedFiltering)
         this.profile.put("enableSMB_after_carbs", smbEnabled && sp.getBoolean(R.string.key_enableSMB_after_carbs, false) && advancedFiltering)
         this.profile.put("maxSMBBasalMinutes", sp.getInt(R.string.key_smb_max_minutes, BoostDefaults.maxSMBBasalMinutes))
@@ -332,11 +334,16 @@ var getIsfByProfile = function (bg, profile, useCap) {
         val endHour = sp.getString(R.string.key_openapsama_boost_end, "7:00");
         var boostEnd = midnight + org.joda.time.LocalTime.parse(endHour, ISODateTimeFormat.timeElementParser()).millisOfDay
         val sleepInMillis = (3600000.0 * SafeParse.stringToDouble(sp.getString(R.string.key_sleep_in_hrs, "2"))).toLong()
+
         if (boostStart > boostEnd) {
             if (now > boostEnd) boostEnd += 86400000
             else boostStart -= 86400000
         }
+
         var boostActive = now in boostStart..<boostEnd
+
+        if (boostActive && tempTargetSet && !allowBoostWithHighTemporaryTarget && targetBg > normalTarget)
+            boostActive = false
 
         val recentSteps5Minutes = StepService.getRecentStepCount5Min()
         // val recentSteps10Minutes = StepService.getRecentStepCount10Min() // unused
@@ -344,29 +351,31 @@ var getIsfByProfile = function (bg, profile, useCap) {
         val recentSteps30Minutes = StepService.getRecentStepCount30Min()
         val recentSteps60Minutes = StepService.getRecentStepCount60Min()
 
-        val activity = recentSteps5Minutes > activity_steps_5
-            || recentSteps30Minutes > activity_steps_30
-            || recentSteps60Minutes > activity_steps_60
-            || (recentSteps5Minutes < activity_steps_5 && recentSteps15Minutes > activity_steps_5)
-        var profileSwitch = if (profile is ProfileSealed.EPS) profile.value.originalPercentage else 100.0
-
         val activityBgTarget = 150.0
         var activityMinBg = minBg
         var activityMaxBg = maxBg
         var activityTargetBg = targetBg
-        if (activity)
-        {
-            if (profileSwitch == 100) profileSwitch = activity_pct
-            activityMinBg = activityBgTarget
-            activityMaxBg = activityBgTarget
-            activityTargetBg = activityBgTarget
-        }
-        else if (profileSwitch == 100 && recentSteps60Minutes < inactivity_steps
-            && boostActive
-            && !(now < ( boostStart + sleepInMillis ) && recentSteps60Minutes < sleep_in_steps))
-        {
+        var profileSwitch = if (profile is ProfileSealed.EPS) profile.value.originalPercentage else 100.0
+
+        if (boostActive && now in boostStart..<( boostStart + sleepInMillis ) && recentSteps60Minutes < sleep_in_steps) {
             boostActive = false
-            profileSwitch = inactivity_pct
+        }
+
+        if (boostActive) {
+
+            val activity = recentSteps5Minutes > activity_steps_5
+                || recentSteps30Minutes > activity_steps_30
+                || recentSteps60Minutes > activity_steps_60
+                || (recentSteps5Minutes < activity_steps_5 && recentSteps15Minutes > activity_steps_5)
+
+            if (activity) {
+                if (profileSwitch == 100) profileSwitch = activity_pct
+                activityMinBg = activityBgTarget
+                activityMaxBg = activityBgTarget
+                activityTargetBg = activityBgTarget
+            } else if (profileSwitch == 100 && recentSteps60Minutes < inactivity_steps) {
+                profileSwitch = inactivity_pct
+            }
         }
 
         this.profile.put("boostActive", boostActive)
@@ -391,7 +400,7 @@ var getIsfByProfile = function (bg, profile, useCap) {
         val isf = isfCalculator.calculateAndSetToProfile(effectiveProfile, insulinDivisor, glucoseStatus.glucose, tempTargetSet, this.profile)
 
         autosensData.put("ratio", isf.ratio)
-        this.profile.put("normalTarget", 99)
+        this.profile.put("normalTarget", normalTarget)
 
         this.microBolusAllowed = microBolusAllowed
         smbAlwaysAllowed = advancedFiltering
