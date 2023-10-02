@@ -5,6 +5,7 @@ import app.aaps.BuildConfig
 import app.aaps.R
 import app.aaps.core.interfaces.configuration.Config
 import app.aaps.core.interfaces.maintenance.PrefFileListProvider
+import app.aaps.core.interfaces.sharedPreferences.SP
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -12,7 +13,8 @@ import javax.inject.Singleton
 @Suppress("KotlinConstantConditions")
 @Singleton
 class ConfigImpl @Inject constructor(
-    fileListProvider: PrefFileListProvider
+    fileListProvider: PrefFileListProvider,
+    sp: SP
 ) : Config {
 
     override val SUPPORTED_NS_VERSION = 150000 // 15.0.0
@@ -45,7 +47,7 @@ class ConfigImpl @Inject constructor(
         val engineeringModeSemaphore = File(fileListProvider.ensureExtraDirExists(), "engineering_mode")
         val unfinishedModeSemaphore = File(fileListProvider.ensureExtraDirExists(), "unfinished_mode")
 
-        engineeringMode = engineeringModeSemaphore.exists() && engineeringModeSemaphore.isFile
+        engineeringMode = sp.getBoolean(app.aaps.core.utils.R.string.key_engineering_mode, false) || (engineeringModeSemaphore.exists() && engineeringModeSemaphore.isFile)
         unfinishedMode = unfinishedModeSemaphore.exists() && unfinishedModeSemaphore.isFile
         devBranch = BuildConfig.VERSION.contains("-") || BuildConfig.VERSION.matches(Regex(".*[a-zA-Z]+.*"))
         if (BuildConfig.VERSION.contains("-beta") || BuildConfig.VERSION.contains("-rc"))
