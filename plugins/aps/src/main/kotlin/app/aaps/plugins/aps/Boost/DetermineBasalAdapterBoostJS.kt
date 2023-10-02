@@ -68,6 +68,8 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
     private var currentTime: Long = 0
     private var flatBGsDetected = false
 
+    private val DebugLog = StringBuffer()
+
     override var currentTempParam: String? = null
     override var iobDataParam: String? = null
     override var glucoseStatusParam: String? = null
@@ -142,7 +144,8 @@ var getIsfByProfile = function (bg, profile, useCap) {
                     java.lang.Boolean.valueOf(flatBGsDetected)
                 )
                 val jsResult = determineBasalObj.call(rhino, scope, scope, params) as NativeObject
-                scriptDebug = LoggerCallback.scriptDebug
+                scriptDebug = LoggerCallback.scriptDebug + DebugLog
+                DebugLog.delete(0, DebugLog.length)
 
                 // Parse the jsResult object to a JSON-String
                 val result = NativeJSON.stringify(rhino, scope, jsResult, null, null).toString()
@@ -342,8 +345,10 @@ var getIsfByProfile = function (bg, profile, useCap) {
 
         var boostActive = now in boostStart..<boostEnd
 
-        if (boostActive && tempTargetSet && !allowBoostWithHighTemporaryTarget && targetBg > normalTarget)
+        if (boostActive && tempTargetSet && !allowBoostWithHighTemporaryTarget && targetBg > normalTarget) {
             boostActive = false
+            DebugLog.append("Boost disabled due to high temptarget of $targetBg")
+        }
 
         val recentSteps5Minutes = StepService.getRecentStepCount5Min()
         // val recentSteps10Minutes = StepService.getRecentStepCount10Min() // unused
@@ -359,6 +364,7 @@ var getIsfByProfile = function (bg, profile, useCap) {
 
         if (boostActive && now in boostStart..<( boostStart + sleepInMillis ) && recentSteps60Minutes < sleep_in_steps) {
             boostActive = false
+            DebugLog.append("Boost disabled due to lie-in")
         }
 
         if (boostActive) {
@@ -369,12 +375,17 @@ var getIsfByProfile = function (bg, profile, useCap) {
                 || (recentSteps5Minutes < activity_steps_5 && recentSteps15Minutes > activity_steps_5)
 
             if (activity) {
-                if (profileSwitch == 100) profileSwitch = activity_pct
+
+                if (profileSwitch == 100) {
+                    profileSwitch = activity_pct
+                    DebugLog.append("Boost profile % changed to $activity_pct because of activity detected")
+                }
                 activityMinBg = activityBgTarget
                 activityMaxBg = activityBgTarget
                 activityTargetBg = activityBgTarget
             } else if (profileSwitch == 100 && recentSteps60Minutes < inactivity_steps) {
                 profileSwitch = inactivity_pct
+                DebugLog.append("Boost profile % changed to $inactivity_pct because of inactivity detected")
             }
         }
 
