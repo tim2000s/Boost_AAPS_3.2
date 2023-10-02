@@ -2,6 +2,7 @@ package app.aaps.implementation.stats
 
 import app.aaps.core.interfaces.aps.SMBDefaults
 import app.aaps.core.interfaces.profile.Profile
+import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.sharedPreferences.SP
 import app.aaps.core.interfaces.stats.IsfCalculation
 import app.aaps.core.interfaces.stats.IsfCalculator
@@ -18,6 +19,7 @@ import kotlin.math.ln
 class IsfCalculatorImpl @Inject constructor(
     private val tddCalculator: TddCalculator,
     private val sp: SP,
+    private val profileUtil: ProfileUtil
 ) : IsfCalculator {
 
     override fun calculateAndSetToProfile(profile : Profile, insulinDivisor: Int, glucose: Double, isTempTarget: Boolean, profileJson: JSONObject?) : IsfCalculation {
@@ -25,7 +27,7 @@ class IsfCalculatorImpl @Inject constructor(
         val autosensMax = SafeParse.stringToDouble(sp.getString(app.aaps.core.utils.R.string.key_openapsama_autosens_max, "1.2"))
         val autosensMin = SafeParse.stringToDouble(sp.getString(app.aaps.core.utils.R.string.key_openapsama_autosens_min, "0.7"))
         val dynIsfVelocity = SafeParse.stringToDouble(sp.getString(app.aaps.core.utils.R.string.key_dynamic_isf_velocity, "100")) / 100.0
-        val bgCap = SafeParse.stringToDouble(sp.getString(app.aaps.core.utils.R.string.key_dynamic_isf_bg_cap, "210"))
+        val bgCap = profileUtil.convertToMgdlDetect(SafeParse.stringToDouble(sp.getString(app.aaps.core.utils.R.string.key_dynamic_isf_bg_cap, "210")))
         val bgNormalTarget = SafeParse.stringToDouble(sp.getString(app.aaps.core.utils.R.string.key_dynamic_isf_normalTarget, "99"))
 
         val highTemptargetRaisesSensitivity = sp.getBoolean(app.aaps.core.utils.R.string.key_high_temptarget_raises_sensitivity, false)
