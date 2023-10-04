@@ -11,7 +11,6 @@ console.error =  function error(){
             s = s + arguments[i].toString();
         }
 	}
-	s = s + "\n";
 	console2.log(s);
 };
 
@@ -28,6 +27,5 @@ console.log =  function log(){
         }
 		//console2.log(arguments[i]);
 	}
-	s = s + "\n";
 	console2.log(s);
 };

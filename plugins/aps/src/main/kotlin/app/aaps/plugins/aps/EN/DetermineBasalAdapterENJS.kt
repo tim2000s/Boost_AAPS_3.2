@@ -10,6 +10,7 @@ import app.aaps.core.interfaces.iob.IobTotal
 import app.aaps.core.interfaces.iob.MealData
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.logging.ScriptLogger
 import app.aaps.core.interfaces.plugin.ActivePlugin
 import app.aaps.core.interfaces.profile.Profile
 import app.aaps.core.interfaces.profile.ProfileFunction
@@ -149,7 +150,7 @@ var getIsfByProfile = function (bg, profile) {
                     java.lang.Boolean.valueOf(flatBGsDetected)
                 )
                 val jsResult = determineBasalObj.call(rhino, scope, scope, params) as NativeObject
-                scriptDebug = LoggerCallback.scriptDebug
+                scriptDebug = ScriptLogger.dump()
 
                 // Parse the jsResult object to a JSON-String
                 val result = NativeJSON.stringify(rhino, scope, jsResult, null, null).toString()

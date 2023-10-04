@@ -1,5 +1,7 @@
 package app.aaps.plugins.aps.di
 
+import app.aaps.core.interfaces.logging.ScriptLogger
+import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
 import app.aaps.plugins.aps.Boost.DetermineBasalAdapterBoostJS
 import app.aaps.plugins.aps.EN.DetermineBasalAdapterENJS
 import app.aaps.plugins.aps.logger.LoggerCallback
@@ -8,12 +10,24 @@ import app.aaps.plugins.aps.openAPSAMA.DetermineBasalResultAMA
 import app.aaps.plugins.aps.openAPSSMB.DetermineBasalAdapterSMBJS
 import app.aaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
 import app.aaps.plugins.aps.openAPSSMBDynamicISF.DetermineBasalAdapterSMBDynamicISFJS
+import dagger.Binds
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
 
-@Module
+@Module(
+    includes = [
+        AlgModule.Bindings::class,
+    ]
+)
+
 @Suppress("unused")
 abstract class AlgModule {
+
+    @Module
+    interface Bindings {
+
+        @Binds fun bindLoggerCallback(loggerCallback: LoggerCallback): ScriptLogger
+    }
 
     @ContributesAndroidInjector abstract fun loggerCallbackInjector(): LoggerCallback
     @ContributesAndroidInjector abstract fun determineBasalResultSMBInjector(): DetermineBasalResultSMB
@@ -23,4 +37,5 @@ abstract class AlgModule {
     @ContributesAndroidInjector abstract fun determineBasalAdapterSMBAutoISFJSInjector(): DetermineBasalAdapterSMBDynamicISFJS
     @ContributesAndroidInjector abstract fun determineBasalAdapterBoostJSInjector(): DetermineBasalAdapterBoostJS
     @ContributesAndroidInjector abstract fun determineBasalAdapterENSInjector(): DetermineBasalAdapterENJS
+
 }

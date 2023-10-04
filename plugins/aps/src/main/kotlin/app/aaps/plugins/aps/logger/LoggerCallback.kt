@@ -2,12 +2,16 @@ package app.aaps.plugins.aps.logger
 
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.logging.ScriptLogger
+import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.plugins.aps.utils.StaticInjector
 import org.mozilla.javascript.ScriptableObject
 import javax.inject.Inject
 
 @Suppress("unused", "FunctionName")
-class LoggerCallback : ScriptableObject() {
+class LoggerCallback @Inject internal constructor(): ScriptableObject(
+
+), ScriptLogger {
 
     @Inject lateinit var aapsLogger: AAPSLogger
 
@@ -18,44 +22,26 @@ class LoggerCallback : ScriptableObject() {
     }
 
     fun jsFunction_log(obj1: Any) {
-        aapsLogger.debug(LTag.APS, obj1.toString().trim { it <= ' ' })
-        logBuffer.append(obj1.toString())
+        debug(obj1.toString())
     }
 
     fun jsFunction_error(obj1: Any) {
-        aapsLogger.error(LTag.APS, obj1.toString().trim { it <= ' ' })
-        errorBuffer.append(obj1.toString())
+        error(obj1.toString())
     }
 
-    companion object {
+    override fun debug(message: String) {
+        aapsLogger.debug(LTag.APS, message)
+        ScriptLogger.Companion.debug(message)
+    }
 
-        private var errorBuffer = StringBuffer()
-        private var logBuffer = StringBuffer()
-        val scriptDebug: String
-            get() {
-                var ret = ""
-                if (errorBuffer.isNotEmpty()) {
-                    ret += """
-                    e:
-                    $errorBuffer
-                    """.trimIndent()
-                }
-                if (ret.isNotEmpty() && logBuffer.isNotEmpty()) ret += '\n'
-                if (logBuffer.isNotEmpty()) {
-                    ret += """
-                    d:
-                    $logBuffer
-                    """.trimIndent()
-                }
-                return ret
-            }
+    override fun error(message: String) {
+        aapsLogger.error(LTag.APS, message)
+        ScriptLogger.Companion.error(message)
     }
 
     init {
-        //empty constructor needed for Rhino
-        errorBuffer = StringBuffer()
-        logBuffer = StringBuffer()
         @Suppress("DEPRECATION")
         StaticInjector.getInstance().androidInjector().inject(this)
     }
+
 }

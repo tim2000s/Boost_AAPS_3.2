@@ -10,6 +10,7 @@ import app.aaps.core.interfaces.iob.IobTotal
 import app.aaps.core.interfaces.iob.MealData
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.logging.ScriptLogger
 import app.aaps.core.interfaces.plugin.ActivePlugin
 import app.aaps.core.interfaces.profile.Profile
 import app.aaps.core.interfaces.profile.ProfileFunction
@@ -56,6 +57,8 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
     @Inject lateinit var activePlugin: ActivePlugin
     @Inject lateinit var profileUtil: ProfileUtil
     @Inject lateinit var isfCalculator: IsfCalculator
+    @Inject lateinit var jsLogger: ScriptLogger
+
 
     private var profile = JSONObject()
     private var mGlucoseStatus = JSONObject()
@@ -68,7 +71,6 @@ class DetermineBasalAdapterBoostJS internal constructor(private val scriptReader
     private var currentTime: Long = 0
     private var flatBGsDetected = false
 
-    private val DebugLog = StringBuffer()
 
     override var currentTempParam: String? = null
     override var iobDataParam: String? = null
@@ -144,8 +146,7 @@ var getIsfByProfile = function (bg, profile, useCap) {
                     java.lang.Boolean.valueOf(flatBGsDetected)
                 )
                 val jsResult = determineBasalObj.call(rhino, scope, scope, params) as NativeObject
-                scriptDebug = LoggerCallback.scriptDebug + DebugLog
-                DebugLog.delete(0, DebugLog.length)
+                scriptDebug = ScriptLogger.dump()
 
                 // Parse the jsResult object to a JSON-String
                 val result = NativeJSON.stringify(rhino, scope, jsResult, null, null).toString()
@@ -347,7 +348,7 @@ var getIsfByProfile = function (bg, profile, useCap) {
 
         if (boostActive && tempTargetSet && !allowBoostWithHighTemporaryTarget && targetBg > normalTarget) {
             boostActive = false
-            DebugLog.append("Boost disabled due to high temptarget of $targetBg")
+            jsLogger.debug("Boost disabled due to high temptarget of $targetBg")
         }
 
         val recentSteps5Minutes = StepService.getRecentStepCount5Min()
@@ -364,7 +365,7 @@ var getIsfByProfile = function (bg, profile, useCap) {
 
         if (boostActive && now in boostStart..<( boostStart + sleepInMillis ) && recentSteps60Minutes < sleep_in_steps) {
             boostActive = false
-            DebugLog.append("Boost disabled due to lie-in")
+            jsLogger.debug("Boost disabled due to lie-in")
         }
 
         if (boostActive) {
@@ -378,14 +379,14 @@ var getIsfByProfile = function (bg, profile, useCap) {
 
                 if (profileSwitch == 100) {
                     profileSwitch = activity_pct
-                    DebugLog.append("Boost profile % changed to $activity_pct because of activity detected")
+                    jsLogger.debug("Boost profile changed to $activity_pct% due to activity")
                 }
                 activityMinBg = activityBgTarget
                 activityMaxBg = activityBgTarget
                 activityTargetBg = activityBgTarget
             } else if (profileSwitch == 100 && recentSteps60Minutes < inactivity_steps) {
                 profileSwitch = inactivity_pct
-                DebugLog.append("Boost profile % changed to $inactivity_pct because of inactivity detected")
+                jsLogger.debug("Boost profile changed to $inactivity_pct% due to inactivity")
             }
         }
 
@@ -405,7 +406,10 @@ var getIsfByProfile = function (bg, profile, useCap) {
             val ps = profileFunction.buildCurrentProfileSwitch(0, profileSwitch.toInt(), 0)
             if (ps != null) effectiveProfile = ProfileSealed.PS(ps)
 
-            this.profile.put("current_basal", basalRate * (profileSwitch.toDouble() / 100.0))
+            val adjustedBasal = basalRate * (profileSwitch.toDouble() / 100.0)
+            this.profile.put("current_basal", adjustedBasal )
+
+            jsLogger.debug("Basal adjusted to $adjustedBasal")
         }
 
         val isf = isfCalculator.calculateAndSetToProfile(effectiveProfile, insulinDivisor, glucoseStatus.glucose, tempTargetSet, this.profile)
