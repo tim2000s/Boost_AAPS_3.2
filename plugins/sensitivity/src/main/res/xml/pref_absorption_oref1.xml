@@ -75,13 +75,6 @@
 
             <SwitchPreference
                 android:dependency="@string/key_dynamic_isf_enable"
-                android:defaultValue="false"
-                android:key="@string/key_dynamic_isf_obey_profile"
-                android:title="@string/dynamic_isf_obey_profile_title"
-                android:summary="@string/dynamic_isf_obey_profile_summary" />
-
-            <SwitchPreference
-                android:dependency="@string/key_dynamic_isf_enable"
                 android:defaultValue="true"
                 android:key="@string/key_dynamic_isf_use_tdd"
                 android:title="@string/dynamic_isf_use_tdd" />
@@ -97,6 +90,13 @@
                 validate:floatmaxNumber="300"
                 validate:floatminNumber="1"
                 validate:testType="floatNumericRange" />
+
+            <SwitchPreference
+                android:dependency="@string/key_dynamic_isf_use_tdd"
+                android:defaultValue="false"
+                android:key="@string/key_dynamic_isf_obey_profile"
+                android:title="@string/dynamic_isf_obey_profile_title"
+                android:summary="@string/dynamic_isf_obey_profile_summary" />
 
             <SwitchPreference
                 android:dependency="@string/key_dynamic_isf_enable"

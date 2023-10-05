@@ -5,7 +5,11 @@ import javax.inject.Singleton
 @Singleton
 interface ScriptLogger {
     fun debug(message: String)
+    fun debugUnits(message: String, value : Double)
+    fun debug(message: String, vararg values : Any)
     fun error(message: String)
+    fun header(message: String)
+    fun footer()
 
     fun dump() : String {
         return Companion.dump()

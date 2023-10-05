@@ -3,7 +3,9 @@ package app.aaps.plugins.aps.logger
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.logging.ScriptLogger
+import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.utils.Round
 import app.aaps.plugins.aps.utils.StaticInjector
 import org.mozilla.javascript.ScriptableObject
 import javax.inject.Inject
@@ -14,6 +16,7 @@ class LoggerCallback @Inject internal constructor(): ScriptableObject(
 ), ScriptLogger {
 
     @Inject lateinit var aapsLogger: AAPSLogger
+    @Inject lateinit var profileUtil: ProfileUtil
 
     override fun getClassName(): String = "LoggerCallback"
 
@@ -34,9 +37,28 @@ class LoggerCallback @Inject internal constructor(): ScriptableObject(
         ScriptLogger.Companion.debug(message)
     }
 
+    override fun debugUnits(message: String, value: Double) {
+        debug("$message: ${Round.roundTo(profileUtil.valueInCurrentUnitsDetect(value), 0.01)}")
+    }
+
+    override fun debug(message: String, vararg values : Any) {
+        debug(String.format(message, *values))
+    }
+
     override fun error(message: String) {
         aapsLogger.error(LTag.APS, message)
         ScriptLogger.Companion.error(message)
+    }
+
+    override fun header(message: String) {
+        aapsLogger.error(LTag.APS, message)
+        footer()
+        ScriptLogger.Companion.debug("     $message")
+        footer()
+    }
+
+    override fun footer() {
+        ScriptLogger.Companion.debug("---------------------------------------------------------")
     }
 
     init {

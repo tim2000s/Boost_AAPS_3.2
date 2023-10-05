@@ -38,6 +38,6 @@
     <string name="dynamic_isf_bg_cap_summary" formatted="false">BG value where DynISF scaling slows down to ⅓ of regular</string>
     <string name="dynamic_isf_bg_cap_dialogMessage" formatted="false">This controls the BG level, after that the Dynamic ISF scaling starts to suffer from diminishing returns. Every BG point over this value will count as ⅓ in Dynamic ISF scaling formulae. Must help preventing overreacting on highs.</string>
     <string name="dynamic_isf_obey_profile_title" formatted="false">Obey profile</string>
-    <string name="dynamic_isf_obey_profile_summary" formatted="false">Apply profile % changes to Dynamic ISF</string>
+    <string name="dynamic_isf_obey_profile_summary" formatted="false">Apply profile % changes to TDD-based Dynamic ISF</string>
     <string name="dynamic_isf_adjust_sensitivity">Adjust sensitivity and BG</string>
 </resources>
