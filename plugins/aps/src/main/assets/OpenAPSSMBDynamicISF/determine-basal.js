@@ -220,9 +220,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     //**                   Start of Dynamic ISF code for predictions                 **
     //*********************************************************************************
 
-    console.error("---------------------------------------------------------");
-    console.error( " Dynamic ISF version Beta 2.0 ");
-    console.error("---------------------------------------------------------");
+    console.logHeader("Dynamic ISF version Beta 2.0");
 
     var variable_sens = profile.variable_sens;
     var getISFforBG = function(bg) { return getIsfByProfile(bg, profile); };

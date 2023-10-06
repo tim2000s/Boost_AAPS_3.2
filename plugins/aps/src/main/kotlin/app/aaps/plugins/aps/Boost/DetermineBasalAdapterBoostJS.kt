@@ -379,14 +379,15 @@ var getIsfByProfile = function (bg, profile, useCap) {
 
                 if (profileSwitch == 100) {
                     profileSwitch = activity_pct
-                    jsLogger.debug("Boost profile changed to $activity_pct% due to activity")
+                    jsLogger.debug("Profile changed to $activity_pct% due to activity")
                 }
                 activityMinBg = activityBgTarget
                 activityMaxBg = activityBgTarget
                 activityTargetBg = activityBgTarget
+                jsLogger.debugUnits("TargetBG changed to %.2f due to activity", activityTargetBg)
             } else if (profileSwitch == 100 && recentSteps60Minutes < inactivity_steps) {
                 profileSwitch = inactivity_pct
-                jsLogger.debug("Boost profile changed to $inactivity_pct% due to inactivity")
+                jsLogger.debug("Profile changed to $inactivity_pct% due to inactivity")
             }
         }
 
@@ -409,7 +410,7 @@ var getIsfByProfile = function (bg, profile, useCap) {
             val adjustedBasal = basalRate * (profileSwitch.toDouble() / 100.0)
             this.profile.put("current_basal", adjustedBasal )
 
-            jsLogger.debug("Basal adjusted to $adjustedBasal")
+            jsLogger.debug("Basal adjusted to %.2f", adjustedBasal)
         }
 
         val isf = isfCalculator.calculateAndSetToProfile(effectiveProfile, insulinDivisor, glucoseStatus.glucose, tempTargetSet, this.profile)

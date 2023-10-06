@@ -197,6 +197,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
     var profileScale = (profile.use_sens_TDD && profile.sens_TDD_useProfile) ? (100.0 / profile.percent) : 1;
 
+    console.logHeader("Eating Now (non-scaled)");
+
     var sensitivityRatio = 1;
     var high_temptarget_raises_sensitivity = profile.exercise_mode || profile.high_temptarget_raises_sensitivity;
     var normalTarget = profile.normal_target_bg; // evaluate high/low temptarget against 100, not scheduled target (which might change)

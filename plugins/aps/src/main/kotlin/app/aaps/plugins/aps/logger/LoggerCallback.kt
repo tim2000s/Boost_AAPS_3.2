@@ -32,13 +32,17 @@ class LoggerCallback @Inject internal constructor(): ScriptableObject(
         error(obj1.toString())
     }
 
+    fun jsFunction_header(obj1: Any) {
+        header(obj1.toString())
+    }
+
     override fun debug(message: String) {
         aapsLogger.debug(LTag.APS, message)
         ScriptLogger.Companion.debug(message)
     }
 
     override fun debugUnits(message: String, value: Double) {
-        debug("$message: ${Round.roundTo(profileUtil.valueInCurrentUnitsDetect(value), 0.01)}")
+        debug(message, profileUtil.valueInCurrentUnitsDetect(value))
     }
 
     override fun debug(message: String, vararg values : Any) {
@@ -51,7 +55,7 @@ class LoggerCallback @Inject internal constructor(): ScriptableObject(
     }
 
     override fun header(message: String) {
-        aapsLogger.error(LTag.APS, message)
+        aapsLogger.debug(LTag.APS, message)
         footer()
         ScriptLogger.Companion.debug("     $message")
         footer()

@@ -144,6 +144,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var minAvgDelta = Math.min(glucose_status.short_avgdelta, glucose_status.long_avgdelta);
 
     var sens = profile.sens;
+
+    console.logHeader("OpenAPS AMA");
+
     if (typeof autosens_data !== 'undefined' ) {
         sens = profile.sens / autosens_data.ratio;
         sens = round(sens, 1);

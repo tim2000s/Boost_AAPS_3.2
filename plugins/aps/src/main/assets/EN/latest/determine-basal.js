@@ -196,6 +196,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         return rT;
     }
 
+    console.logHeader("Eating Now (latest)");
+
     var sensitivityRatio = 1;
     var sens_normalTarget = profile.sensNormalTarget;
     var sens_profile = profile.variable_sens;
@@ -1264,7 +1266,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         // insulinReq_sens determines the ISF used for final insulinReq calc
         //insulinReq_sens = (sens_predType == "PB" ? sens : dynISF(insulinReq_bg,normalTarget,insulinReq_sens_normalTarget,ins_val)); // dynISF
         //insulinReq_sens = (sens_predType == "PB" ? sens : dynISF(insulinReq_bg,target_bg,insulinReq_sens_normalTarget,ins_val)); // dynISF
-        insulinReq_sens = (profile.useDynISF ? dynISF(insulinReq_bg,target_bg,insulinReq_sens_normalTarget,ins_val) : sens_normalTarget); // dynISF?
+        insulinReq_sens = getISFforBG(insulinReq_bg); // dynISF?
 
         // use the strongest ISF when ENW active
         insulinReq_sens = (!firstMealWindow && !COB && ENWindowRunTime <= ENWindowDuration ? Math.min(insulinReq_sens, sens) : insulinReq_sens);

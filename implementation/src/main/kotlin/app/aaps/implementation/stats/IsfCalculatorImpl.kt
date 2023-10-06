@@ -53,9 +53,9 @@ class IsfCalculatorImpl @Inject constructor(
 
         jsLogger.header("ISF Calculation")
 
-        jsLogger.debugUnits("BG current", glucose)
-        jsLogger.debugUnits("BG capped", bgCurrent)
-        jsLogger.debugUnits("ISF profile", sensBase)
+        jsLogger.debugUnits("BG current: %.2f", glucose)
+        jsLogger.debugUnits("BG capped: %.2f", bgCurrent)
+        jsLogger.debugUnits("ISF profile: %.2f", sensBase)
         if (globalScale != 1.0)
             jsLogger.debug("Profile scale: %.2f%%",100.0/globalScale)
 
@@ -144,8 +144,8 @@ class IsfCalculatorImpl @Inject constructor(
 
         jsLogger.debug("")
         jsLogger.debug("Final values:")
-        jsLogger.debugUnits("ISF normalTarget", result.isfNormalTarget)
-        jsLogger.debugUnits("ISF current BG", result.isf)
+        jsLogger.debugUnits("ISF normalTarget: %.2f", result.isfNormalTarget)
+        jsLogger.debugUnits("ISF current BG: %.2f", result.isf)
         jsLogger.debug("insulinDivisor: ${result.insulinDivisor}")
         jsLogger.debug("ratio: ${result.ratio}")
         jsLogger.debug("velocity: ${result.velocity}")

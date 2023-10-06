@@ -196,6 +196,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         return rT;
     }
 
+    console.logHeader("Eating Now (scaled)");
+
     var sensitivityRatio = 1;
     var sens_normalTarget = profile.sensNormalTarget;
     var sens_profile = profile.variable_sens;

@@ -217,6 +217,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var sensitivityRatio;
     var high_temptarget_raises_sensitivity = profile.exercise_mode || profile.high_temptarget_raises_sensitivity;
     var normalTarget = 100; // evaluate high/low temptarget against 100, not scheduled target (which might change)
+
+    console.logHeader("OpenAPS SMB");
+
     if ( profile.half_basal_exercise_target ) {
         var halfBasalTarget = profile.half_basal_exercise_target;
     } else {

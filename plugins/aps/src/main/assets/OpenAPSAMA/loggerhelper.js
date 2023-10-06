@@ -29,3 +29,7 @@ console.log =  function log(){
 	}
 	console2.log(s);
 };
+
+console.logHeader =  function log(){
+	console2.header(arguments[0].toString());
+};
