@@ -381,10 +381,12 @@ var getIsfByProfile = function (bg, profile, useCap) {
                     profileSwitch = activity_pct
                     jsLogger.debug("Profile changed to $activity_pct% due to activity")
                 }
-                activityMinBg = activityBgTarget
-                activityMaxBg = activityBgTarget
-                activityTargetBg = activityBgTarget
-                jsLogger.debugUnits("TargetBG changed to %.2f due to activity", activityTargetBg)
+                if (!tempTargetSet) {
+                    activityMinBg = activityBgTarget
+                    activityMaxBg = activityBgTarget
+                    activityTargetBg = activityBgTarget
+                    jsLogger.debugUnits("TargetBG changed to %.2f due to activity", activityTargetBg)
+                }
             } else if (profileSwitch == 100 && recentSteps60Minutes < inactivity_steps) {
                 profileSwitch = inactivity_pct
                 jsLogger.debug("Profile changed to $inactivity_pct% due to inactivity")
