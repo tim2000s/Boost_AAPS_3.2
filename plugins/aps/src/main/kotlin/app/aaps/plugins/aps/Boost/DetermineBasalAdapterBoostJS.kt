@@ -335,7 +335,7 @@ var getIsfByProfile = function (bg, profile, useCap) {
         val midnight = MidnightTime.calc(now)
         val startHour = sp.getString(R.string.key_openapsama_boost_start, "22:00")
         var boostStart = midnight + org.joda.time.LocalTime.parse(startHour, ISODateTimeFormat.timeElementParser()).millisOfDay
-        val endHour = sp.getString(R.string.key_openapsama_boost_end, "7:00");
+        val endHour = sp.getString(R.string.key_openapsama_boost_end, "7:00")
         var boostEnd = midnight + org.joda.time.LocalTime.parse(endHour, ISODateTimeFormat.timeElementParser()).millisOfDay
         val sleepInMillis = (3600000.0 * SafeParse.stringToDouble(sp.getString(R.string.key_sleep_in_hrs, "2"))).toLong()
 
