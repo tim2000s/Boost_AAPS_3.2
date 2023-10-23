@@ -35,10 +35,10 @@
             validate:minNumber="4"
             validate:testType="numericRange" />
 
-        <SwitchPreference
+        <!--SwitchPreference
             android:defaultValue="false"
             android:key="@string/key_iob_use_aimi"
-            android:title="@string/iob_use_aimi" />
+            android:title="@string/iob_use_aimi" /-->
 
         <androidx.preference.PreferenceScreen
             android:key="absorption_oref1_dynamic_isf"
@@ -49,7 +49,7 @@
                 android:key="@string/key_dynamic_isf_enable"
                 android:title="@string/dynamic_isf_enable" />
 
-            <app.aaps.core.validators.ValidatingEditTextPreference
+            <!--app.aaps.core.validators.ValidatingEditTextPreference
                 android:dependency="@string/key_dynamic_isf_enable"
                 android:defaultValue="100"
                 android:inputType="numberDecimal"
@@ -59,7 +59,7 @@
                 android:dialogMessage="@string/dynamic_isf_velocity_dialogMessage"
                 validate:floatmaxNumber="200"
                 validate:floatminNumber="0"
-                validate:testType="floatNumericRange"/>
+                validate:testType="floatNumericRange"//-->
 
             <app.aaps.core.validators.ValidatingEditTextPreference
                 android:dependency="@string/key_dynamic_isf_enable"
