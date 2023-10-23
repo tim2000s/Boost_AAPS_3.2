@@ -1,7 +1,7 @@
 package app.aaps.database.impl
 
+import androidx.annotation.OpenForTesting
 import app.aaps.database.ValueWrapper
-import app.aaps.database.annotations.DbOpenForTesting
 import app.aaps.database.entities.Bolus
 import app.aaps.database.entities.BolusCalculatorResult
 import app.aaps.database.entities.Carbs
@@ -34,8 +34,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.roundToInt
 
-@DbOpenForTesting
-@Singleton class AppRepository @Inject internal constructor(
+@OpenForTesting
+@Singleton
+class AppRepository @Inject internal constructor(
     internal val database: AppDatabase
 ) {
 
@@ -207,17 +208,6 @@ import kotlin.math.roundToInt
     fun getTemporaryTargetDataFromTime(timestamp: Long, ascending: Boolean): Single<List<TemporaryTarget>> =
         database.temporaryTargetDao.getTemporaryTargetDataFromTime(timestamp)
             .map { if (!ascending) it.reversed() else it }
-            .subscribeOn(Schedulers.io())
-
-    // Eating Now: Get the first EN TT since EN start time
-    fun getENTemporaryTargetDataFromTimetoTime(timestamp: Long, to: Long, ascending: Boolean): Single<List<TemporaryTarget>> =
-        database.temporaryTargetDao.getENTemporaryTargetDataFromTimetoTime(timestamp, to, TemporaryTarget.Reason.EATING_NOW, TemporaryTarget.Reason.EATING_NOW_PB)
-            .map { if (!ascending) it.reversed() else it }
-            .subscribeOn(Schedulers.io())
-
-    // Eating Now: Get the EN TT at this time
-    fun getENTemporaryTargetActiveAt(timestamp: Long): Single<List<TemporaryTarget>> =
-        database.temporaryTargetDao.getENTemporaryTargetActiveAt(timestamp,TemporaryTarget.Reason.EATING_NOW, TemporaryTarget.Reason.EATING_NOW_PB)
             .subscribeOn(Schedulers.io())
 
     fun getTemporaryTargetDataIncludingInvalidFromTime(timestamp: Long, ascending: Boolean): Single<List<TemporaryTarget>> =
@@ -512,12 +502,6 @@ import kotlin.math.roundToInt
             .map { if (!ascending) it.reversed() else it }
             .subscribeOn(Schedulers.io())
 
-    // Eating Now: Get the first bolus since EN Start
-    fun getENBolusFromTimeOfType(timestamp: Long, ascending: Boolean, type: Bolus.Type, minbolus: Double): Single<List<Bolus>> =
-        database.bolusDao.getBolusesFromTimeOfType(type, timestamp, minbolus)
-            .map { if (!ascending) it.reversed() else it }
-            .subscribeOn(Schedulers.io())
-
     fun getBolusesDataFromTimeToTime(from: Long, to: Long, ascending: Boolean): Single<List<Bolus>> =
         database.bolusDao.getBolusesFromTime(from, to)
             .map { if (!ascending) it.reversed() else it }
@@ -606,11 +590,6 @@ import kotlin.math.roundToInt
 
     fun getCarbsDataFromTimeNotExpanded(timestamp: Long, ascending: Boolean): Single<List<Carbs>> =
         database.carbsDao.getCarbsFromTimeExpandable(timestamp)
-            .map { if (!ascending) it.reversed() else it }
-            .subscribeOn(Schedulers.io())
-
-    fun getCarbsDataFromTimeToTime(from: Long, to: Long, ascending: Boolean): Single<List<Carbs>> =
-        database.carbsDao.getCarbsFromTimeToTime(from, to)
             .map { if (!ascending) it.reversed() else it }
             .subscribeOn(Schedulers.io())
 

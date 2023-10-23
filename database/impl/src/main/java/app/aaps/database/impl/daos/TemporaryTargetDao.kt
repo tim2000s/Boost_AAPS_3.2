@@ -34,14 +34,6 @@ internal interface TemporaryTargetDao : TraceableDao<TemporaryTarget> {
     @Query("SELECT * FROM $TABLE_TEMPORARY_TARGETS WHERE unlikely(timestamp >= :timestamp) AND likely(isValid = 1) AND likely(referenceId IS NULL) ORDER BY timestamp ASC")
     fun getTemporaryTargetDataFromTime(timestamp: Long): Single<List<TemporaryTarget>>
 
-    // EATING NOW TT
-    @Query("SELECT * FROM $TABLE_TEMPORARY_TARGETS WHERE unlikely(timestamp >= :timestamp) AND unlikely(timestamp <= :to) AND likely(isValid = 1) AND likely(referenceId IS NULL) AND (reason = :reason1 OR reason = :reason2) ORDER BY timestamp ASC")
-    fun getENTemporaryTargetDataFromTimetoTime(timestamp: Long, to: Long, reason1: TemporaryTarget.Reason, reason2: TemporaryTarget.Reason,): Single<List<TemporaryTarget>>
-
-    // EATING NOW TT at time
-    @Query("SELECT * FROM $TABLE_TEMPORARY_TARGETS WHERE unlikely(timestamp <= :timestamp) AND unlikely((timestamp + duration) > :timestamp) AND unlikely((reason = :reason1 OR reason = :reason2)) AND likely(referenceId IS NULL) AND likely(isValid = 1) ORDER BY timestamp DESC LIMIT 1")
-    fun getENTemporaryTargetActiveAt(timestamp: Long, reason1: TemporaryTarget.Reason, reason2: TemporaryTarget.Reason): Single<List<TemporaryTarget>>
-
     @Query("SELECT * FROM $TABLE_TEMPORARY_TARGETS WHERE unlikely(timestamp >= :timestamp) AND likely(referenceId IS NULL) ORDER BY timestamp ASC")
     fun getTemporaryTargetDataIncludingInvalidFromTime(timestamp: Long): Single<List<TemporaryTarget>>
 

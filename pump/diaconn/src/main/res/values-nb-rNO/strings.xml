@@ -3,7 +3,7 @@
     <string name="resetpairing">Slett sammenkobling</string>
     <string name="diaconn_no_device_available">Ingen enheter er tilgjengelige</string>
     <string name="diaconn_pairing">Diaconn pumpe sammenkobling</string>
-    <string name="pumperror">Pumpe feil</string>
+    <string name="pumperror">Pumpefeil</string>
     <string name="diaconn_g8_history_alarm">Alarmer</string>
     <string name="diaconn_g8_history_basalhours">Basal timer</string>
     <string name="diaconn_g8_history_bolus">Boluser</string>
@@ -24,8 +24,8 @@
     <string name="startingbolus">Starter bolus dosering</string>
     <string name="waitingforestimatedbolusend">Venter på avsluttet bolus dosering</string>
     <string name="gettingbolusstatus">Leser bolus status</string>
-    <string name="stoppingtempbasal">Stopper temp basal</string>
-    <string name="settingtempbasal">Setter temp basal</string>
+    <string name="stoppingtempbasal">Stopper midlertidig basal</string>
+    <string name="settingtempbasal">Setter midlertidig basal</string>
     <string name="settingextendedbolus">Setter forlenget bolus</string>
     <string name="stoppingextendedbolus">Stopper forlenget bolus</string>
     <string name="updatingbasalrates">Oppdaterer basaldoser</string>
@@ -33,7 +33,7 @@
     <string name="diaconn_g8_pump">Diaconn G8</string>
     <string name="diaconn_g8_pump_shortname">Diaconn G8</string>
     <string name="maxbolusviolation">Max bolus nådd</string>
-    <string name="commanderror">Kommando feil</string>
+    <string name="commanderror">Kommandofeil</string>
     <string name="speederror">Hastighetsfeil</string>
     <string name="insulinlimitviolation">Insulingrense nådd</string>
     <string name="boluserrorcode">Forespurt: %1$.2fE Levert: %2$.2fE Feilkode: %3$s</string>
@@ -54,7 +54,7 @@
     <string name="processinghistory">"Behandler hendelse "</string>
     <string name="apslastLogNum">aps_last_log_num</string>
     <string name="apsWrappingCount">aps_wrapping_count</string>
-    <string name="diaconn_g8_history_tempbasal">Temp basal</string>
+    <string name="diaconn_g8_history_tempbasal">Midlertidig basal</string>
     <string name="diaconng8_pump_settings">Diaconn pumpe innstillinger</string>
     <string name="diaconn_g8_pumpalarm">Lyd</string>
     <string name="diaconn_g8_pumpalarm_sound">lyd</string>
@@ -85,10 +85,10 @@
     <string name="apsIncarnationNo">aps_incarnation_no</string>
     <string name="pumpserialno">pump_serial_no</string>
     <string name="diaconn_g8_loginsulinchange_title">Logg reservoar bytte</string>
-    <string name="diaconn_g8_loginsulinchange_summary">Legg til \"Insulinbytte\" i Careportal når den oppdages i historikken</string>
+    <string name="diaconn_g8_loginsulinchange_summary">Legg til \"Insulinbytte\" i Helseportal når den oppdages i historikken</string>
     <string name="diaconn_g8_logcanulachange_title">Logg bytte av kanyle</string>
-    <string name="diaconn_g8_logcanulachange_summary">Legg til \"Bytte av injeksjonssted\" i Careportal når den oppdages i historikken</string>
-    <string name="diaconn_g8_logbatterychange_summary">Legg til \"Bytte av batteri\" i Careportal når den oppdages i historikken</string>
+    <string name="diaconn_g8_logcanulachange_summary">Legg til \"Bytte av injeksjonssted\" i Helseportal når den oppdages i historikken</string>
+    <string name="diaconn_g8_logbatterychange_summary">Legg til \"Bytte av batteri\" i Helseportal når den oppdages i historikken</string>
     <string name="diaconn_g8_logbatterychange_title">Logg batteri bytte</string>
     <string name="diaconn_g8_logsyncinprogress">Logg synkronisering pågår</string>
     <string name="diaconn_g8_loginsulinshorage">Lavt insulinnivå</string>
@@ -145,13 +145,13 @@
     <string name="diaconn_g8_errorcode_15">Når basal oppsett er fullført, kan basaldoseringer startes.</string>
     <string name="diaconn_g8_errotpreceivedyet">Kommandoen ble ikke utført. Vennligst prøv igjen.</string>
     <string name="diaconn_g8_logtubechange_title">Logg bytte av slangesett</string>
-    <string name="diaconn_g8_logtubechange_summary">Legg til \"Slangesettbytte\" i Careportal når den oppdages i historikken</string>
-    <string name="diaconn_g8_logtempstart">Temp Basal startet</string>
+    <string name="diaconn_g8_logtubechange_summary">Legg til \"Slangesettbytte\" i Helseportal når den oppdages i historikken</string>
+    <string name="diaconn_g8_logtempstart">Midlertidig basal startet</string>
     <string name="diaconn_g8_errorcode_32">Vel Lav Glukose Stopp (LGS) er injeksjoner begrenset</string>
     <string name="diaconn_g8_errorcode_33">LGS status er PÅ. PÅ kommando er nektet.</string>
     <string name="diaconn_g8_errorcode_34">LGS status er AV. AV kommandoen er avslått.</string>
-    <string name="diaconn_g8_errorcode_35">Temp basal avslått siden det allerede kjøres en temp basal</string>
-    <string name="diaconn_g8_errorcode_36">Stopp av temp basal avslått siden det ikke kjøres en temp basal</string>
+    <string name="diaconn_g8_errorcode_35">Midlertidig basal avslått siden det allerede kjøres en midlertidig basal</string>
+    <string name="diaconn_g8_errorcode_36">Stopp av midlertidig basal avslått siden det ikke kjøres en midlertidig basal</string>
     <string name="diaconn_g8_cloudsend_summary">Send pumpe logger til Diaconn Cloud.</string>
     <string name="diaconn_g8_cloudsend_title">Diaconn Cloud Sync</string>
 </resources>

@@ -12,6 +12,7 @@ import com.caverock.androidsvg.SVG
 import kotlinx.serialization.Serializable
 import org.json.JSONObject
 import java.io.BufferedOutputStream
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -135,9 +136,15 @@ data class ResData(val value: ByteArray, val format: ResFormat) {
 typealias CwfResDataMap = MutableMap<String, ResData>
 typealias CwfMetadataMap = MutableMap<CwfMetadataKey, String>
 fun CwfResDataMap.isEquals(dataMap: CwfResDataMap) = (this.size == dataMap.size) && this.all { (key, resData) -> dataMap[key]?.value.contentEquals(resData.value) == true }
-
 @Serializable
-data class CwfData(val json: String, var metadata: CwfMetadataMap, val resDatas: CwfResDataMap)
+data class CwfData(val json: String, var metadata: CwfMetadataMap, val resDatas: CwfResDataMap) {
+    fun simplify(): CwfData? = resDatas[ResFileMap.CUSTOM_WATCHFACE.fileName]?.let {
+            val simplifiedDatas: CwfResDataMap = mutableMapOf()
+            simplifiedDatas[ResFileMap.CUSTOM_WATCHFACE.fileName] = it
+        CwfData(json, metadata, simplifiedDatas)
+    }
+}
+data class CwfFile(val cwfData: CwfData, val zipByteArray: ByteArray)
 
 enum class CwfMetadataKey(val key: String, @StringRes val label: Int, val isPref: Boolean) {
 
@@ -163,7 +170,8 @@ enum class CwfMetadataKey(val key: String, @StringRes val label: Int, val isPref
     CWF_PREF_WATCH_SHOW_AGO("key_show_ago", R.string.pref_show_ago, true),
     CWF_PREF_WATCH_SHOW_BG("key_show_bg", R.string.pref_show_bg, true),
     CWF_PREF_WATCH_SHOW_LOOP_STATUS("key_show_loop_status", R.string.pref_show_loop_status, true),
-    CWF_PREF_WATCH_SHOW_WEEK_NUMBER("key_show_week_number", R.string.pref_show_week_number, true);
+    CWF_PREF_WATCH_SHOW_WEEK_NUMBER("key_show_week_number", R.string.pref_show_week_number, true),
+    CWF_PREF_WATCH_SHOW_DATE("key_show_date", R.string.pref_show_date, true);
 
     companion object {
 
@@ -252,9 +260,15 @@ enum class JsonKeys(val key: String) {
     IMAGE("image"),
     INVALIDIMAGE("invalidImage"),
     INVALIDCOLOR("invalidColor"),
+    INVALIDFONTCOLOR("invalidFontColor"),
+    INVALIDTEXTSIZE("invalidTextSize"),
     TWINVIEW("twinView"),
     TOPOFFSETTWINHIDDEN("topOffsetTwinHidden"),
-    LEFTOFFSETTWINHIDDEN("leftOffsetTwinHidden")
+    LEFTOFFSETTWINHIDDEN("leftOffsetTwinHidden"),
+    DYNPREF("dynPref"),
+    DYNPREFCOLOR("dynPrefColor"),
+    PREFKEY("prefKey"),
+    DEFAULT("default")
 }
 
 enum class JsonKeyValues(val key: String) {
@@ -277,7 +291,10 @@ enum class JsonKeyValues(val key: String) {
     BOLD_ITALIC("bold_italic"),
     ITALIC("italic"),
     BGCOLOR("bgColor"),
-    SGVLEVEL("sgvLevel")
+    SGVLEVEL("sgvLevel"),
+    PREF_UNITS("key_units"),
+    PREF_DARK("key_dark"),
+    PREF_MATCH_DIVIDER("key_match_divider")
 }
 
 class ZipWatchfaceFormat {
@@ -286,11 +303,11 @@ class ZipWatchfaceFormat {
         const val CWF_EXTENTION = ".zip"
         const val CWF_JSON_FILE = "CustomWatchface.json"
 
-        fun loadCustomWatchface(zipInputStream: ZipInputStream, zipName: String, authorization: Boolean): CwfData? {
+        fun loadCustomWatchface(byteArray: ByteArray, zipName: String, authorization: Boolean): CwfFile? {
             var json = JSONObject()
             var metadata: CwfMetadataMap = mutableMapOf()
             val resDatas: CwfResDataMap = mutableMapOf()
-
+            val zipInputStream = byteArrayToZipInputStream(byteArray)
             try {
                 var zipEntry: ZipEntry? = zipInputStream.nextEntry
                 while (zipEntry != null) {
@@ -324,7 +341,7 @@ class ZipWatchfaceFormat {
 
                 // Valid CWF file must contains a valid json file with a name within metadata and a custom watchface image
                 return if (metadata.containsKey(CwfMetadataKey.CWF_NAME) && resDatas.containsKey(ResFileMap.CUSTOM_WATCHFACE.fileName))
-                    CwfData(json.toString(4), metadata, resDatas)
+                    CwfFile(CwfData(json.toString(4), metadata, resDatas), byteArray)
                 else
                     null
 
@@ -367,6 +384,11 @@ class ZipWatchfaceFormat {
                 }
             }
             return metadata
+        }
+
+        fun byteArrayToZipInputStream(byteArray: ByteArray): ZipInputStream {
+            val byteArrayInputStream = ByteArrayInputStream(byteArray)
+            return ZipInputStream(byteArrayInputStream)
         }
     }
 }

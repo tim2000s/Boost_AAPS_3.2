@@ -71,6 +71,15 @@ class MedtrumPump @Inject constructor(
             _activeAlarms = value
         }
 
+    // New pump warnings
+    private val _pumpWarning = MutableStateFlow(AlarmState.NONE)
+    val pumpWarningFlow: StateFlow<AlarmState> = _pumpWarning
+    var pumpWarning: AlarmState
+        get() = _pumpWarning.value
+        set(value) {
+            _pumpWarning.value = value
+        }
+
     // Prime progress as state flow
     private val _primeProgress = MutableStateFlow(0)
     val primeProgressFlow: StateFlow<Int> = _primeProgress
@@ -279,6 +288,8 @@ class MedtrumPump @Inject constructor(
     var desiredAlarmSetting = AlarmSetting.LIGHT_VIBRATE_AND_BEEP
     var desiredHourlyMaxInsulin: Int = 40
     var desiredDailyMaxInsulin: Int = 180
+    var desiredPumpWarning = true
+    var desiredPumpWarningExpiryThresholdHours = 72L
 
     fun pumpType(): PumpType = pumpType(deviceType)
 
@@ -324,6 +335,8 @@ class MedtrumPump @Inject constructor(
         desiredAlarmSetting = AlarmSetting.values().firstOrNull { it.code == alarmSettingCode } ?: AlarmSetting.LIGHT_VIBRATE_AND_BEEP
         desiredHourlyMaxInsulin = sp.getInt(R.string.key_hourly_max_insulin, 40)
         desiredDailyMaxInsulin = sp.getInt(R.string.key_daily_max_insulin, 180)
+        desiredPumpWarning = sp.getBoolean(R.string.key_pump_warning_notification, true)
+        desiredPumpWarningExpiryThresholdHours = sp.getLong(R.string.key_pump_warning_expiry_hour, 72L)
         _pumpSN = pumpSNFromSP
 
     }

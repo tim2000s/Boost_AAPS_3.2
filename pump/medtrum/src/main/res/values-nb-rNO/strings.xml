@@ -6,6 +6,7 @@
     <string name="medtrum_pump_description">Pumpeintegrasjon for Medtrum Nano og Medtrum 300U</string>
     <string name="medtrum_pump_setting">Medtrum pumpeinnstillinger</string>
     <string name="pump_error">Pumpefeil: %1$s!! </string>
+    <string name="pump_warning">Pumpeadvarsel: %1$s </string>
     <string name="pump_is_suspended">Pumpen er pauset</string>
     <string name="pump_is_suspended_hour_max">Pumpe er pauset fordi maksimal insulinleveranse per time er overskredet</string>
     <string name="pump_is_suspended_day_max">Pumpe er pauset fordi maksimal insulinleveranse per dag er overskredet</string>
@@ -20,7 +21,7 @@
     <string name="reservoir_level"> %.2f E</string>
     <string name="battery_voltage"> %.2f V</string>
     <string name="basal_type_label">Basal type</string>
-    <string name="basal_rate_label">Basalrate</string>
+    <string name="basal_rate_label">Basaldose</string>
     <string name="current_basal_rate"> %.2f E/t</string>
     <string name="pump_type_label">Pumpetype</string>
     <string name="fw_version_label">FW versjon</string>
@@ -52,6 +53,7 @@
     <string name="alarm_battery_out">Batteri er tatt ut</string>
     <string name="alarm_no_calibration">Ingen kalibrering</string>
     <string name="pump_time_update_failed">Kunne ikke oppdatere tidssone på pumpen. Bekreft meldingen og oppdater manuelt.</string>
+    <string name="bolus_error">Bolus feilet</string>
     <!-- wizard-->
     <string name="retry">Prøv igjen</string>
     <string name="next">Neste</string>
@@ -83,7 +85,7 @@
     <string name="press_next">Trykk <b>Neste</b> for å fortsette.</string>
     <string name="press_next_to_start_activation">Trykk <b>Neste</b> for å starte aktivering.</string>
     <string name="remove_safety_lock">Fjern sikkerhetslåsen. Koble pumpen til kroppen. Trykk nål-knappen.</string>
-    <string name="activating_pump">Aktiverer pumpe og setter basalrate. Vennligst vent.</string>
+    <string name="activating_pump">Aktiverer pumpe og setter basaldose. Vennligst vent.</string>
     <string name="activating_error">Kunne ikke aktivere, trykk <b>Prøv igjen</b> for å prøve igjen.</string>
     <string name="activating_complete">Ny patch aktivert. %.2f enheter gjenstår.</string>
     <string name="press_OK_to_return">Trykk <b>OK</b> for å gå tilbake til hovedskjermen.</string>
@@ -100,17 +102,23 @@
     <string name="press_retry_or_discard">Trykk <b>Neste</b> for å gjenoppta aktiveringen eller <b>Forkast</b> for å tilbakestille aktiveringsstatusen.</string>
     <string name="reading_activation_status">Vennligst vent, leser aktiveringsstatus fra pumpen.</string>
     <!-- settings-->
+    <string name="enable_pump_unreachable_alert_summary">Varsel om pumpe utilgjengelig tvinges aktivert, fordi Medtrum-patching kan mislykkes og bli utilgjengelig.</string>
+    <string name="pump_unreachable_threshold_minutes_summary">Anbefales å sette til 30 minutter, fordi Medtrum-patching kan mislykkes og bli utilgjengelig.</string>
     <string name="sn_input_title">Serienummer</string>
     <string name="sn_input_summary">Skriv inn serienummeret til pumpens base.</string>
     <string name="sn_input_invalid">Ugyldig serienummer!</string>
     <string name="pump_unsupported">Pumpe ikke testet: %1$d! Kontakt oss på discord eller github for støtte</string>
     <string name="alarm_setting_title">Alarminnstillinger</string>
     <string name="alarm_setting_summary">Velg dine foretrukne alarminnstillinger.</string>
+    <string name="pump_warning_notification_title">Varsel om pumpeadvarsel</string>
+    <string name="pump_warning_notification_summary">Vis varsel om ikke-kritisk pumpeadvarsel: lavt batteri, lavt reservoar (20 enheter) og utløper snart. Anbefales og la være aktivert når pumpealarmer er satt til stillemodus.</string>
+    <string name="pump_warning_expiry_hour_title">Utløpsvarsel om pumpe</string>
+    <string name="pump_warning_expiry_hour_summary">Vis varsel på angitt time etter aktivering.</string>
     <string name="patch_expiration_title">Patch utløpsdato</string>
     <string name="patch_expiration_summary">Når aktivert vil plasteret utløpe etter 3 dager, med en nådeperiode på 8 timer etter det.</string>
-    <string name="hourly_max_insulin_title">Maksimal insulin per time</string>
+    <string name="hourly_max_insulin_title">Maks insulin per time [Enheter]</string>
     <string name="hourly_max_insulin_summary">Angi maksimalt antall enheter insulin tillatt per time. Hvis overskredet vil pumpen suspendere.</string>
-    <string name="daily_max_insulin_title">Maksimal insulin per dag</string>
+    <string name="daily_max_insulin_title">Maks insulin per dag [Enheter]</string>
     <string name="daily_max_insulin_summary">Angi maksimalt antall enheter insulin tillatt per dag. Hvis overskredet vil pumpen suspendere.</string>
     <!-- treatment state-->
     <string name="getting_pump_status">Henter pumpestatus</string>
