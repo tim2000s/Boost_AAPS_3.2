@@ -3,7 +3,6 @@ package app.aaps.plugins.aps.di
 import app.aaps.core.interfaces.logging.ScriptLogger
 import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
 import app.aaps.plugins.aps.Boost.DetermineBasalAdapterBoostJS
-import app.aaps.plugins.aps.EN.DetermineBasalAdapterENJS
 import app.aaps.plugins.aps.logger.LoggerCallback
 import app.aaps.plugins.aps.openAPSAMA.DetermineBasalAdapterAMAJS
 import app.aaps.plugins.aps.openAPSAMA.DetermineBasalResultAMA
@@ -36,6 +35,6 @@ abstract class AlgModule {
     @ContributesAndroidInjector abstract fun determineBasalAdapterSMBJSInjector(): DetermineBasalAdapterSMBJS
     @ContributesAndroidInjector abstract fun determineBasalAdapterSMBAutoISFJSInjector(): DetermineBasalAdapterSMBDynamicISFJS
     @ContributesAndroidInjector abstract fun determineBasalAdapterBoostJSInjector(): DetermineBasalAdapterBoostJS
-    @ContributesAndroidInjector abstract fun determineBasalAdapterENSInjector(): DetermineBasalAdapterENJS
+
 
 }
