@@ -1,7 +1,7 @@
 package app.aaps.database.impl
 
+import androidx.annotation.OpenForTesting
 import app.aaps.database.ValueWrapper
-import app.aaps.database.annotations.DbOpenForTesting
 import app.aaps.database.entities.Bolus
 import app.aaps.database.entities.BolusCalculatorResult
 import app.aaps.database.entities.Carbs
@@ -34,8 +34,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.roundToInt
 
-@DbOpenForTesting
-@Singleton class AppRepository @Inject internal constructor(
+@OpenForTesting
+@Singleton
+class AppRepository @Inject internal constructor(
     internal val database: AppDatabase
 ) {
 
@@ -86,7 +87,7 @@ import kotlin.math.roundToInt
         removed.add(Pair("ExtendedBolus", database.extendedBolusDao.deleteOlderThan(than)))
         removed.add(Pair("Bolus", database.bolusDao.deleteOlderThan(than)))
         removed.add(Pair("MultiWaveBolus", database.multiwaveBolusLinkDao.deleteOlderThan(than)))
-        // keep TDD removed.add(Pair("TotalDailyDose", database.totalDailyDoseDao.deleteOlderThan(than)))
+        removed.add(Pair("TotalDailyDose", database.totalDailyDoseDao.deleteOlderThan(than)))
         removed.add(Pair("Carbs", database.carbsDao.deleteOlderThan(than)))
         removed.add(Pair("TemporaryTarget", database.temporaryTargetDao.deleteOlderThan(than)))
         removed.add(Pair("ApsResultLink", database.apsResultLinkDao.deleteOlderThan(than)))
@@ -105,23 +106,23 @@ import kotlin.math.roundToInt
         removed.add(Pair("HeartRate", database.heartRateDao.deleteOlderThan(than)))
 
         if (deleteTrackedChanges) {
-            removed.add(Pair("GlucoseValue", database.glucoseValueDao.deleteTrackedChanges()))
-            removed.add(Pair("TherapyEvent", database.therapyEventDao.deleteTrackedChanges()))
-            removed.add(Pair("TemporaryBasal", database.temporaryBasalDao.deleteTrackedChanges()))
-            removed.add(Pair("Bolus", database.bolusDao.deleteTrackedChanges()))
-            removed.add(Pair("ExtendedBolus", database.extendedBolusDao.deleteTrackedChanges()))
-            removed.add(Pair("MultiWaveBolus", database.multiwaveBolusLinkDao.deleteTrackedChanges()))
-            // keep TDD removed.add(Pair("TotalDailyDose", database.totalDailyDoseDao.deleteTrackedChanges()))
-            removed.add(Pair("Carbs", database.carbsDao.deleteTrackedChanges()))
-            removed.add(Pair("TemporaryTarget", database.temporaryTargetDao.deleteTrackedChanges()))
-            removed.add(Pair("ApsResultLink", database.apsResultLinkDao.deleteTrackedChanges()))
-            removed.add(Pair("BolusCalculatorResult", database.bolusCalculatorResultDao.deleteTrackedChanges()))
-            removed.add(Pair("EffectiveProfileSwitch", database.effectiveProfileSwitchDao.deleteTrackedChanges()))
-            removed.add(Pair("ProfileSwitch", database.profileSwitchDao.deleteTrackedChanges()))
-            removed.add(Pair("ApsResult", database.apsResultDao.deleteTrackedChanges()))
+            removed.add(Pair("CHANGES GlucoseValue", database.glucoseValueDao.deleteTrackedChanges()))
+            removed.add(Pair("CHANGES TherapyEvent", database.therapyEventDao.deleteTrackedChanges()))
+            removed.add(Pair("CHANGES TemporaryBasal", database.temporaryBasalDao.deleteTrackedChanges()))
+            removed.add(Pair("CHANGES Bolus", database.bolusDao.deleteTrackedChanges()))
+            removed.add(Pair("CHANGES ExtendedBolus", database.extendedBolusDao.deleteTrackedChanges()))
+            removed.add(Pair("CHANGES MultiWaveBolus", database.multiwaveBolusLinkDao.deleteTrackedChanges()))
+            removed.add(Pair("CHANGES TotalDailyDose", database.totalDailyDoseDao.deleteTrackedChanges()))
+            removed.add(Pair("CHANGES Carbs", database.carbsDao.deleteTrackedChanges()))
+            removed.add(Pair("CHANGES TemporaryTarget", database.temporaryTargetDao.deleteTrackedChanges()))
+            removed.add(Pair("CHANGES ApsResultLink", database.apsResultLinkDao.deleteTrackedChanges()))
+            removed.add(Pair("CHANGES BolusCalculatorResult", database.bolusCalculatorResultDao.deleteTrackedChanges()))
+            removed.add(Pair("CHANGES EffectiveProfileSwitch", database.effectiveProfileSwitchDao.deleteTrackedChanges()))
+            removed.add(Pair("CHANGES ProfileSwitch", database.profileSwitchDao.deleteTrackedChanges()))
+            removed.add(Pair("CHANGES ApsResult", database.apsResultDao.deleteTrackedChanges()))
             // keep food database.foodDao.deleteHistory()
-            removed.add(Pair("OfflineEvent", database.offlineEventDao.deleteTrackedChanges()))
-            removed.add(Pair("HeartRate", database.heartRateDao.deleteTrackedChanges()))
+            removed.add(Pair("CHANGES OfflineEvent", database.offlineEventDao.deleteTrackedChanges()))
+            removed.add(Pair("CHANGES HeartRate", database.heartRateDao.deleteTrackedChanges()))
         }
         val ret = StringBuilder()
         removed
@@ -207,17 +208,6 @@ import kotlin.math.roundToInt
     fun getTemporaryTargetDataFromTime(timestamp: Long, ascending: Boolean): Single<List<TemporaryTarget>> =
         database.temporaryTargetDao.getTemporaryTargetDataFromTime(timestamp)
             .map { if (!ascending) it.reversed() else it }
-            .subscribeOn(Schedulers.io())
-
-    // Eating Now: Get the first EN TT since EN start time
-    fun getENTemporaryTargetDataFromTimetoTime(timestamp: Long, to: Long, ascending: Boolean): Single<List<TemporaryTarget>> =
-        database.temporaryTargetDao.getENTemporaryTargetDataFromTimetoTime(timestamp, to, TemporaryTarget.Reason.EATING_NOW, TemporaryTarget.Reason.EATING_NOW_PB)
-            .map { if (!ascending) it.reversed() else it }
-            .subscribeOn(Schedulers.io())
-
-    // Eating Now: Get the EN TT at this time
-    fun getENTemporaryTargetActiveAt(timestamp: Long): Single<List<TemporaryTarget>> =
-        database.temporaryTargetDao.getENTemporaryTargetActiveAt(timestamp,TemporaryTarget.Reason.EATING_NOW, TemporaryTarget.Reason.EATING_NOW_PB)
             .subscribeOn(Schedulers.io())
 
     fun getTemporaryTargetDataIncludingInvalidFromTime(timestamp: Long, ascending: Boolean): Single<List<TemporaryTarget>> =
@@ -512,12 +502,6 @@ import kotlin.math.roundToInt
             .map { if (!ascending) it.reversed() else it }
             .subscribeOn(Schedulers.io())
 
-    // Eating Now: Get the first bolus since EN Start
-    fun getENBolusFromTimeOfType(timestamp: Long, ascending: Boolean, type: Bolus.Type, minbolus: Double): Single<List<Bolus>> =
-        database.bolusDao.getBolusesFromTimeOfType(type, timestamp, minbolus)
-            .map { if (!ascending) it.reversed() else it }
-            .subscribeOn(Schedulers.io())
-
     fun getBolusesDataFromTimeToTime(from: Long, to: Long, ascending: Boolean): Single<List<Bolus>> =
         database.bolusDao.getBolusesFromTime(from, to)
             .map { if (!ascending) it.reversed() else it }
@@ -606,11 +590,6 @@ import kotlin.math.roundToInt
 
     fun getCarbsDataFromTimeNotExpanded(timestamp: Long, ascending: Boolean): Single<List<Carbs>> =
         database.carbsDao.getCarbsFromTimeExpandable(timestamp)
-            .map { if (!ascending) it.reversed() else it }
-            .subscribeOn(Schedulers.io())
-
-    fun getCarbsDataFromTimeToTime(from: Long, to: Long, ascending: Boolean): Single<List<Carbs>> =
-        database.carbsDao.getCarbsFromTimeToTime(from, to)
             .map { if (!ascending) it.reversed() else it }
             .subscribeOn(Schedulers.io())
 

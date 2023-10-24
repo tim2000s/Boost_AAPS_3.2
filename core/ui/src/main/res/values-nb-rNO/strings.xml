@@ -51,6 +51,7 @@
     <string name="extended_bolus">Forlenget bolus</string>
     <string name="paused">Pauset</string>
     <string name="tdd_total">TDD Total</string>
+    <string name="tdd_old_data">Gammel data</string>
     <string name="goingtodeliver">Leverer %1$.2f enheter</string>
     <string name="waitingforpump">Venter på pumpen</string>
     <string name="androidaps_start">AAPS startet</string>
@@ -61,7 +62,7 @@
     <string name="objectives">Opplæringsmål</string>
     <string name="please_wait">Vennligst vent…</string>
     <string name="stop">Stopp</string>
-    <string name="carbs">Karbohydrater</string>
+    <string name="carbs">Karbo</string>
     <string name="invalid_profile">Ugyldig profil!</string>
     <string name="no_profile_set">INGEN PROFIL VALGT</string>
     <string name="active"><![CDATA[<Aktiv>]]></string>
@@ -74,8 +75,8 @@
     <string name="target_label">Målverdi</string>
     <string name="dia_long_label">Insulinets virkningstid (DIA)</string>
     <string name="ic_long_label">Insulin-karbohydratfaktor (IK)</string>
-    <string name="isf_long_label">Insulin sensitivitetsfaktor (ISF)</string>
-    <string name="basal_long_label">Basalrate</string>
+    <string name="isf_long_label">Insulinsensitivitetsfaktor (ISF)</string>
+    <string name="basal_long_label">Basaldose</string>
     <string name="target_long_label">Blodsukkermål</string>
     <string name="shortgram">g</string>
     <string name="shortpercent">%</string>
@@ -146,7 +147,7 @@
     <string name="confirm_remove_multiple_items">Er du sikker på at du vil fjerne %1$d elementer</string>
     <string name="overview_treatment_label">Behandling</string>
     <string name="copytolocalprofile">Opprett ny profil fra denne profilen?</string>
-    <string name="wear_wizard_settings">Innstillinger for boluskalkulator</string>
+    <string name="wear_wizard_settings">Kalkulatorinnstillinger</string>
     <string name="bg_trend_label">15 min trend</string>
     <string name="treatments_wizard_cob_label">COB</string>
     <string name="bolus_iob_label">Bolus IOB</string>
@@ -155,7 +156,7 @@
     <string name="login">Login</string>
     <string name="prime_fill">Prime/fylling</string>
     <string name="overview_insulin_label">Insulin</string>
-    <string name="stoptemptarget">Avbryt temp target</string>
+    <string name="stoptemptarget">Avbryt midlertidig mål</string>
     <string name="closedloop">Lukket Loop</string>
     <string name="openloop">Åpen Loop</string>
     <string name="lowglucosesuspend">Stopp ved lavt BS</string>
@@ -167,6 +168,8 @@
     <string name="virtualpump_uploadstatus_title">Last opp pumpestatus til NS eller Tidepool</string>
     <string name="suspendloop_label">Deaktivert/pauset loop</string>
     <string name="iob_label">Aktivt insulin (IOB)</string>
+    <string name="loopstatus_targets">MÅLVERDIER:</string>
+    <string name="loopstatus_OAPS_result">OAPS resultat:</string>
     <!--    Protection-->
     <string name="wrongpassword">Feil passord</string>
     <string name="wrongpin">Feil PIN-kode</string>
@@ -193,7 +196,7 @@
     <!--    Temptarget-->
     <string name="mins">%1$d min</string>
     <!--    Translator-->
-    <string name="careportal">Careportal</string>
+    <string name="careportal">Helseportal</string>
     <string name="careportal_bgcheck">BS-kontroll</string>
     <string name="careportal_mbg">Manuelt BS eller kalibrering</string>
     <string name="careportal_announcement">Melding</string>
@@ -220,7 +223,7 @@
     <string name="careportal_carbscorrection">Karbo-korreksjon</string>
     <string name="careportal_openapsoffline">OpenAPS Offline</string>
     <string name="pump_battery_change">Bytte pumpebatteri</string>
-    <string name="temporary_target">Midlertidig BS-mål</string>
+    <string name="temporary_target">Midlertidig mål</string>
     <string name="careportal_temporarytargetvalue">Midlertidig målverdi</string>
     <string name="careportal_temporarytargetcancel">Avbryt midl. mål</string>
     <string name="boluswizard">Boluskalkulator</string>
@@ -294,19 +297,19 @@
     <string name="uel_cancel_bolus">AVBRYT BOLUS</string>
     <string name="uel_cancel_extended_bolus">AVBRYT FORLENGET BOLUS</string>
     <string name="uel_cancel_tt">AVBRYT MIDL. MÅL</string>
-    <string name="uel_careportal">CAREPORTAL</string>
+    <string name="uel_careportal">HELSEPORTAL</string>
     <string name="uel_site_change">BYTTE SLANGESETT</string>
     <string name="uel_reservoir_change">BYTTE RESERVOAR</string>
     <string name="uel_calibration">KALIBRERING</string>
     <string name="uel_prime_bolus">PRIME BOLUS</string>
     <string name="uel_treatment">BEHANDLING</string>
-    <string name="uel_careportal_ns_refresh">CAREPORTAL NS OPPDATERING</string>
+    <string name="uel_careportal_ns_refresh">HELSEPORTAL NS-OPPDATERING</string>
     <string name="uel_profile_switch_ns_refresh">PROFILBYTTE NS OPPDATERING</string>
     <string name="uel_treatments_ns_refresh">BEHANDLINGER NS OPPDATERING</string>
     <string name="uel_tt_ns_refresh">OPPDATER MIDL. MÅL NS</string>
     <string name="uel_automation_removed">AUTOMASJON FJERNET</string>
     <string name="uel_bg_removed">BS FJERNET</string>
-    <string name="uel_careportal_removed">CAREPORTAL FJERNET</string>
+    <string name="uel_careportal_removed">HELSEPORTAL FJERNET</string>
     <string name="uel_bolus_removed">BOLUS FJERNET</string>
     <string name="uel_carbs_removed">KARBO FJERNET</string>
     <string name="uel_temp_basal_removed">MIDL. MÅL FJERNET</string>
@@ -363,7 +366,7 @@
     <string name="temp_target_high_target">Øvre grense for midl. mål</string>
     <string name="temp_target_value">Midl. målverdi</string>
     <string name="profile_dia">Profil DIA verdi</string>
-    <string name="profile_sensitivity_value">Profil insulinfølsomhet</string>
+    <string name="profile_sensitivity_value">Profilens insulinfølsomhet</string>
     <string name="profile_max_daily_basal_value">Maksimal profil basalverdi</string>
     <string name="current_basal_value">Nåværende basalverdi</string>
     <string name="profile_carbs_ratio_value">Profil karbohydratfaktor (IK)</string>
@@ -389,7 +392,7 @@
     <string name="temp_basal_absolute">MIDL. BASAL %1$.2f E/t %2$d min</string>
     <string name="temp_basal_percent">MIDL. BASAL %1$d E/t %2$d min</string>
     <string name="insight_set_tbr_over_notification">INSIGHT SET TBR OVER NOTIFIKASJON</string>
-    <string name="read_status" comment="10 characters max for READSTATUS translation">READSTATUS %1$s</string>
+    <string name="read_status" comment="10 characters max for READSTATUS translation">LESESTATUS %1$s</string>
     <string name="keepalive_status_outdated" comment="26 characters max for translation">Oppretthold tilkobling. Status er ikke oppdatert.</string>
     <string name="keepalive_basal_outdated" comment="26 characters max for translation">Oppretthold tilkobling. Basal er ikke oppdatert.</string>
     <string name="sms" comment="26 characters max for translation">SMS</string>
@@ -453,15 +456,17 @@
     <string name="info">INFO</string>
     <!-- BolusWizard -->
     <string name="bolus_advisor">Bolusveiviser</string>
-    <string name="bolus_advisor_message">Du har høyt blodsukker. I stedet for å spise nå er det bedre å utsette det til du har et lavere blodsukker. Ønsker du å sette en korreksjons bolus nå og få en påminnelse om når det er på tide å spise? I dette tilfellet vil ingen karbohydrater registreres nå, og du må bruke måltidsveiviseren igjen når vi gir deg en påminnelse.</string>
+    <string name="bolus_advisor_message">Du har høyt blodsukker. I stedet for å spise nå er det bedre å utsette det til du har et lavere blodsukker. Ønsker du å sette en korreksjonsbolus nå og få en påminnelse om når det er på tide å spise? I dette tilfellet vil ingen karbohydrater registreres nå, og du må bruke boluskalkulatoren igjen når vi gir deg en påminnelse.</string>
     <string name="cobvsiob">COB vs IOB</string>
     <string name="slowabsorptiondetected"><![CDATA[<font color=\'%1$s\'>!! Advarsel: Oppdaget treg absorpsjon av karbohydrater: %2$d%% av tiden. Dobbeltsjekk din beregning. COB kan være misvisende og du risikerer å få for mye insulin !!</font>]]></string>
-    <string name="partialboluswizard">Doser denne delen av resultatet fra bolusveiviseren [%]</string>
+    <string name="partialboluswizard">Doser denne delen av resultatet fra boluskalkulatoren [%]</string>
     <string name="partialboluswizard_reset_time">Terskel for gammel BS-verdi [min]</string>
     <string name="bolus_constraint_applied_warn">Bolus begrensning brukt: %1$.2f E til %2$.2f E</string>
     <string name="bolus_recorded_only">Bolus vil bare bli loggført (ikke levert av pumpe)</string>
     <string name="advisoralarm">Aktiver alarm når det er på tide å spise</string>
     <string name="no_action_selected">Ingen handling valgt. Ingenting endres</string>
+    <string name="carb_equal_zero_no_action">Karbo = 0. Ingen handling utført!</string>
+    <string name="wizard_no_insulin_required">Insulin er ikke nødvendig!</string>
     <string name="wizard_no_actual_bg">Mangler nylige BS-verdier til å gjøre beregninger!</string>
     <string name="wizard_no_active_profile">Det er ikke angitt noen aktiv profil!</string>
     <string name="wizard_no_cob">Ukjent COB! BS-verdier mangler eller nylig oppstart av appen?</string>
@@ -478,7 +483,7 @@
     <string name="wizard_explain_tt">TempT: %1$s</string>
     <string name="wizard_explain_tt_to">%1$s til %2$s</string>
     <string name="wizard_pump_not_available">Ingen pumpe tilgjengelig!</string>
-    <string name="quickwizard">Hurtigveiviser</string>
+    <string name="quickwizard">Hurtigknapp</string>
     <!--    Preferences-->
     <string name="child">Barn</string>
     <string name="teenage">Tenåring</string>
@@ -486,8 +491,8 @@
     <string name="resistant_adult">Insulinresistent voksen</string>
     <string name="pregnant">Graviditet</string>
     <string name="patient_age_summary">Velg pasienttype for oppsett av sikkerhetsgrenser</string>
-    <string name="max_bolus_title">Maks tillat bolus [U]</string>
-    <string name="max_carbs_title">Maks tillat karbo [g]</string>
+    <string name="max_bolus_title">Maks tillatt bolus [E]</string>
+    <string name="max_carbs_title">Maks tillatt karbohydrater [g]</string>
     <string name="patient_type">Pasienttype</string>
     <!--    Protection-->
     <string name="unlock_settings">Lås opp innstillinger</string>
@@ -496,8 +501,8 @@
     <string name="reservoir_label">Reservoar</string>
     <string name="last_connection_label">Siste tilkobling</string>
     <string name="last_bolus_label">Siste bolus</string>
-    <string name="base_basal_rate_label">Profilens basaldose</string>
-    <string name="tempbasal_label">Midl. basal</string>
+    <string name="base_basal_rate_label">Profilens basal</string>
+    <string name="tempbasal_label">Midlertidig basal</string>
     <string name="extended_bolus_label">Forlenget bolus</string>
     <string name="serial_number">Serienummer</string>
     <string name="disconnected">Frakoblet</string>
@@ -561,9 +566,9 @@
     <!-- SmsCommunicator -->
     <string name="smscommunicator_missingsmspermission">Mangler SMS-tillatelse</string>
     <!-- About -->
-    <string name="cta_dont_kill_my_app_info">Hvordan hindre at appen stenges?</string>
+    <string name="cta_dont_kill_my_app_info">Ikke steng appen min?</string>
     <string name="fabric_upload_disabled">Opplast av krasjlogger er deaktivert!</string>
-    <string name="about_link_urls">\n\nDokumentasjon:\nhttps://androidaps.readthedocs.io\n\nfacebook:\nhttps://www.facebook.com/groups/AndroidAPSUsers</string>
+    <string name="about_link_urls">\n\nDokumentasjon:\nhttps://androidaps.readthedocs.io\n\nFacebook:\nhttps://www.facebook.com/groups/AndroidAPSUsers</string>
     <plurals name="days">
         <item quantity="one">%1$d dag</item>
         <item quantity="other">%1$d dager</item>

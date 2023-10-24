@@ -46,9 +46,6 @@ internal interface CarbsDao : TraceableDao<Carbs> {
     @Query("SELECT * FROM $TABLE_CARBS WHERE likely(isValid = 1) AND unlikely((timestamp + duration) >= :timestamp) AND likely(referenceId IS NULL) ORDER BY id DESC")
     fun getCarbsFromTimeExpandable(timestamp: Long): Single<List<Carbs>>
 
-    @Query("SELECT * FROM $TABLE_CARBS WHERE likely(isValid = 1) AND unlikely(timestamp >= :from) AND unlikely(timestamp <= :to) AND likely(referenceId IS NULL) ORDER BY id DESC")
-    fun getCarbsFromTimeToTime(from: Long, to: Long): Single<List<Carbs>>
-
     @Query("SELECT * FROM $TABLE_CARBS WHERE likely(isValid = 1) AND unlikely((timestamp + duration) > :from) AND unlikely(timestamp <= :to) AND likely(referenceId IS NULL) ORDER BY id DESC")
     fun getCarbsFromTimeToTimeExpandable(from: Long, to: Long): Single<List<Carbs>>
 

@@ -2,17 +2,15 @@
 <resources>
     <string name="app_name">AAPS</string>
     <string name="label_actions_activity">AAPS</string>
-    <string name="label_watchface">AAPS</string>
     <string name="label_watchface_large">AAPS (stor)</string>
     <string name="label_watchface_big_chart">AAPS (stor graf)</string>
     <string name="label_watchface_no_chart">AAPS (ingen graf)</string>
     <string name="label_watchface_circle">AAPS (sirkel)</string>
-    <string name="label_watchface_v2">AAPS(v2)</string>
     <string name="label_watchface_digital_style">AAPS(Digitalstil)</string>
     <string name="label_watchface_custom">AAPS(Tilpasset)</string>
     <string name="label_actions_tile">AAPS(Actions)</string>
     <string name="label_temp_target_tile">AAPS(Midl. Mål)</string>
-    <string name="label_quick_wizard_tile">AAPS(Quick Wizard)</string>
+    <string name="label_quick_wizard_tile">AAPS(Hurtigknapp)</string>
     <string name="label_warning_sync">Ingen data!</string>
     <string name="label_warning_old">Gamle data!</string>
     <string name="label_warning_since">Siden %1$s</string>
@@ -36,13 +34,13 @@
     <string name="pref_show_avgdelta">Vis Gj.snittDelta</string>
     <string name="pref_show_phone_battery">Vis telefonbatteri</string>
     <string name="pref_show_rig_battery">Vis riggens batteri</string>
-    <string name="pref_show_basal_rate">Vis basalrate</string>
+    <string name="pref_show_basal_rate">Vis basaldose</string>
     <string name="pref_show_loop_status">Vis loop status</string>
     <string name="pref_show_bg">Vis BS</string>
     <string name="pref_show_bgi">Vis BGI</string>
     <string name="pref_show_direction_arrow">Vis retningspil</string>
     <string name="pref_show_ago">Vis siden</string>
-    <string name="pref_show_temp_basal">Vis TBR</string>
+    <string name="pref_show_temp_basal">Vis midl. basal</string>
     <string name="pref_show_bolus">Vis Bolus &amp; SMB</string>
     <string name="pref_show_grid">Vis rutenett</string>
     <string name="pref_dark" comment="Enables dark visual theme">Mørkt</string>
@@ -71,7 +69,7 @@
     <string name="pref_wizard_in_menu">Kalkulator i Meny</string>
     <string name="pref_prime_in_menu">Prime i menyen</string>
     <string name="pref_single_target">Enkel måleverdi</string>
-    <string name="pref_wizard_percentage">Kalkulator prosent</string>
+    <string name="pref_wizard_percentage">Kalkulatorprosent</string>
     <string name="pref_complication_tap_action">Handling ved trykk på komplikasjon</string>
     <string name="pref_unicode_in_complications">Unicode i komplikasjoner</string>
     <string name="pref_version">Versjon:</string>
@@ -95,7 +93,7 @@
     <string name="quick_wizard_short">XL</string>
     <string name="action_duration">Varighet</string>
     <string name="action_tempt_confirmation">Midl. mål forespurt</string>
-    <string name="action_quick_wizard_confirmation">Quick Wizard forespurt</string>
+    <string name="action_quick_wizard_confirmation">Hurtigknapp forespurt</string>
     <string name="action_treatment_confirmation">Behandling forespurt</string>
     <string name="action_bolus_confirmation">Bolus forespurt</string>
     <string name="action_wizard_confirmation">Beregning forespurt</string>
@@ -109,7 +107,7 @@
     <string name="action_ecarbs">eKarbo</string>
     <string name="action_percentage">Prosent</string>
     <string name="action_start_min">Start [min]</string>
-    <string name="action_duration_h">Varighet [h]</string>
+    <string name="action_duration_h">Varighet [t]</string>
     <string name="action_insulin">Insulin</string>
     <string name="action_preset_1">Forhåndsinnstilling 1</string>
     <string name="action_preset_2">Forhåndsinnstilling 2</string>
