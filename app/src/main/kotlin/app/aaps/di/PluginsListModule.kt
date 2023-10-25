@@ -266,12 +266,6 @@ abstract class PluginsListModule {
     @IntKey(224)
     abstract fun bindOpenAPSBoostPlugin(plugin: BoostPlugin): PluginBase
 
-    /*@Binds
-    @APS
-    @IntoMap
-    @IntKey(226)
-    abstract fun bindOpenAPSENPlugin(plugin: ENPlugin): PluginBase*/
-
     @Binds
     @APS
     @IntoMap
