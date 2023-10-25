@@ -12,7 +12,6 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.SystemClock
 import androidx.core.app.NotificationCompat
-import com.microsoft.appcenter.analytics.Analytics
 import app.aaps.annotations.OpenForTesting
 import app.aaps.core.interfaces.aps.APSResult
 import app.aaps.core.interfaces.aps.ApsMode
@@ -260,14 +259,6 @@ class LoopPlugin @Inject constructor(
             if (usedAPS.isEnabled()) {
                 usedAPS.invoke(initiator, tempBasalFallback)
                 apsResult = usedAPS.lastAPSResult
-
-                Analytics.isEnabled().thenAccept {
-                    if(it) {
-                        val properties: MutableMap<String, String> = HashMap()
-                        properties["APSPlugin"] = usedAPS::class.java.simpleName
-                        Analytics.trackEvent("Loop", properties)
-                    }
-                }
             }
 
             // Check if we have any result
@@ -405,77 +396,38 @@ class LoopPlugin @Inject constructor(
                             waiting
                         rxBus.send(EventLoopUpdateGui())
                         fabricPrivacy.logCustom("APSRequest")
-                        val swapCommands = sp.getBoolean(app.aaps.core.utils.R.string.key_loop_swap_smbtbr_order, false)
-                        if (swapCommands) {
-                            applySMBRequest(resultAfterConstraints, object : Callback() {
-                                override fun run() {
-                                    // Callback is only called if a bolus was actually requested
-                                    if (result.enacted || result.success) {
-                                        lastRun.tbrSetByPump = result
-                                        lastRun.lastTBRRequest = lastRun.lastAPSRun
-                                        lastRun.lastTBREnact = dateUtil.now()
-                                        // deliverAt is used to prevent executing too old SMB request (older than 1 min)
-                                        // executing TBR may take some time thus give more time to SMB
-                                        resultAfterConstraints.deliverAt = lastRun.lastTBREnact
-                                        rxBus.send(EventLoopUpdateGui())
-                                        applyTBRRequest(resultAfterConstraints, profile, object : Callback() {
-                                            override fun run() {
-                                                if (result.enacted || result.success) {
-                                                    lastRun.tbrSetByPump = result
-                                                    lastRun.lastTBRRequest = lastRun.lastAPSRun
-                                                    lastRun.lastTBREnact = dateUtil.now()
-                                                    // deliverAt is used to prevent executing too old SMB request (older than 1 min)
-                                                    // executing TBR may take some time thus give more time to SMB
-                                                    resultAfterConstraints.deliverAt = lastRun.lastTBREnact
-                                                    rxBus.send(EventLoopUpdateGui())
-
-                                                } else {
-                                                    lastRun.tbrSetByPump = result
-                                                    lastRun.lastTBRRequest = lastRun.lastAPSRun
-                                                }
-                                                rxBus.send(EventLoopUpdateGui())
-                                            }
-                                        })
-                                    } else {
-                                        handler.postDelayed({ invoke("tempBasalFallback", allowNotification, true) }, 1000)
-                                    }
-                                    rxBus.send(EventLoopUpdateGui())
-                                }
-                            })
-                        } else {
-                            // TBR request must be applied first to prevent situation where
-                            // SMB was executed and zero TBR afterwards failed
-                            applyTBRRequest(resultAfterConstraints, profile, object : Callback() {
-                                override fun run() {
-                                    if (result.enacted || result.success) {
-                                        lastRun.tbrSetByPump = result
-                                        lastRun.lastTBRRequest = lastRun.lastAPSRun
-                                        lastRun.lastTBREnact = dateUtil.now()
+                        // TBR request must be applied first to prevent situation where
+                        // SMB was executed and zero TBR afterwards failed
+                        applyTBRRequest(resultAfterConstraints, profile, object : Callback() {
+                            override fun run() {
+                                if (result.enacted || result.success) {
+                                    lastRun.tbrSetByPump = result
+                                    lastRun.lastTBRRequest = lastRun.lastAPSRun
+                                    lastRun.lastTBREnact = dateUtil.now()
                                     // deliverAt is used to prevent executing too old SMB request (older than 1 min)
                                     // executing TBR may take some time thus give more time to SMB
-                                        resultAfterConstraints.deliverAt = lastRun.lastTBREnact
-                                        rxBus.send(EventLoopUpdateGui())
-                                        applySMBRequest(resultAfterConstraints, object : Callback() {
-                                            override fun run() {
-                                                // Callback is only called if a bolus was actually requested
-                                                if (result.enacted || result.success) {
-                                                    lastRun.smbSetByPump = result
-                                                    lastRun.lastSMBRequest = lastRun.lastAPSRun
-                                                    lastRun.lastSMBEnact = dateUtil.now()
-                                                } else {
-                                                handler.postDelayed({ invoke("tempBasalFallback", allowNotification, true) }, 1000)
-                                                }
-                                                rxBus.send(EventLoopUpdateGui())
-                                            }
-                                        })
-                                    } else {
-                                        lastRun.tbrSetByPump = result
-                                        lastRun.lastTBRRequest = lastRun.lastAPSRun
-                                    }
+                                    resultAfterConstraints.deliverAt = lastRun.lastTBREnact
                                     rxBus.send(EventLoopUpdateGui())
+                                    applySMBRequest(resultAfterConstraints, object : Callback() {
+                                        override fun run() {
+                                            // Callback is only called if a bolus was actually requested
+                                            if (result.enacted || result.success) {
+                                                lastRun.smbSetByPump = result
+                                                lastRun.lastSMBRequest = lastRun.lastAPSRun
+                                                lastRun.lastSMBEnact = dateUtil.now()
+                                            } else {
+                                                handler.postDelayed({ invoke("tempBasalFallback", allowNotification, true) }, 1000)
+                                            }
+                                            rxBus.send(EventLoopUpdateGui())
+                                        }
+                                    })
+                                } else {
+                                    lastRun.tbrSetByPump = result
+                                    lastRun.lastTBRRequest = lastRun.lastAPSRun
                                 }
-                            })
-                        }
+                                rxBus.send(EventLoopUpdateGui())
+                            }
+                        })
                     } else {
                         lastRun.tbrSetByPump = null
                         lastRun.smbSetByPump = null
@@ -674,7 +626,6 @@ class LoopPlugin @Inject constructor(
     private fun applySMBRequest(request: APSResult, callback: Callback?) {
         if (!request.isBolusRequested) {
             aapsLogger.debug(LTag.APS, "No SMB requested")
-            callback?.result(PumpEnactResult(injector).enacted(false).success(true).comment(app.aaps.core.ui.R.string.no_action_selected))?.run()
             return
         }
         val pump = activePlugin.activePump
