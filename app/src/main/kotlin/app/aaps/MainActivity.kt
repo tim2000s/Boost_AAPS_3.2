@@ -71,9 +71,6 @@ import app.aaps.ui.tabs.TabPageAdapter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.microsoft.appcenter.AppCenter
-import com.microsoft.appcenter.analytics.Analytics
-import com.microsoft.appcenter.crashes.Crashes
 import com.joanzapata.iconify.Iconify
 import com.joanzapata.iconify.fonts.FontAwesomeModule
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -127,13 +124,6 @@ class MainActivity : DaggerAppCompatActivityWithResult() {
             it.syncState()
         }
 
-        if (BuildConfig.APPCENTER_KEY != "" && !BuildConfig.DEBUG) {
-            AppCenter.start(
-                application, BuildConfig.APPCENTER_KEY,
-                Analytics::class.java, Crashes::class.java
-            )
-            Analytics.setTransmissionInterval(1800)
-        }
 
         // initialize screen wake lock
         processPreferenceChange(EventPreferenceChange(rh.gs(app.aaps.plugins.main.R.string.key_keep_screen_on)))
