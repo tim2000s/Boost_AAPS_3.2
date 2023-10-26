@@ -77,7 +77,7 @@ class IsfCalculatorImpl @Inject constructor(
                 if (useTDD) {
                     jsLogger.debug("Dynamic ISF uses TDD")
                     val tdd7D = tddCalculator.averageTDD(tddCalculator.calculate(7, false))?.totalAmount
-                    val tdd7D_old = tdd7D
+
                     if (tdd7D != null) {
 
                         val tddLast24H = tddCalculator.calculateDaily(-24, 0)?.totalAmount ?: 0.0
@@ -86,7 +86,7 @@ class IsfCalculatorImpl @Inject constructor(
                         val tddLast4H = tddCalculator.calculateDaily(-4, 0)?.totalAmount ?: 0.0
                         val tddLast8to4H = tddCalculator.calculateDaily(-8, -4)?.totalAmount ?: 0.0
                         val tddWeightedFromLast8H = ((1.4 * tddLast4H) + (0.6 * tddLast8to4H)) * 3
-                        if ((tddWeightedFromLast8H < (0.75 * tdd7D)) {jsLogger.debug("tdd7D reduced due to low insulin usage: ${ if (tdd7D == null) null else Round.roundTo(tdd7D, 0.01)}")
+
                         var tdd =
                             if ((tddWeightedFromLast8H < (0.75 * tdd7D)) && (tdd1D != null)) ((tddWeightedFromLast8H +( (tddWeightedFromLast8H / tdd7D) * ( tdd7D - tddWeightedFromLast8H))) * 0.34 ) + (tdd1D * 0.33) + (tddWeightedFromLast8H * 0.33)
                             else if (tdd1D != null) (tddWeightedFromLast8H * 0.33) + (tdd7D * 0.34) + (tdd1D * 0.33)
