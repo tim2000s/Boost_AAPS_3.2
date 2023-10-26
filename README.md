@@ -1,4 +1,4 @@
-# AndroidAPS - Boost 
+# AndroidAPS - Boost #
 * Check the wiki: https://androidaps.readthedocs.io
 *  Everyone who’s been looping with AndroidAPS needs to fill out the form after 3 days of looping  https://docs.google.com/forms/d/14KcMjlINPMJHVt28MDRupa4sz4DDIooI4SrW0P3HSN8/viewform?c=0&w=1
 
@@ -18,9 +18,11 @@ DEV:
 
 3KawK8aQe48478s6fxJ8Ms6VTWkwjgr9f2
 
-#Boost 4.1.5 based on AAPS Master 3.2.0.1
+#Boost 4.1.5 based on AAPS Master 3.2.0.1#
 
-Boost has been updated to the 3.2.0.1 codebase. Within this, we have made a number of modifications.
+Boost has been updated to the 3.2.0.1 codebase. This means that it requires Nightscout 15 and updates your database. Once you have enabled NS15 and elected to use the NSClient V3 to interact with it, you can do a full synchronisation with the server (go to NSV3 tab, select the three dots to the top right and choose "Full Synchronisation"), which will pull enough data into app to run DynamiISF.
+
+Additionally, we have made a number of modifications.
 
 ##Dynamic ISF
 
@@ -152,4 +154,8 @@ The three stepcount features in *Boost 4.1.5* are:
 Both activity detection settings are overridden by a percentage profile switch.
 
 There are no enable/disable buttons for these settings, however, in both activity detection settings, *if the % value is set to 100, they have no effect*. Similarly, *if the Sleep-in protection hours are set to 0, it has no effect*.
+
+##Libre Users
+
+If you are a Libre user, there is a setting in the DynamicISF preferences (you will have to switch to the DynamicISF plugin to set it) called "Enable SMB disregarding of BG source (UNSAFE)". This switch allows SMBs always with Libre devices across all APS plugins. If you choose to do this, please make sure you are using a sensor collection app that is providing glucose data every five minutes, and enable at least the Average Smoothing plugin in AAPS 3.2.
 
