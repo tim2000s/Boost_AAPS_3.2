@@ -14,17 +14,14 @@ DEV:
 [![codecov](https://codecov.io/gh/nightscout/AndroidAPS/branch/dev/graph/badge.svg)](https://codecov.io/gh/MilosKozak/AndroidAPS)
 
 
-<img src="https://cdn.iconscout.com/icon/free/png-256/bitcoin-384-920569.png" srcset="https://cdn.iconscout.com/icon/free/png-512/bitcoin-384-920569.png 2x" alt="Bitcoin Icon" width="100">
 
-3KawK8aQe48478s6fxJ8Ms6VTWkwjgr9f2
-
-#Boost 4.1.5 based on AAPS Master 3.2.0.1#
+***Boost 4.1.5 based on AAPS Master 3.2.0.1***
 
 Boost has been updated to the 3.2.0.1 codebase. This means that it requires Nightscout 15 and updates your database. Once you have enabled NS15 and elected to use the NSClient V3 to interact with it, you can do a full synchronisation with the server (go to NSV3 tab, select the three dots to the top right and choose "Full Synchronisation"), which will pull enough data into app to run DynamiISF.
 
 Additionally, we have made a number of modifications.
 
-##Dynamic ISF
+**Dynamic ISF**
 
 Dynamic ISF settings have been removed from the Boost settings and are now a separate item in the Absorption Settings preference. Within this, there is a switch to enable or disable Dynamic ISF. If disabled, your profile ISF will be used. There is also the feature to set the glucose cap level, at which point ISF values decrease at a lower rate as glucose levels continue to increase. The DynISF adjustment factor is also in these settings, along with a switch to enable the choice of whether profile switches are obeyed.
   
@@ -43,7 +40,7 @@ The ISF for dosing decisions within Boost is slighty different to thhat in Dynam
 
 The user adjustable Low Glucose Suspend threshold has reverted to the Boost preferences pane. This allows the user to set a value higher than the system would normally use, such that when predictions drop below this level, a zero TBR is set.
 
-##Night Mode
+**Night Mode**
 
 We have implemented an option called Night Mode in the Treatments Safety pane. This enables SMBs to be disabled overnight in certain circumstances. The settings are:
 
@@ -52,7 +49,7 @@ We have implemented an option called Night Mode in the Treatments Safety pane. T
 *Disable with COB:* Disables Night Mode if there are COB.
 **Disable with low temporary target:* If a low temp target has been set, SMBs can be enabled.
 
-##Boost
+***Boost***
 
 You can use Boost when announcing carbs or without announcing carbs. With COB there is an additional piece of bolusing code that oeprates for the first 40 mins of COB. If you prefer to manually bolus, it fully supports that with no other code.
 
@@ -143,7 +140,7 @@ SMBMinutes settings: When there is no longer any acceleration in glucose delta v
 *Boost insulin required percent* - recommended not to exceed 75%. Start at 50% and increase as necessary. <br>
 *Target* - Set a target of 6.5mmol/l (120mg/dl) to get started with Boost. This provides a cushion as you adjust settings. Values below 5.5mmol/l (100mg/DL) are not recommended.<br>
 
-##Stepcount Features
+**Stepcount Features**
 
 The three stepcount features in *Boost 4.1.5* are:
 
@@ -155,7 +152,7 @@ Both activity detection settings are overridden by a percentage profile switch.
 
 There are no enable/disable buttons for these settings, however, in both activity detection settings, *if the % value is set to 100, they have no effect*. Similarly, *if the Sleep-in protection hours are set to 0, it has no effect*.
 
-##Libre Users
+**Libre Users**
 
 If you are a Libre user, there is a setting in the DynamicISF preferences (you will have to switch to the DynamicISF plugin to set it) called "Enable SMB disregarding of BG source (UNSAFE)". This switch allows SMBs always with Libre devices across all APS plugins. If you choose to do this, please make sure you are using a sensor collection app that is providing glucose data every five minutes, and enable at least the Average Smoothing plugin in AAPS 3.2.
 
