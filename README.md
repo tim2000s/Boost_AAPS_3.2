@@ -19,7 +19,7 @@ DEV:
 
 Boost has been updated to the 3.2.0.1 codebase. This means that it requires Nightscout 15 and updates your database. Once you have enabled NS15 and elected to use the NSClient V3 to interact with it, you can do a full synchronisation with the server (go to NSV3 tab, select the three dots to the top right and choose "Full Synchronisation"), which will pull enough data into app to run DynamiISF.
 
-Additionally, we have made a number of modifications.
+Additionally, we have made a number of modifications. Please read the Start and End time section, as this may require a change to stop Boost crashing. 
 
 **Dynamic ISF**
 
@@ -48,6 +48,12 @@ We have implemented an option called Night Mode in the Treatments Safety pane. T
 *Start and end times:* Allow you to choose when this function is active.
 *Disable with COB:* Disables Night Mode if there are COB.
 **Disable with low temporary target:* If a low temp target has been set, SMBs can be enabled.
+
+**Boost start and end times**
+
+The start and end times ahve been adapted and now use a 24 hour clock. You will need to format this in an hh:mm format, and its possible that in some cases, if you dont change what youve updated from, Boost will crash. 
+
+The end time can now run over midnight, so you can set a start time of 07:00 and an end time of 02:00.
 
 ***Boost***
 
@@ -119,8 +125,8 @@ Note that the default settings are designed to disable most of the functions, an
 *Boost Bolus Cap* - defaults to 0.1 <br>
 *Percent scale factor* - defaults to 200 <br>
 *UAM Boost max IOB* - defaults to 0.1 <br>
-*UAM Boost Start Time (in hours using 24 hour clock)* - defaults to 7 <br>
-*UAM Boost end time (in hours using 24 hour clock)* - defaults to 8
+*UAM Boost Start Time (using 24 hour clock)* - needs to be set using 24hr clocknformat, e.g. 00:30. Defaults to 7<br>
+*UAM Boost end time (using 24 hour clock)* - needs to be set using 24hr clocknformat, e.g. 00:30. Defaults to 8<br>
 *BG level below which low glucose suspend occurs* - defaults to standard algorithm behaviour; can be adjusted between 65 and 100.<br>
 
 **Notes on settings**
