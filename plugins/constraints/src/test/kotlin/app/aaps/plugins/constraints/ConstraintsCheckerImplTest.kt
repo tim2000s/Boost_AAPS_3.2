@@ -15,7 +15,6 @@ import app.aaps.core.interfaces.pump.PumpSync
 import app.aaps.core.interfaces.pump.TemporaryBasalStorage
 import app.aaps.core.interfaces.pump.defs.PumpDescription
 import app.aaps.core.interfaces.queue.CommandQueue
-import app.aaps.core.interfaces.stats.TddCalculator
 import app.aaps.core.interfaces.ui.UiInteraction
 import app.aaps.database.impl.AppRepository
 import app.aaps.implementation.iob.GlucoseStatusProviderImpl
@@ -67,7 +66,6 @@ class ConstraintsCheckerImplTest : TestBaseWithProfile() {
     @Mock lateinit var danaHistoryDatabase: DanaHistoryDatabase
     @Mock lateinit var insightDatabase: InsightDatabase
     @Mock lateinit var bgQualityCheck: BgQualityCheck
-    @Mock lateinit var tddCalculator: TddCalculator
 
     private lateinit var danaPump: DanaPump
     private lateinit var insightDbHelper: InsightDbHelper
@@ -167,8 +165,7 @@ class ConstraintsCheckerImplTest : TestBaseWithProfile() {
                 dateUtil,
                 repository,
                 glucoseStatusProvider,
-                bgQualityCheck,
-                tddCalculator
+                bgQualityCheck
             )
         openAPSSMBDynamicISFPlugin =
             OpenAPSSMBDynamicISFPlugin(
@@ -187,8 +184,7 @@ class ConstraintsCheckerImplTest : TestBaseWithProfile() {
                 dateUtil,
                 repository,
                 glucoseStatusProvider,
-                bgQualityCheck,
-                tddCalculator
+                bgQualityCheck
             )
         openAPSAMAPlugin =
             OpenAPSAMAPlugin(

@@ -110,13 +110,12 @@ open class DetermineBasalAdapterSMBJS internal constructor(private val scriptRea
             //generate functions "determine_basal" and "setTempBasal"
             if (useLoopVariants) {
                 rhino.evaluateString(scope, readFile(LoopVariantPreference.getVariantFileName(sp, jsFolder)), "JavaScript", 0, null)
-                rhino.evaluateString(scope, readFile("$jsFolder/basal-set-temp.js"), "setTempBasal.js", 0, null)
                 this.profile.put("variant", LoopVariantPreference.getVariant(sp, jsFolder));
             }
             else {
                 rhino.evaluateString(scope, readFile("$jsFolder/determine-basal.js"), "JavaScript", 0, null)
-                rhino.evaluateString(scope, readFile("$jsFolder/basal-set-temp.js"), "setTempBasal.js", 0, null)
             }
+            rhino.evaluateString(scope, readFile("OpenAPSSMB/basal-set-temp.js"), "setTempBasal.js", 0, null)
             val determineBasalObj = scope["determine_basal", scope]
             val setTempBasalFunctionsObj = scope["tempBasalFunctions", scope]
 
@@ -153,7 +152,7 @@ open class DetermineBasalAdapterSMBJS internal constructor(private val scriptRea
                 aapsLogger.error(LTag.APS, "Problem loading JS Functions")
             }
         } catch (e: IOException) {
-            aapsLogger.error(LTag.APS, "IOException")
+            aapsLogger.error(LTag.APS, "IOException: $e")
         } catch (e: RhinoException) {
             aapsLogger.error(LTag.APS, "RhinoException: (" + e.lineNumber() + "," + e.columnNumber() + ") " + e.toString())
         } catch (e: IllegalAccessException) {
