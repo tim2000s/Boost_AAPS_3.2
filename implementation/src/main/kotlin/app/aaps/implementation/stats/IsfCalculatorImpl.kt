@@ -113,7 +113,7 @@ class IsfCalculatorImpl @Inject constructor(
                             jsLogger.debug("TDD ISF adjusted by %.2f due to profile", globalScale)
                         }
 
-                        if (ratio == 1.0 && adjustSens) {
+                        if (adjustSens) {
                             ratio = Math.max(Math.min(tddLast24H / tdd7D, autosensMax), autosensMin)
                             sensNormalTarget /= ratio
                             jsLogger.debug("ratio set to %.2f due to TDD sensitivity", ratio)
