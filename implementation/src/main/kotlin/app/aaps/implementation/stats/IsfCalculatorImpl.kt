@@ -97,20 +97,22 @@ class IsfCalculatorImpl @Inject constructor(
                             else tddWeightedFromLast8H
 
                         jsLogger.debug("TDD: ${Round.roundTo(tdd, 0.01)}")
-
-                        jsLogger.debug("tdd1D: ${ if (tdd1D == null) null else Round.roundTo(tdd1D, 0.01)}")
-                        jsLogger.debug("tdd7D: ${ if (tdd7D == null) null else Round.roundTo(tdd7D, 0.01)}")
                         jsLogger.debug("tddLast4H: ${Round.roundTo(tddLast4H, 0.01)}")
                         jsLogger.debug("tddLast8to4H: ${Round.roundTo(tddLast8to4H, 0.01)}")
                         jsLogger.debug("tddWeightedFromLast8H: ${Round.roundTo(tddWeightedFromLast8H, 0.01)}")
+                        jsLogger.debug("tddLast24H: ${Round.roundTo(tddLast24H, 0.01)}")
+                        jsLogger.debug("tdd1D: ${ if (tdd1D == null) null else Round.roundTo(tdd1D, 0.01)}")
+                        jsLogger.debug("tdd7D: ${Round.roundTo(tdd7D, 0.01)}")
 
-                        val dynISFadjust = SafeParse.stringToDouble(sp.getString(app.aaps.core.utils.R.string.key_dynamic_isf_tdd_adjust, "100")) / 100.0
-                        tdd *= dynISFadjust
+                        val dynISFadjust = SafeParse.stringToDouble(sp.getString(app.aaps.core.utils.R.string.key_dynamic_isf_tdd_adjust, "100"))
+                        jsLogger.debug("TDD ISF adjustment factor is %.2f", dynISFadjust)
+
+                        tdd *= dynISFadjust / 100.0
 
                         sensNormalTarget = 1800 / (tdd * (ln((bgNormalTarget / insulinDivisor) + 1)))
                         if (obeyProfile) {
                             sensNormalTarget *= globalScale
-                            jsLogger.debug("TDD ISF adjusted by %.2f due to profile", globalScale)
+                            jsLogger.debug("TDD ISF profile scale is %.2f", globalScale)
                         }
 
                         if (adjustSens) {
