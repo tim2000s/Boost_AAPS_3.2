@@ -1,12 +1,12 @@
 package app.aaps.plugins.aps.openAPSSMB
 
 import android.content.Context
-import android.icu.text.SimpleDateFormat
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import app.aaps.core.interfaces.aps.APS
 import app.aaps.core.interfaces.aps.AutosensResult
 import app.aaps.core.interfaces.aps.DetermineBasalAdapter
+import app.aaps.core.interfaces.aps.DynamicISFPlugin
 import app.aaps.core.interfaces.aps.SMBDefaults
 import app.aaps.core.interfaces.bgQualityCheck.BgQualityCheck
 import app.aaps.core.interfaces.constraints.Constraint
@@ -43,16 +43,11 @@ import app.aaps.plugins.aps.events.EventOpenAPSUpdateGui
 import app.aaps.plugins.aps.events.EventResetOpenAPSGui
 import app.aaps.plugins.aps.utils.ScriptReader
 import dagger.android.HasAndroidInjector
-import org.joda.time.DateTime
 import org.joda.time.LocalTime
-import org.joda.time.format.DateTimeFormatter
 import org.joda.time.format.ISODateTimeFormat
-import java.util.Calendar
-import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.floor
-import kotlin.time.Duration.Companion.hours
 
 @Singleton
 open class OpenAPSSMBPlugin @Inject constructor(
@@ -93,9 +88,12 @@ open class OpenAPSSMBPlugin @Inject constructor(
     override var lastDetermineBasalAdapter: DetermineBasalAdapter? = null
     override var lastAutosensResult = AutosensResult()
 
-    var profileShared: Profile? = null
-    var glucoseStatusShared : GlucoseStatus? = null
-    var mealDataShared : MealData? = null
+    private var lastNigtModeRun: Long = 0
+    private var lastNigtModeResult: Boolean = false
+
+    private var profileShared: Profile? = null
+    private var glucoseStatusShared : GlucoseStatus? = null
+    private var mealDataShared : MealData? = null
 
     override fun specialEnableCondition(): Boolean {
         return try {
@@ -132,6 +130,12 @@ open class OpenAPSSMBPlugin @Inject constructor(
     private fun verifyMealDataLoaded(allowCurrent : Boolean = false) : MealData {
         if (mealDataShared == null || !allowCurrent) mealDataShared = iobCobCalculator.getMealDataWithWaitingForCalculationFinish()
         return mealDataShared!!
+    }
+
+    private fun cleanShared() {
+        profileShared = null
+        glucoseStatusShared = null
+        mealDataShared = null
     }
 
     override fun invoke(initiator: String, tempBasalFallback: Boolean) {
@@ -222,6 +226,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
         if (!hardLimits.checkHardLimits(profile.getMaxDailyBasal(), app.aaps.core.ui.R.string.profile_max_daily_basal_value, 0.02, hardLimits.maxBasal())) return
         if (!hardLimits.checkHardLimits(pump.baseBasalRate, app.aaps.core.ui.R.string.current_basal_value, 0.01, hardLimits.maxBasal())) return
         startPart = System.currentTimeMillis()
+
         if (constraintChecker.isAutosensModeEnabled().value()) {
             val autosensData = iobCobCalculator.getLastAutosensDataWithWaitForCalculationFinish("OpenAPSPlugin")
             if (autosensData == null) {
@@ -229,7 +234,8 @@ open class OpenAPSSMBPlugin @Inject constructor(
                 return
             }
             lastAutosensResult = autosensData.autosensResult
-        } else {
+        }
+        else {
             lastAutosensResult.sensResult = "autosens disabled"
         }
         val iobArray = iobCobCalculator.calculateIobArrayForSMB(lastAutosensResult, SMBDefaults.exercise_mode, SMBDefaults.half_basal_exercise_target, isTempTarget)
@@ -292,6 +298,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
             }
         }
         rxBus.send(EventOpenAPSUpdateGui())
+        cleanShared()
     }
 
     override fun isSuperBolusEnabled(value: Constraint<Boolean>): Constraint<Boolean> {
@@ -333,8 +340,22 @@ open class OpenAPSSMBPlugin @Inject constructor(
     }
 
     override fun isSMBModeEnabled(value: Constraint<Boolean>): Constraint<Boolean> {
-        val enabled = sp.getBoolean(R.string.key_use_smb, false)
-        if (!enabled) value.set(false, rh.gs(R.string.smb_disabled_in_preferences), this)
+        if (!sp.getBoolean(R.string.key_use_smb, false)) value.set(false, rh.gs(R.string.smb_disabled_in_preferences), this)
+        else if (isNightModeActive()) value.set(false, rh.gs(app.aaps.core.ui.R.string.treatment_safety_night_mode_smb_disabled), this)
+        return value
+    }
+
+    private fun isNightModeActive() : Boolean {
+        val currentTimeMillis = System.currentTimeMillis()
+        val timeAligned = currentTimeMillis - (currentTimeMillis % 1000)
+        if (lastNigtModeRun >= timeAligned) return lastNigtModeResult
+
+        lastNigtModeResult = isNightModeActiveImpl()
+        lastNigtModeRun = timeAligned
+        return lastNigtModeResult
+    }
+
+    private fun isNightModeActiveImpl() : Boolean {
         val bgCurrent = verifyGlucoseStatusLoaded(true)?.glucose
         if (sp.getBoolean(app.aaps.core.utils.R.string.key_treatment_safety_night_mode_enabled, false) && bgCurrent != null) {
 
@@ -349,11 +370,11 @@ open class OpenAPSSMBPlugin @Inject constructor(
                 if (end > start) currentTimeMillis in start..<end
                 else (currentTimeMillis in (start - 86400000)..<end || currentTimeMillis in start..<(end + 86400000))
 
-            if (!active) return value
+            if (!active) return false
 
             if (sp.getBoolean(app.aaps.core.utils.R.string.key_treatment_safety_night_mode_disable_with_cob, false)) {
                 val mealData = verifyMealDataLoaded(true)
-                if (mealData.mealCOB > 0) return value
+                if (mealData.mealCOB > 0) return false
             }
 
             val profile = verifyProfileLoaded(true)
@@ -374,15 +395,14 @@ open class OpenAPSSMBPlugin @Inject constructor(
                         )
                 }
 
-                if (isTempTarget && targetBg < profileTarget) return value
+                if (isTempTarget && targetBg < profileTarget) return false
             }
 
             if (bgCurrent < profileTarget + bgOffset) {
-                value.set(false, rh.gs(app.aaps.core.ui.R.string.treatment_safety_night_mode_smb_disabled), this)
-                return value
+                return true
             }
         }
-        return value
+        return false
     }
 
     override fun isUAMEnabled(value: Constraint<Boolean>): Constraint<Boolean> {
@@ -394,6 +414,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
     override fun isAutosensModeEnabled(value: Constraint<Boolean>): Constraint<Boolean> {
         val enabled = sp.getBoolean(app.aaps.core.utils.R.string.key_use_autosens, false)
         if (!enabled) value.set(false, rh.gs(R.string.autosens_disabled_in_preferences), this)
+        else if (this is DynamicISFPlugin) value.set(false, rh.gs(R.string.autosens_disabled_in_dyn_isf), this)
         return value
     }
 

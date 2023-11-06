@@ -76,9 +76,4 @@ class OpenAPSSMBDynamicISFPlugin @Inject constructor(
 
     // If there is no TDD data fallback to SMB as ISF calculation may be really off
     override fun provideDetermineBasalAdapter(): DetermineBasalAdapter = DetermineBasalAdapterSMBDynamicISFJS(ScriptReader(context), injector)
-
-    override fun isAutosensModeEnabled(value: Constraint<Boolean>): Constraint<Boolean> {
-        value.set(false, rh.gs(R.string.autosens_disabled_in_dyn_isf), this)
-        return value
-    }
 }

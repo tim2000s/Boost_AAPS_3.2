@@ -1,6 +1,7 @@
 package app.aaps.implementation.stats
 
 import app.aaps.core.interfaces.aps.SMBDefaults
+import app.aaps.core.interfaces.iob.GlucoseStatus
 import app.aaps.core.interfaces.logging.ScriptLogger
 import app.aaps.core.interfaces.profile.Profile
 import app.aaps.core.interfaces.profile.ProfileUtil
@@ -24,7 +25,7 @@ class IsfCalculatorImpl @Inject constructor(
     private val jsLogger: ScriptLogger,
 ) : IsfCalculator {
 
-    override fun calculateAndSetToProfile(profile : Profile, insulinDivisor: Int, glucose: Double, isTempTarget: Boolean, profileJson: JSONObject?) : IsfCalculation {
+    override fun calculateAndSetToProfile(profile : Profile, insulinDivisor: Int, glucose: GlucoseStatus, isTempTarget: Boolean, profileJson: JSONObject?) : IsfCalculation {
 
         val autosensMax = SafeParse.stringToDouble(sp.getString(app.aaps.core.utils.R.string.key_openapsama_autosens_max, "1.2"))
         val autosensMin = SafeParse.stringToDouble(sp.getString(app.aaps.core.utils.R.string.key_openapsama_autosens_min, "0.7"))
@@ -43,29 +44,32 @@ class IsfCalculatorImpl @Inject constructor(
 
         val globalScale = 100.0 / if (profile is ProfileSealed.EPS) profile.value.originalPercentage else 100
 
+
         val sensBase = profile.getIsfMgdl()
         var sensNormalTarget = sensBase
         var variableSensitivity = sensNormalTarget
         var ratio = 1.0
+        val bgTarget = profile.getTargetMgdl()
         val bgCurrent =
-            if (useDynIsf && glucose > bgCap) bgCap + ((glucose - bgCap) / 3)
-            else glucose
+            if (useDynIsf && glucose.glucose > bgCap) bgCap + ((glucose.glucose - bgCap) / 3)
+            else glucose.glucose
 
         jsLogger.header("ISF Calculation")
 
-        jsLogger.debugUnits("BG current: %.2f", glucose)
+        jsLogger.debugUnits("BG current: %.2f", glucose.glucose)
         jsLogger.debugUnits("BG capped: %.2f", bgCurrent)
         jsLogger.debugUnits("ISF profile: %.2f", sensBase)
         if (globalScale != 1.0)
             jsLogger.debug("Profile scale: %.2f%%",100.0/globalScale)
+
 
         val result =
             if (!useDynIsf) {
                 jsLogger.debug("Dynamic ISF is disabled")
 
                 IsfCalculation(
-                    glucose,
-                    glucose,
+                    glucose.glucose,
+                    glucose.glucose,
                     Round.roundTo(sensNormalTarget, 0.1),
                     Round.roundTo(variableSensitivity, 0.1),
                     Round.roundTo(ratio, 0.1),
@@ -118,7 +122,6 @@ class IsfCalculatorImpl @Inject constructor(
                     else jsLogger.debug("tdd7D not found, falling back to profile sensNormalTarget of $sensNormalTarget")
                 }
 
-                val bgTarget = profile.getTargetMgdl()
                 if (isTempTarget && ((highTemptargetRaisesSensitivity && bgTarget > bgNormalTarget) || (lowTemptargetLowersSensitivity && bgTarget < bgNormalTarget))) {
                     val c = halfBasalTarget - bgNormalTarget
                     ratio = c / (c + bgTarget - bgNormalTarget)
@@ -137,7 +140,7 @@ class IsfCalculatorImpl @Inject constructor(
                 }
 
                 IsfCalculation(
-                    glucose,
+                    glucose.glucose,
                     bgCurrent,
                     Round.roundTo(sensNormalTarget, 0.1),
                     Round.roundTo(variableSensitivity, 0.1),
