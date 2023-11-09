@@ -221,7 +221,7 @@ var getIsfByProfile = function (bg, profile, useCap) {
         var activityMinBg = minBg
         var activityMaxBg = maxBg
         var activityTargetBg = targetBg
-        var profileSwitch = if (profile is ProfileSealed.EPS) profile.value.originalPercentage else 100.0
+        var profileSwitch = if (profile is ProfileSealed.EPS) profile.value.originalPercentage else 100
 
         if (boostActive && now in boostStart..<( boostStart + sleepInMillis ) && recentSteps60Minutes < sleep_in_steps) {
             boostActive = false
@@ -238,7 +238,7 @@ var getIsfByProfile = function (bg, profile, useCap) {
             if (activity) {
 
                 if (profileSwitch == 100) {
-                    profileSwitch = activity_pct
+                    profileSwitch = activity_pct.toInt()
                     jsLogger.debug("Profile changed to $activity_pct% due to activity")
                 }
                 if (!tempTargetSet) {
@@ -247,8 +247,8 @@ var getIsfByProfile = function (bg, profile, useCap) {
                     activityTargetBg = activityBgTarget
                     jsLogger.debugUnits("TargetBG changed to %.2f due to activity", activityTargetBg)
                 }
-            } else if (profileSwitch == 100 && recentSteps60Minutes < inactivity_steps && boostActive) {
-                profileSwitch = inactivity_pct
+            } else if (profileSwitch == 100 && recentSteps60Minutes < inactivity_steps) {
+                profileSwitch = inactivity_pct.toInt()
                 jsLogger.debug("Profile changed to $inactivity_pct% due to inactivity")
             }
         }
@@ -263,19 +263,20 @@ var getIsfByProfile = function (bg, profile, useCap) {
         this.profile.put("max_bg", activityMaxBg)
         this.profile.put("target_bg", activityTargetBg)
 
-        var effectiveProfile = profile
+        val profileScale = profileSwitch.toDouble() / 100.0
         if (profileSwitch != 100)
         {
-            val ps = profileFunction.buildCurrentProfileSwitch(0, profileSwitch.toInt(), 0)
-            if (ps != null) effectiveProfile = ProfileSealed.PS(ps)
-
-            val adjustedBasal = basalRate * (profileSwitch.toDouble() / 100.0)
+            val adjustedBasal = basalRate * profileScale
             this.profile.put("current_basal", adjustedBasal )
 
             jsLogger.debug("Basal adjusted to %.2f", adjustedBasal)
         }
 
-        val isf = isfCalculator.calculateAndSetToProfile(effectiveProfile, insulinDivisor, glucoseStatus, tempTargetSet, this.profile)
+        val isf = isfCalculator.calculateAndSetToProfile(
+            profile.getIsfMgdl() * profileScale,
+            profileSwitch,
+            targetBg,
+            insulinDivisor, glucoseStatus, tempTargetSet, this.profile)
 
         autosensData.put("ratio", isf.ratio)
         this.profile.put("normalTarget", normalTarget)

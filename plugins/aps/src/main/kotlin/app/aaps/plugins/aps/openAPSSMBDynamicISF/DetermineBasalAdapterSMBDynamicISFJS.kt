@@ -12,6 +12,7 @@ import app.aaps.core.interfaces.utils.SafeParse
 import app.aaps.core.main.extensions.convertedToAbsolute
 import app.aaps.core.main.extensions.getPassedDurationToTimeInMinutes
 import app.aaps.core.main.extensions.plannedRemainingMinutes
+import app.aaps.core.main.profile.ProfileSealed
 import app.aaps.plugins.aps.R
 import app.aaps.plugins.aps.openAPSSMB.DetermineBasalAdapterSMBJS
 import app.aaps.plugins.aps.utils.ScriptReader
@@ -146,7 +147,11 @@ var getIsfByProfile = function (bg, profile) {
             insulin.peak > 50 -> 65 // ultra rapid peak: 55
             else              -> 75 // rapid peak: 75
         }
-        val isf = isfCalculator.calculateAndSetToProfile(profile, insulinDivisor, glucoseStatus, tempTargetSet, this.profile)
+        val isf = isfCalculator.calculateAndSetToProfile(
+            profile.getIsfMgdl(),
+            if (profile is ProfileSealed.EPS) profile.value.originalPercentage else 100,
+            targetBg,
+            insulinDivisor, glucoseStatus, tempTargetSet, this.profile)
 
         autosensData.put("ratio", isf.ratio)
         this.profile.put("normalTarget", 99)
