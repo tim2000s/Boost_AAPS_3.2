@@ -111,6 +111,8 @@ data class UserEntry(
         EXIT_AAPS(ColorGroup.Aaps),
         PLUGIN_ENABLED(ColorGroup.Aaps),
         PLUGIN_DISABLED(ColorGroup.Aaps),
+        BOOST_ENABLED(ColorGroup.Aaps),
+        BOOST_DISABLED(ColorGroup.Aaps),
         UNKNOWN(ColorGroup.Aaps)
         ;
 
