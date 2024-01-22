@@ -29,7 +29,7 @@ Traditional Autosens is deprecated in this code and sensitivityRatio is calculat
 
 Boost uses a similar version of DynamicISF for making predictions, however, unlike the hardcoded quanta for the different values of insulin peak, when free-peak is used, it scales between the highest and lowest values.
 
-The ISF for dosing decisions within Boost is slighty different to thhat in DynamicISF. The calculation is intended to mimic the effects of higher insulin sensitivty at lower glucose levels, and runs as follows:
+The ISF for dosing decisions within Boost is slighty different to that in DynamicISF. The calculation is intended to mimic the effects of higher insulin sensitivty at lower glucose levels, and runs as follows:
 
 1. With COB and increasing deltas, use 75% of the predicted BG and 25% of the current BG.
 2. If current BG is accelerating fast, bg is below 180mg/dl/10mmol/l and eventual BG is higher than current, use 50% of both eventual and current BG.
